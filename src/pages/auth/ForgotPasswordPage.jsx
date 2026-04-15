@@ -15,8 +15,8 @@ export const ForgotPasswordPage = () => {
     try {
       await forgotPassword(email);
       setIsSubmitted(true);
-      setTimeout(() => navigate('/otp'), 2000);
-    } catch (err) {
+      setTimeout(() => navigate('/otp', { state: { email } }), 2000);
+    } catch {
       alert('Error sending reset link');
     }
   };

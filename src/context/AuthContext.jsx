@@ -103,6 +103,16 @@ export const AuthProvider = ({ children }) => {
     // Simulate sending OTP
   };
 
+  const resendOTP = async (email) => {
+    const targetEmail = email || state.user?.email;
+    if (!targetEmail) {
+      throw new Error('No email available for OTP resend');
+    }
+
+    // Simulate resend OTP request
+    return { success: true, message: 'OTP resent successfully.' };
+  };
+
   const resetPassword = async (_otp, _newPassword) => {
     // Simulate password reset
   };
@@ -116,6 +126,7 @@ export const AuthProvider = ({ children }) => {
       verifyOTP, 
       changePassword, 
       forgotPassword, 
+      resendOTP,
       resetPassword 
     }}>
       {children}
