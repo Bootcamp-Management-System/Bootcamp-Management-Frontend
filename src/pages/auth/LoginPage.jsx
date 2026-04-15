@@ -66,11 +66,8 @@ export const LoginPage = () => {
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5 ml-1">
+            <div className="mb-1.5 ml-1">
               <label className="block text-xs font-bold text-sage-500 uppercase">Password</label>
-              <Link to="/forgot-password" size="sm" className="text-[10px] font-bold text-sage-600 hover:text-sage-800 uppercase tracking-tighter">
-                Forgot Password?
-              </Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-sage-400" />
@@ -82,6 +79,11 @@ export const LoginPage = () => {
                 placeholder="••••••••"
                 className="w-full bg-sage-50 border border-sage-200 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-sage-500 transition-colors"
               />
+            </div>
+            <div className="mt-2 text-right">
+              <Link to="/forgot-password" size="sm" className="text-[10px] font-bold text-sage-600 hover:text-sage-800 uppercase tracking-tighter">
+                Forgot Password?
+              </Link>
             </div>
           </div>
 
