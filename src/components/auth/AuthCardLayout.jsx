@@ -28,7 +28,7 @@ export const AuthCardLayout = ({
           <img
             src={logoImage}
             alt="CSEC logo"
-            className="h-[76px] w-[76px] rounded-full border border-[#8b949e] object-cover shadow-[0_14px_30px_rgba(0,0,0,0.48)] sm:h-[100px] sm:w-[100px]"
+            className="h-[84px] w-[84px] rounded-full border border-[#8b949e] object-cover shadow-[0_14px_30px_rgba(0,0,0,0.48)] sm:h-[108px] sm:w-[108px]"
           />
           <h1 className={`text-2xl font-extrabold tracking-tight sm:text-3xl ${isDark ? 'text-[#f0f6fc]' : 'text-[#1f2328]'}`}>CSEC ASTU</h1>
         </div>

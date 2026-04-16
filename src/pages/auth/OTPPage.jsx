@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useFormik } from 'formik';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { otpSchema, zodToFormikErrors } from '../../validation/authSchemas';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
 
 const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
@@ -15,17 +17,46 @@ export const OTPPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState({ type: '', message: '' });
+  const [error, setError] = useState('');
   const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { verifyOTP, resendOTP, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const targetEmail = user?.email || location.state?.email || '';
+  const targetEmail = location.state?.email || user?.email || '';
+  const flowPurpose = location.state?.purpose || (user?.isFirstLogin ? 'first-login' : 'forgot-password');
 
-  useEffect(() => {
-    persistAuthTheme(theme);
-  }, [theme]);
+  const formik = useFormik({
+    initialValues: {
+      otp: '',
+    },
+    validate: (values) => {
+      const parsed = otpSchema.safeParse(values);
+      if (parsed.success) {
+        return {};
+      }
+
+      return zodToFormikErrors(parsed.error);
+    },
+    onSubmit: async (values, { setSubmitting }) => {
+      setError('');
+      try {
+        await verifyOTP(values.otp, targetEmail);
+
+        if (flowPurpose === 'first-login') {
+          navigate('/change-password', { state: { email: targetEmail, purpose: 'first-login' } });
+          return;
+        }
+
+        navigate('/change-password', { state: { email: targetEmail, purpose: 'forgot-password' } });
+      } catch (err) {
+        setError(err.message || 'Invalid OTP');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   useEffect(() => {
     if (!resendStatus.message) return undefined;
@@ -37,33 +68,26 @@ export const OTPPage = () => {
     return () => clearTimeout(timer);
   }, [resendStatus]);
 
+  useEffect(() => {
+    persistAuthTheme(theme);
+  }, [theme]);
+
   const handleChange = (element, index) => {
     if (isNaN(Number(element.value))) return false;
 
-    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+    const nextOtp = [...otp.map((d, idx) => (idx === index ? element.value : d))];
+    setOtp(nextOtp);
+    formik.setFieldValue('otp', nextOtp.join(''));
 
     if (element.nextSibling && element.value !== '') {
       element.nextSibling.focus();
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await verifyOTP(otp.join(''));
-      if (user?.isFirstLogin) {
-        navigate('/change-password');
-      } else {
-        navigate('/login');
-      }
-    } catch {
-      alert('Invalid OTP');
-    }
-  };
-
   const handleResendOTP = async () => {
     setIsResending(true);
     setResendStatus({ type: '', message: '' });
+    setError('');
 
     try {
       await resendOTP(targetEmail);
@@ -90,6 +114,15 @@ export const OTPPage = () => {
       showThemeToggle
       onThemeToggle={toggleTheme}
     >
+      <button
+        type="button"
+        onClick={() => navigate('/login')}
+        className={`mb-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDark ? 'text-[#8b949e] hover:text-[#e6edf3]' : 'text-[#57606a] hover:text-[#1f2328]'}`}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Login
+      </button>
+
       {resendStatus.message && (
         <div
           className={`mb-6 border px-4 py-3 text-sm font-semibold ${
@@ -108,7 +141,11 @@ export const OTPPage = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      {!targetEmail && (
+        <p className="mb-4 text-sm font-medium text-[#f85149]">Email session missing. Restart from login or forgot password.</p>
+      )}
+
+      <form onSubmit={formik.handleSubmit}>
         <div className="mb-8 flex justify-center gap-2 sm:gap-3">
           {otp.map((data, index) => (
             <input
@@ -123,13 +160,17 @@ export const OTPPage = () => {
           ))}
         </div>
 
+        {formik.errors.otp && <p className="mb-4 text-sm font-medium text-[#f85149]">{formik.errors.otp}</p>}
+        {error && <p className="mb-4 text-sm font-medium text-[#f85149]">{error}</p>}
+
         <button
           type="submit"
+          disabled={formik.isSubmitting || !targetEmail}
           className={`flex w-full items-center justify-center gap-2 px-4 py-3.5 text-base font-semibold text-white ${
             isDark ? 'bg-[#1f6feb] hover:bg-[#388bfd]' : 'bg-[#0969da] hover:bg-[#0550ae]'
-          }`}
+          } disabled:opacity-60 disabled:cursor-not-allowed`}
         >
-          Verify and Continue
+          {formik.isSubmitting ? 'Verifying...' : 'Verify and Continue'}
           <ArrowRight className="h-5 w-5" />
         </button>
       </form>

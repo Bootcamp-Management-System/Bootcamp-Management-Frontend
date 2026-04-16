@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useFormik } from 'formik';
 import { BadgeCheck, Mail, Lock, IdCard, UserPlus, ArrowLeft } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
+import { useAuth } from '../../context/AuthContext';
+import { signupSchema, zodToFormikErrors } from '../../validation/authSchemas';
 
 const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
 
@@ -11,44 +14,52 @@ const persistAuthTheme = (theme) => {
 };
 
 export const SignupPage = () => {
-  const [campusId, setCampusId] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const navigate = useNavigate();
+  const { signup } = useAuth();
+
+  const formik = useFormik({
+    initialValues: {
+      campusId: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validate: (values) => {
+      const parsed = signupSchema.safeParse(values);
+      if (parsed.success) {
+        return {};
+      }
+
+      return zodToFormikErrors(parsed.error);
+    },
+    onSubmit: async (values, { setSubmitting }) => {
+      setError('');
+      setSuccess('');
+
+      try {
+        await signup({
+          campusId: values.campusId.trim(),
+          email: values.email.trim().toLowerCase(),
+          password: values.password,
+        });
+        setSuccess('Account created successfully. Redirecting to login...');
+        setTimeout(() => navigate('/login'), 1200);
+      } catch (err) {
+        setError(err.message || 'Unable to create account.');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   useEffect(() => {
     persistAuthTheme(theme);
   }, [theme]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!campusId.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError('All fields are required.');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    setSuccess('Account created successfully. Redirecting to login...');
-    setTimeout(() => navigate('/login'), 1200);
-  };
 
   const inputClass = `w-full border px-11 py-3.5 text-base focus:outline-none ${
     isDark
@@ -74,20 +85,25 @@ export const SignupPage = () => {
         Back to Login
       </Link>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={formik.handleSubmit} className="space-y-5">
         <div>
           <label className={labelClass}>Astu Campus ID</label>
           <div className="relative">
             <IdCard className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
             <input
+              name="campusId"
               type="text"
               required
-              value={campusId}
-              onChange={(e) => setCampusId(e.target.value)}
+              value={formik.values.campusId}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder="ugr/12345/15"
               className={inputClass}
             />
           </div>
+          {formik.touched.campusId && formik.errors.campusId && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.campusId}</p>
+          )}
         </div>
 
         <div>
@@ -95,14 +111,19 @@ export const SignupPage = () => {
           <div className="relative">
             <Mail className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
             <input
+              name="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder="name@example.com"
               className={inputClass}
             />
           </div>
+          {formik.touched.email && formik.errors.email && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.email}</p>
+          )}
         </div>
 
         <div>
@@ -110,14 +131,19 @@ export const SignupPage = () => {
           <div className="relative">
             <Lock className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
             <input
+              name="password"
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder="••••••••"
               className={inputClass}
             />
           </div>
+          {formik.touched.password && formik.errors.password && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.password}</p>
+          )}
         </div>
 
         <div>
@@ -125,14 +151,19 @@ export const SignupPage = () => {
           <div className="relative">
             <BadgeCheck className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
             <input
+              name="confirmPassword"
               type="password"
               required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder="••••••••"
               className={inputClass}
             />
           </div>
+          {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.confirmPassword}</p>
+          )}
         </div>
 
         {error && <p className="text-sm font-medium text-[#f85149]">{error}</p>}
@@ -140,12 +171,13 @@ export const SignupPage = () => {
 
         <button
           type="submit"
+          disabled={formik.isSubmitting}
           className={`flex w-full items-center justify-center gap-2 px-4 py-3.5 text-base font-semibold text-white ${
             isDark ? 'bg-[#1f6feb] hover:bg-[#388bfd]' : 'bg-[#0969da] hover:bg-[#0550ae]'
-          }`}
+          } disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           <UserPlus className="h-5 w-5" />
-          Sign Up
+          {formik.isSubmitting ? 'Creating Account...' : 'Sign Up'}
         </button>
       </form>
     </AuthCardLayout>

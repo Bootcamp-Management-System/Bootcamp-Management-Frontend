@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useFormik } from 'formik';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
+import { loginSchema, zodToFormikErrors } from '../../validation/authSchemas';
 
 const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
 
@@ -12,14 +14,44 @@ const persistAuthTheme = (theme) => {
 };
 
 export const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { login, googleLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validate: (values) => {
+      const parsed = loginSchema.safeParse(values);
+      if (parsed.success) {
+        return {};
+      }
+
+      return zodToFormikErrors(parsed.error);
+    },
+    onSubmit: async (values, { setSubmitting }) => {
+      setError('');
+      try {
+        const result = await login(values.email.trim(), values.password);
+        if (result.requiresOtp) {
+          navigate('/otp', { state: { email: result.user.email, purpose: 'first-login' } });
+          return;
+        }
+
+        const role = result.user.role;
+        navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      } catch (err) {
+        setError(err.message || 'Invalid email or password');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   useEffect(() => {
     persistAuthTheme(theme);
@@ -31,22 +63,6 @@ export const LoginPage = () => {
       navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      await login(email, password);
-      if (email.includes('first')) {
-        navigate('/otp');
-      } else {
-        const role = email.includes('admin') ? 'admin' : email.includes('instructor') ? 'instructor' : 'member';
-        navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
-      }
-    } catch {
-      setError('Invalid email or password');
-    }
-  };
 
   const inputClass = `w-full border px-11 py-3.5 text-base focus:outline-none ${
     isDark
@@ -64,20 +80,25 @@ export const LoginPage = () => {
       showThemeToggle
       onThemeToggle={toggleTheme}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={formik.handleSubmit} className="space-y-5">
         <div>
           <label className={labelClass}>Email Address</label>
           <div className="relative">
             <Mail className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
             <input
+              name="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder="name@example.com"
               className={inputClass}
             />
           </div>
+          {formik.touched.email && formik.errors.email && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.email}</p>
+          )}
         </div>
 
         <div>
@@ -85,10 +106,12 @@ export const LoginPage = () => {
           <div className="relative">
             <Lock className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
             <input
+              name="password"
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder="••••••••"
               className={inputClass}
             />
@@ -102,18 +125,22 @@ export const LoginPage = () => {
               Forgot Password?
             </Link>
           </div>
+          {formik.touched.password && formik.errors.password && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.password}</p>
+          )}
         </div>
 
         {error && <p className="text-sm font-medium text-[#f85149]">{error}</p>}
 
         <button
           type="submit"
+          disabled={formik.isSubmitting}
           className={`mt-1 flex w-full items-center justify-center gap-2 px-4 py-3.5 text-base font-semibold text-white ${
             isDark ? 'bg-[#1f6feb] hover:bg-[#388bfd]' : 'bg-[#0969da] hover:bg-[#0550ae]'
-          }`}
+          } disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           <LogIn className="h-5 w-5" />
-          Sign In
+          {formik.isSubmitting ? 'Signing In...' : 'Sign In'}
         </button>
 
         <div className={`border px-4 py-3 text-center ${isDark ? 'border-[#30363d] bg-[#0d1117]' : 'border-[#d0d7de] bg-[#f6f8fa]'}`}>
