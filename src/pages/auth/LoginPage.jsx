@@ -115,6 +115,18 @@ export const LoginPage = () => {
           <LogIn className="h-5 w-5" />
           Sign In
         </button>
+
+        <div className={`border px-4 py-3 text-center ${isDark ? 'border-[#30363d] bg-[#0d1117]' : 'border-[#d0d7de] bg-[#f6f8fa]'}`}>
+          <p className={`text-sm ${isDark ? 'text-[#8b949e]' : 'text-[#57606a]'}`}>
+            New user?{' '}
+            <Link
+              to="/signup"
+              className={`font-semibold uppercase tracking-wide ${isDark ? 'text-[#2f81f7] hover:text-[#58a6ff]' : 'text-[#0969da] hover:text-[#0550ae]'}`}
+            >
+              Create Account
+            </Link>
+          </p>
+        </div>
       </form>
 
       <div className="relative my-6">

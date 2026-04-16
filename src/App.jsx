@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 
 // Auth Pages
 import { LoginPage } from './pages/auth/LoginPage';
+import { SignupPage } from './pages/auth/SignupPage';
 import { OTPPage } from './pages/auth/OTPPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -22,6 +23,7 @@ export default function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/otp" element={<OTPPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
