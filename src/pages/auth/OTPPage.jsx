@@ -4,18 +4,18 @@ import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
 
-const AUTH_THEME_KEY = 'auth_theme';
-const LEGACY_LOGIN_THEME_KEY = 'login_theme';
+const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
+
+const persistAuthTheme = (theme) => {
+  localStorage.setItem('auth_theme', theme);
+  localStorage.setItem('login_theme', theme);
+};
 
 export const OTPPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState({ type: '', message: '' });
-  const [theme, setTheme] = useState(() => {
-    const storedAuthTheme = localStorage.getItem(AUTH_THEME_KEY);
-    const legacyTheme = localStorage.getItem(LEGACY_LOGIN_THEME_KEY);
-    return storedAuthTheme || legacyTheme || 'dark';
-  });
+  const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { verifyOTP, resendOTP, user } = useAuth();
@@ -24,8 +24,7 @@ export const OTPPage = () => {
   const targetEmail = user?.email || location.state?.email || '';
 
   useEffect(() => {
-    localStorage.setItem(AUTH_THEME_KEY, theme);
-    localStorage.setItem(LEGACY_LOGIN_THEME_KEY, theme);
+    persistAuthTheme(theme);
   }, [theme]);
 
   useEffect(() => {

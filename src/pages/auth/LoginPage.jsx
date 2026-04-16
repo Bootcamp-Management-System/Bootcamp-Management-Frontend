@@ -4,26 +4,25 @@ import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
 
-const AUTH_THEME_KEY = 'auth_theme';
-const LEGACY_LOGIN_THEME_KEY = 'login_theme';
+const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
+
+const persistAuthTheme = (theme) => {
+  localStorage.setItem('auth_theme', theme);
+  localStorage.setItem('login_theme', theme);
+};
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [theme, setTheme] = useState(() => {
-    const storedAuthTheme = localStorage.getItem(AUTH_THEME_KEY);
-    const legacyTheme = localStorage.getItem(LEGACY_LOGIN_THEME_KEY);
-    return storedAuthTheme || legacyTheme || 'dark';
-  });
+  const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { login, googleLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.setItem(AUTH_THEME_KEY, theme);
-    localStorage.setItem(LEGACY_LOGIN_THEME_KEY, theme);
+    persistAuthTheme(theme);
   }, [theme]);
 
   useEffect(() => {
