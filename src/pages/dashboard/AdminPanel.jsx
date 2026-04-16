@@ -1,10 +1,7 @@
 import React from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { Shield, Users, BookOpen, BarChart3 } from 'lucide-react';
 
 export const AdminPanel = () => {
-  const { user } = useAuth();
-
   return (
     <div className="max-w-7xl mx-auto">
       <header className="mb-10">

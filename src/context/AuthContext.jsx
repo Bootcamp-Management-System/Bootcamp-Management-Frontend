@@ -1,32 +1,34 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(undefined);
 
-export const AuthProvider = ({ children }) => {
-  const [state, setState] = useState({
+const getInitialAuthState = () => {
+  const storedToken = localStorage.getItem('auth_token');
+  const storedUser = localStorage.getItem('auth_user');
+
+  if (storedToken && storedUser) {
+    return {
+      user: JSON.parse(storedUser),
+      token: storedToken,
+      isAuthenticated: true,
+      isLoading: false,
+    };
+  }
+
+  return {
     user: null,
     token: null,
     isAuthenticated: false,
-    isLoading: true,
-  });
+    isLoading: false,
+  };
+};
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
+export const AuthProvider = ({ children }) => {
+  const [state, setState] = useState(getInitialAuthState);
 
-    if (storedToken && storedUser) {
-      setState({
-        token: storedToken,
-        user: JSON.parse(storedUser),
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    } else {
-      setState(prev => ({ ...prev, isLoading: false }));
-    }
-  }, []);
-
-  const login = async (email, _password) => {
+  const login = async (email, password) => {
+    void password;
     setState(prev => ({ ...prev, isLoading: true }));
     
     const isFirstLogin = email.includes('first');
@@ -76,13 +78,15 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const verifyOTP = async (_otp) => {
+  const verifyOTP = async (otp) => {
+    void otp;
     if (state.user) {
       // Logic for OTP verification
     }
   };
 
-  const changePassword = async (_password) => {
+  const changePassword = async (password) => {
+    void password;
     if (state.user) {
       const updatedUser = { ...state.user, isFirstLogin: false };
       const mockToken = 'mock_jwt_token_after_first_login';
@@ -99,7 +103,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const forgotPassword = async (_email) => {
+  const forgotPassword = async (email) => {
+    void email;
     // Simulate sending OTP
   };
 
@@ -113,7 +118,9 @@ export const AuthProvider = ({ children }) => {
     return { success: true, message: 'OTP resent successfully.' };
   };
 
-  const resetPassword = async (_otp, _newPassword) => {
+  const resetPassword = async (otp, newPassword) => {
+    void otp;
+    void newPassword;
     // Simulate password reset
   };
 
