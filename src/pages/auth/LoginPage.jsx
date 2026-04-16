@@ -3,15 +3,28 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
-import { useAuthTheme } from './useAuthTheme';
+
+const AUTH_THEME_KEY = 'auth_theme';
+const LEGACY_LOGIN_THEME_KEY = 'login_theme';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { theme, isDark, toggleTheme } = useAuthTheme();
+  const [theme, setTheme] = useState(() => {
+    const storedAuthTheme = localStorage.getItem(AUTH_THEME_KEY);
+    const legacyTheme = localStorage.getItem(LEGACY_LOGIN_THEME_KEY);
+    return storedAuthTheme || legacyTheme || 'dark';
+  });
+  const isDark = theme === 'dark';
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { login, googleLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem(AUTH_THEME_KEY, theme);
+    localStorage.setItem(LEGACY_LOGIN_THEME_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     if (isAuthenticated && user) {

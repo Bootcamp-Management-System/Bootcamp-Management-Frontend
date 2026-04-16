@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
-import { useAuthTheme } from './useAuthTheme';
+
+const AUTH_THEME_KEY = 'auth_theme';
+const LEGACY_LOGIN_THEME_KEY = 'login_theme';
 
 export const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { theme, isDark, toggleTheme } = useAuthTheme();
+  const [theme, setTheme] = useState(() => {
+    const storedAuthTheme = localStorage.getItem(AUTH_THEME_KEY);
+    const legacyTheme = localStorage.getItem(LEGACY_LOGIN_THEME_KEY);
+    return storedAuthTheme || legacyTheme || 'dark';
+  });
+  const isDark = theme === 'dark';
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { forgotPassword } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem(AUTH_THEME_KEY, theme);
+    localStorage.setItem(LEGACY_LOGIN_THEME_KEY, theme);
+  }, [theme]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

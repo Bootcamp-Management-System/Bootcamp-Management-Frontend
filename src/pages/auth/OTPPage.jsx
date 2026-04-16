@@ -3,17 +3,30 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
-import { useAuthTheme } from './useAuthTheme';
+
+const AUTH_THEME_KEY = 'auth_theme';
+const LEGACY_LOGIN_THEME_KEY = 'login_theme';
 
 export const OTPPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState({ type: '', message: '' });
-  const { theme, isDark, toggleTheme } = useAuthTheme();
+  const [theme, setTheme] = useState(() => {
+    const storedAuthTheme = localStorage.getItem(AUTH_THEME_KEY);
+    const legacyTheme = localStorage.getItem(LEGACY_LOGIN_THEME_KEY);
+    return storedAuthTheme || legacyTheme || 'dark';
+  });
+  const isDark = theme === 'dark';
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { verifyOTP, resendOTP, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const targetEmail = user?.email || location.state?.email || '';
+
+  useEffect(() => {
+    localStorage.setItem(AUTH_THEME_KEY, theme);
+    localStorage.setItem(LEGACY_LOGIN_THEME_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     if (!resendStatus.message) return undefined;
