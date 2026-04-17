@@ -6,6 +6,12 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
 
+  const getRoleRedirectPath = (role) => {
+    if (role === 'superadmin' || role === 'admin') return '/admin';
+    if (role === 'instructor') return '/instructor';
+    return '/dashboard';
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-white">
@@ -23,8 +29,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    const redirectPath = user.role === 'admin' ? '/admin' : user.role === 'instructor' ? '/instructor' : '/dashboard';
-    return <Navigate to={redirectPath} replace />;
+    return <Navigate to={getRoleRedirectPath(user.role)} replace />;
   }
 
   return <>{children}</>;

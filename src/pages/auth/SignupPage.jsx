@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
-import { BadgeCheck, Mail, Lock, IdCard, UserPlus, ArrowLeft, Layers, MessageSquareText } from 'lucide-react';
+import { Mail, Lock, IdCard, UserPlus, ArrowLeft, UserRound } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { signupSchema, zodToFormikErrors } from '../../validation/authSchemas';
@@ -24,14 +24,10 @@ export const SignupPage = () => {
 
   const formik = useFormik({
     initialValues: {
+      fullName: '',
       campusId: '',
-      division: '',
       email: '',
       password: '',
-      confirmPassword: '',
-      motivation: '',
-      dedication: '',
-      whyDivision: '',
     },
     validate: (values) => {
       const parsed = signupSchema.safeParse(values);
@@ -47,16 +43,18 @@ export const SignupPage = () => {
 
       try {
         await signup({
+          fullName: values.fullName.trim(),
           campusId: values.campusId.trim(),
-          division: values.division,
           email: values.email.trim().toLowerCase(),
           password: values.password,
-          motivation: values.motivation.trim(),
-          dedication: values.dedication.trim(),
-          whyDivision: values.whyDivision.trim(),
         });
-        setSuccess('Registration complete. Verify OTP to continue.');
-        setTimeout(() => navigate('/verify-otp', { state: { email: values.email.trim().toLowerCase(), purpose: 'register' } }), 1000);
+        localStorage.setItem('prebootcamp_auth', JSON.stringify({
+          fullName: values.fullName.trim(),
+          campusId: values.campusId.trim(),
+          email: values.email.trim().toLowerCase(),
+        }));
+        setSuccess('Registration complete. Redirecting to task page...');
+        setTimeout(() => navigate('/prebootcamp/tasks'), 900);
       } catch (err) {
         setError(err.message || 'Unable to create account.');
       } finally {
@@ -95,6 +93,26 @@ export const SignupPage = () => {
 
       <form onSubmit={formik.handleSubmit} className="space-y-4">
         <div>
+          <label className={labelClass}>Full Name</label>
+          <div className="relative">
+            <UserRound className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
+            <input
+              name="fullName"
+              type="text"
+              required
+              value={formik.values.fullName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              placeholder="Your full name"
+              className={inputClass}
+            />
+          </div>
+          {formik.touched.fullName && formik.errors.fullName && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.fullName}</p>
+          )}
+        </div>
+
+        <div>
           <label className={labelClass}>Astu Campus ID</label>
           <div className="relative">
             <IdCard className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
@@ -111,30 +129,6 @@ export const SignupPage = () => {
           </div>
           {formik.touched.campusId && formik.errors.campusId && (
             <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.campusId}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Bootcamp Division</label>
-          <div className="relative">
-            <Layers className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <select
-              name="division"
-              required
-              value={formik.values.division}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className={inputClass}
-            >
-              <option value="">Select division</option>
-              <option value="CPD">CPD</option>
-              <option value="Data Science">Data Science</option>
-              <option value="Cybersecurity">Cybersecurity</option>
-              <option value="Development">Development</option>
-            </select>
-          </div>
-          {formik.touched.division && formik.errors.division && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.division}</p>
           )}
         </div>
 
@@ -175,86 +169,6 @@ export const SignupPage = () => {
           </div>
           {formik.touched.password && formik.errors.password && (
             <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.password}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Confirm Password</label>
-          <div className="relative">
-            <BadgeCheck className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <input
-              name="confirmPassword"
-              type="password"
-              required
-              value={formik.values.confirmPassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="••••••••"
-              className={inputClass}
-            />
-          </div>
-          {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.confirmPassword}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Motivation</label>
-          <div className="relative">
-            <MessageSquareText className={`pointer-events-none absolute left-5 top-5 h-5 w-5 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <textarea
-              name="motivation"
-              required
-              rows={3}
-              value={formik.values.motivation}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="Why are you applying for this bootcamp?"
-              className={inputClass.replace('px-12 py-3.5', 'py-3 pl-12 pr-4')}
-            />
-          </div>
-          {formik.touched.motivation && formik.errors.motivation && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.motivation}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Dedication Plan</label>
-          <div className="relative">
-            <MessageSquareText className={`pointer-events-none absolute left-5 top-5 h-5 w-5 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <textarea
-              name="dedication"
-              required
-              rows={3}
-              value={formik.values.dedication}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="How will you stay committed to your learning plan?"
-              className={inputClass.replace('px-12 py-3.5', 'py-3 pl-12 pr-4')}
-            />
-          </div>
-          {formik.touched.dedication && formik.errors.dedication && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.dedication}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Why This Division</label>
-          <div className="relative">
-            <MessageSquareText className={`pointer-events-none absolute left-5 top-5 h-5 w-5 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <textarea
-              name="whyDivision"
-              required
-              rows={3}
-              value={formik.values.whyDivision}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="What makes this division the best fit for you?"
-              className={inputClass.replace('px-12 py-3.5', 'py-3 pl-12 pr-4')}
-            />
-          </div>
-          {formik.touched.whyDivision && formik.errors.whyDivision && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.whyDivision}</p>
           )}
         </div>
 

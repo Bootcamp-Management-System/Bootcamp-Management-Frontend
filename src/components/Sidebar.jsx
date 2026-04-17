@@ -20,7 +20,7 @@ export const Sidebar = () => {
       { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     ];
 
-    if (user?.role === 'admin') {
+    if (user?.role === 'admin' || user?.role === 'superadmin') {
       return [
         ...base,
         { id: 'users', icon: Users, label: 'User Management' },

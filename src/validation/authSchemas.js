@@ -36,14 +36,15 @@ export const changePasswordSchema = z
 
 export const signupSchema = z
   .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(3, 'Full name must be at least 3 characters.'),
     campusId: z
       .string()
       .trim()
       .min(6, 'Campus ID is required.')
       .regex(/^UGR\/\d{3,8}\/\d{2}$/i, 'Campus ID must start with UGR format, for example UGR/12345/15.'),
-    division: z.enum(['CPD', 'Data Science', 'Cybersecurity', 'Development'], {
-      message: 'Please select a division.',
-    }),
     email: z.string().trim().email('Enter a valid email address.'),
     password: z
       .string()
@@ -51,15 +52,8 @@ export const signupSchema = z
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter.')
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter.')
       .regex(/\d/, 'Password must contain at least one number.'),
-    confirmPassword: z.string(),
-    motivation: z.string().trim().min(20, 'Motivation must be at least 20 characters.'),
-    dedication: z.string().trim().min(20, 'Dedication plan must be at least 20 characters.'),
-    whyDivision: z.string().trim().min(20, 'Why this division must be at least 20 characters.'),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match.',
-    path: ['confirmPassword'],
-  });
+;
 
 export const zodToFormikErrors = (error) => {
   const formikErrors = {};

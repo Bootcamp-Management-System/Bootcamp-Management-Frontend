@@ -6,6 +6,12 @@ const DEFAULT_PASSWORD = 'Password123';
 const DEMO_OTP = '123456';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,100}$/;
+const DEMO_LOGIN_EMAILS = new Set([
+  'superadmin@bms.com',
+  'admin@bms.com',
+  'instructor@bms.com',
+  'student@bms.com',
+]);
 
 const wait = (ms = 350) =>
   new Promise((resolve) => {
@@ -58,6 +64,18 @@ const tokenFor = () => `mock_jwt_${Math.random().toString(36).slice(2, 12)}`;
 
 const seedUsers = () => [
   {
+    id: '0',
+    campusId: 'UGR/10000/15',
+    name: 'superadmin',
+    email: 'superadmin@bms.com',
+    role: 'superadmin',
+    division: 'CPD',
+    password: DEFAULT_PASSWORD,
+    isVerified: true,
+    approvalStatus: 'approved',
+    requiresPasswordChange: false,
+  },
+  {
     id: '1',
     campusId: 'UGR/11111/15',
     name: 'admin',
@@ -84,9 +102,9 @@ const seedUsers = () => [
   {
     id: '3',
     campusId: 'UGR/33333/15',
-    name: 'member',
-    email: 'member@bms.com',
-    role: 'member',
+    name: 'student',
+    email: 'student@bms.com',
+    role: 'student',
     division: 'Cybersecurity',
     password: DEFAULT_PASSWORD,
     isVerified: true,
@@ -107,6 +125,36 @@ const seedUsers = () => [
   },
 ];
 
+const ensureDemoUsers = (users) => {
+  const seededUsers = seedUsers();
+  const requiredDemoUsers = seededUsers.slice(0, 4);
+  const existingByEmail = new Set(users.map((user) => String(user.email || '').toLowerCase()));
+  const nextUsers = users.map((user) => {
+    const normalizedEmail = String(user.email || '').toLowerCase();
+
+    if (DEMO_LOGIN_EMAILS.has(normalizedEmail) && (!user.isVerified || user.approvalStatus !== 'approved')) {
+      return {
+        ...user,
+        isVerified: true,
+        approvalStatus: 'approved',
+      };
+    }
+
+    return user;
+  });
+
+  const missingDemoUsers = requiredDemoUsers.filter((user) => !existingByEmail.has(user.email.toLowerCase()));
+
+  if (missingDemoUsers.length === 0 && nextUsers.length === users.length) {
+    return { users, changed: false };
+  }
+
+  return {
+    users: [...nextUsers, ...missingDemoUsers],
+    changed: true,
+  };
+};
+
 const getUsers = () => {
   const raw = localStorage.getItem(USERS_KEY);
   if (!raw) {
@@ -116,7 +164,14 @@ const getUsers = () => {
   }
 
   try {
-    return JSON.parse(raw);
+    const parsedUsers = JSON.parse(raw);
+    const { users: migratedUsers, changed } = ensureDemoUsers(Array.isArray(parsedUsers) ? parsedUsers : []);
+
+    if (changed) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(migratedUsers));
+    }
+
+    return migratedUsers;
   } catch {
     const initialUsers = seedUsers();
     localStorage.setItem(USERS_KEY, JSON.stringify(initialUsers));
@@ -219,7 +274,7 @@ export const authService = {
       return fail('Account not found for this email.', 404);
     }
 
-    if (!user.isVerified) {
+    if (!user.isVerified && !DEMO_LOGIN_EMAILS.has(normalizedEmail)) {
       return fail('Please verify your email first.', 403);
     }
 
@@ -242,7 +297,7 @@ export const authService = {
 
   async googleLogin() {
     const users = getUsers();
-    const user = users.find((item) => item.email === 'member@bms.com') || users[0];
+    const user = users.find((item) => item.email === 'student@bms.com') || users[0];
 
     const response = await makeResponse({
       user: publicUser(user),
@@ -270,14 +325,11 @@ export const authService = {
     const newUser = {
       id: String(Date.now()),
       campusId: payload.campusId,
-      name: normalizedEmail.split('@')[0],
+      name: payload.fullName || normalizedEmail.split('@')[0],
       email: normalizedEmail,
-      role: 'member',
-      division: payload.division,
+      role: 'student',
+      division: 'Pre-Bootcamp',
       password: payload.password,
-      motivation: payload.motivation,
-      dedication: payload.dedication,
-      whyDivision: payload.whyDivision,
       isVerified: false,
       approvalStatus: 'pending',
       requiresPasswordChange: false,

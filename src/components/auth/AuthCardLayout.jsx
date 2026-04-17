@@ -10,6 +10,7 @@ export const AuthCardLayout = ({
   theme = 'dark',
   showThemeToggle = false,
   onThemeToggle,
+  hideBrand = false,
 }) => {
   const isDark = theme === 'dark';
 
@@ -20,16 +21,18 @@ export const AuthCardLayout = ({
       <div className={`pointer-events-none absolute inset-0 ${isDark ? 'bg-[radial-gradient(circle_at_20%_0%,rgba(55,182,201,0.2),transparent_45%)]' : 'bg-[radial-gradient(circle_at_20%_0%,rgba(55,182,201,0.12),transparent_45%)]'}`} />
 
       <div className={`relative mx-auto w-full ${compact ? 'max-w-[480px]' : 'max-w-[600px]'}`}>
-        <div className="mb-4 flex items-center justify-center gap-4">
-          <div className={`h-14 w-14 rounded-full border p-0.5 ${isDark ? 'border-[#2c3f67] bg-[#0a1538]' : 'border-[#c5c9d0] bg-white'}`}>
-            <img
-              src={csecLogo}
-              alt="CSEC logo"
-              className="h-full w-full rounded-full object-cover"
-            />
+        {!hideBrand && (
+          <div className="mb-4 flex items-center justify-center gap-4">
+            <div className={`h-16 w-16 rounded-full border p-0.5 sm:h-20 sm:w-20 ${isDark ? 'border-[#2c3f67] bg-[#0a1538]' : 'border-[#c5c9d0] bg-white'}`}>
+              <img
+                src={csecLogo}
+                alt="CSEC logo"
+                className="h-full w-full rounded-full object-cover"
+              />
+            </div>
+            <h1 className={`text-4xl font-black tracking-tight sm:text-5xl ${isDark ? 'text-[#f4f7ff]' : 'text-[#14203b]'}`}>CSEC ASTU</h1>
           </div>
-          <h1 className={`text-3xl font-black tracking-tight sm:text-4xl ${isDark ? 'text-[#f4f7ff]' : 'text-[#14203b]'}`}>CSEC Bootcamp</h1>
-        </div>
+        )}
 
         <section
           className={`relative rounded-[24px] border ${compact ? 'p-5 sm:p-6' : 'p-6 sm:p-7'} ${

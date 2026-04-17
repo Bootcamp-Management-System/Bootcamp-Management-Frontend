@@ -12,6 +12,8 @@ import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { WaitingApprovalPage } from './pages/auth/WaitingApprovalPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { PreBootcampLoginPage } from './pages/auth/PreBootcampLoginPage';
+import { PreBootcampTaskPage } from './pages/auth/PreBootcampTaskPage';
 
 // Dashboard Pages
 import { MemberDashboard } from './pages/dashboard/MemberDashboard';
@@ -34,12 +36,14 @@ export default function App() {
           <Route path="/force-change-password" element={<ChangePasswordPage />} />
           <Route path="/change-password" element={<Navigate to="/force-change-password" replace />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/prebootcamp-login" element={<PreBootcampLoginPage />} />
+          <Route path="/prebootcamp/tasks" element={<PreBootcampTaskPage />} />
 
           {/* Protected Routes */}
           <Route 
             path="/dashboard" 
             element={
-              <ProtectedRoute allowedRoles={['member']}>
+              <ProtectedRoute allowedRoles={['member', 'student']}>
                 <Layout>
                   <MemberDashboard />
                 </Layout>
@@ -61,7 +65,7 @@ export default function App() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                 <Layout>
                   <AdminPanel />
                 </Layout>
