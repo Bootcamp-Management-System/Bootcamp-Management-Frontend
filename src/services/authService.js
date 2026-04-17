@@ -43,6 +43,7 @@ const fail = async (message, status = 400) => {
 };
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+const isDemoLoginEmail = (email) => DEMO_LOGIN_EMAILS.has(normalizeEmail(email));
 
 const ensureValidEmail = async (email) => {
   if (!EMAIL_REGEX.test(normalizeEmail(email))) {
@@ -254,6 +255,8 @@ const publicUser = (user) => ({
   campusId: user.campusId,
 });
 
+const getSeedUserByEmail = (email) => seedUsers().find((user) => user.email.toLowerCase() === normalizeEmail(email)) || null;
+
 export const authService = {
   async login({ email, password }) {
     await ensureValidEmail(email);
@@ -270,6 +273,26 @@ export const authService = {
     const normalizedEmail = normalizeEmail(email);
     const user = users.find((item) => item.email.toLowerCase() === normalizedEmail);
 
+    if (DEMO_LOGIN_EMAILS.has(normalizedEmail)) {
+      const demoUser = user || getSeedUserByEmail(normalizedEmail);
+
+      if (!demoUser) {
+        return fail('Account not found for this email.', 404);
+      }
+
+      const response = await makeResponse({
+        user: publicUser({
+          ...demoUser,
+          isVerified: true,
+          approvalStatus: 'approved',
+        }),
+        token: tokenFor(),
+        requiresPasswordChange: false,
+      });
+
+      return response.data;
+    }
+
     if (!user) {
       return fail('Account not found for this email.', 404);
     }
@@ -278,7 +301,7 @@ export const authService = {
       return fail('Please verify your email first.', 403);
     }
 
-    if (user.approvalStatus !== 'approved') {
+    if (user.approvalStatus !== 'approved' && !isDemoLoginEmail(normalizedEmail)) {
       return fail('Your application is still pending admin approval.', 403);
     }
 

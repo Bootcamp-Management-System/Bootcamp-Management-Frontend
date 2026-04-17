@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useDashboardTheme } from '../context/DashboardThemeContext';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,6 +15,7 @@ import {
 
 export const Sidebar = () => {
   const { user, logout } = useAuth();
+  const { isDark } = useDashboardTheme();
 
   const getNavItems = () => {
     const base = [
@@ -46,15 +48,15 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 bg-sage-50 border-r border-sage-200 flex flex-col shrink-0">
+    <aside className={`w-64 flex shrink-0 flex-col border-r ${isDark ? 'border-[#30363d] bg-[#161b22]' : 'border-[#d0d7de] bg-white'}`}>
       <div className="p-6 flex-1 flex flex-col">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-sage-500 rounded-xl flex items-center justify-center shadow-lg shadow-sage-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#37b6c9] shadow-lg shadow-[#37b6c9]/20">
             <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-none">CSEC BMS</h1>
-            <p className="text-[10px] text-sage-500 mt-1 uppercase tracking-widest font-bold">{user?.role} Panel</p>
+            <h1 className={`text-lg font-bold leading-none ${isDark ? 'text-[#f0f6fc]' : 'text-[#1f2328]'}`}>CSEC BMS</h1>
+            <p className={`mt-1 text-[10px] uppercase tracking-widest font-bold ${isDark ? 'text-[#8b949e]' : 'text-[#57606a]'}`}>{user?.role} Panel</p>
           </div>
         </div>
 
@@ -62,23 +64,23 @@ export const Sidebar = () => {
           {getNavItems().map((item) => (
             <button
               key={item.id}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group text-sage-600 hover:bg-sage-100 hover:text-sage-900"
+              className={`group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${isDark ? 'text-[#c9d1d9] hover:bg-[#0d1117] hover:text-[#f0f6fc]' : 'text-[#57606a] hover:bg-[#f6f8fa] hover:text-[#1f2328]'}`}
             >
               <item.icon className="w-5 h-5" />
               <span>{item.label}</span>
-              <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ChevronRight className="ml-auto w-4 h-4 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
           ))}
         </nav>
 
-        <div className="mt-6 pt-6 border-t border-sage-200 space-y-1">
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-sage-500 hover:text-sage-900 transition-colors">
+        <div className={`mt-6 space-y-1 border-t pt-6 ${isDark ? 'border-[#30363d]' : 'border-[#d0d7de]'}`}>
+          <button className={`flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors ${isDark ? 'text-[#8b949e] hover:text-[#f0f6fc]' : 'text-[#57606a] hover:text-[#1f2328]'}`}>
             <Settings className="w-5 h-5" />
             Settings
           </button>
           <button 
             onClick={logout}
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:text-red-600 transition-colors"
+            className="flex w-full items-center gap-3 px-4 py-2 text-sm text-[#f85149] transition-colors hover:text-[#da3633]"
           >
             <LogOut className="w-5 h-5" />
             Logout
