@@ -26,10 +26,10 @@ export const ForgotPasswordPage = () => {
     persistAuthTheme(theme);
   }, [theme]);
 
-  const inputClass = `w-full border px-11 py-3.5 text-base focus:outline-none ${
+  const inputClass = `w-full rounded-[18px] border px-12 py-3.5 text-base font-medium transition focus:outline-none ${
     isDark
-      ? 'border-[#30363d] bg-[#0d1117] text-[#e6edf3] placeholder:text-[#6e7681] focus:border-[#2f81f7]'
-      : 'border-[#d0d7de] bg-white text-[#1f2328] placeholder:text-[#8c959f] focus:border-[#0969da]'
+      ? 'border-[#1f3158] bg-[#031037] text-[#edf3ff] placeholder:text-[#7b8cae] focus:border-[#37b6c9]'
+      : 'border-[#bcc2cc] bg-[#f4f5f7] text-[#1b2540] placeholder:text-[#7e8798] focus:border-[#37b6c9]'
   }`;
 
   const formik = useFormik({
@@ -49,7 +49,7 @@ export const ForgotPasswordPage = () => {
       try {
         const payload = await forgotPassword(values.email.trim().toLowerCase());
         setIsSubmitted(true);
-        setTimeout(() => navigate('/otp', { state: { email: payload.email, purpose: 'forgot-password' } }), 1500);
+        setTimeout(() => navigate('/verify-otp', { state: { email: payload.email, purpose: 'forgot-password' } }), 1500);
       } catch (err) {
         setError(err.message || 'Error sending reset code');
       } finally {
@@ -68,18 +68,18 @@ export const ForgotPasswordPage = () => {
     >
       <Link
         to="/login"
-        className={`mb-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDark ? 'text-[#8b949e] hover:text-[#e6edf3]' : 'text-[#57606a] hover:text-[#1f2328]'}`}
+        className={`mb-6 inline-flex items-center gap-2 text-sm font-semibold transition ${isDark ? 'text-[#a3b0cb] hover:text-[#e6efff]' : 'text-[#5f6f8f] hover:text-[#1c2844]'}`}
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Login
       </Link>
 
       {!isSubmitted ? (
-        <form onSubmit={formik.handleSubmit} className="space-y-6">
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
           <div>
-            <label className={`mb-2 block text-sm font-semibold uppercase tracking-wide ${isDark ? 'text-[#8b949e]' : 'text-[#57606a]'}`}>Email Address</label>
+            <label className={`mb-2 block text-sm font-semibold ${isDark ? 'text-[#e7eeff]' : 'text-[#1c2742]'}`}>Email</label>
             <div className="relative">
-              <Mail className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
+              <Mail className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
               <input
                 name="email"
                 type="email"
@@ -100,21 +100,19 @@ export const ForgotPasswordPage = () => {
           <button
             type="submit"
             disabled={formik.isSubmitting}
-            className={`flex w-full items-center justify-center gap-2 px-4 py-3.5 text-base font-semibold text-white ${
-              isDark ? 'bg-[#1f6feb] hover:bg-[#388bfd]' : 'bg-[#0969da] hover:bg-[#0550ae]'
-            } disabled:opacity-60 disabled:cursor-not-allowed`}
+            className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {formik.isSubmitting ? 'Sending...' : 'Send Reset Code'}
             <Send className="h-5 w-5" />
           </button>
         </form>
       ) : (
-        <div className={`border px-6 py-8 text-center ${isDark ? 'border-[#30363d] bg-[#0d1117]' : 'border-[#d0d7de] bg-[#f6f8fa]'}`}>
-          <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center border ${isDark ? 'border-[#30363d] bg-[#161b22]' : 'border-[#d0d7de] bg-white'}`}>
-            <Send className={`h-6 w-6 ${isDark ? 'text-[#2f81f7]' : 'text-[#0969da]'}`} />
+        <div className={`rounded-2xl border px-5 py-6 text-center ${isDark ? 'border-[#1f3158] bg-[#031037]' : 'border-[#bcc2cc] bg-[#f4f5f7]'}`}>
+          <div className={`mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border ${isDark ? 'border-[#1f3158] bg-[#051641]' : 'border-[#bcc2cc] bg-white'}`}>
+            <Send className="h-5 w-5 text-[#37b6c9]" />
           </div>
-          <p className={`text-lg font-semibold ${isDark ? 'text-[#f0f6fc]' : 'text-[#1f2328]'}`}>Check your inbox</p>
-          <p className={`mt-2 text-base ${isDark ? 'text-[#8b949e]' : 'text-[#57606a]'}`}>A reset code has been sent. Redirecting to OTP...</p>
+          <p className={`text-base font-semibold ${isDark ? 'text-[#f0f6fc]' : 'text-[#1f2328]'}`}>Check your inbox</p>
+          <p className={`mt-2 text-sm ${isDark ? 'text-[#9aa7c4]' : 'text-[#4d5b78]'}`}>A reset code has been sent. Redirecting to OTP...</p>
         </div>
       )}
     </AuthCardLayout>

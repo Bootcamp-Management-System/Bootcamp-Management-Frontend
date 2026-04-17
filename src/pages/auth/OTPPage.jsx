@@ -21,11 +21,11 @@ export const OTPPage = () => {
   const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  const { verifyOTP, resendOTP, user } = useAuth();
+  const { verifyOTP, resendOTP, user, otpSession } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const targetEmail = location.state?.email || user?.email || '';
-  const flowPurpose = location.state?.purpose || (user?.isFirstLogin ? 'first-login' : 'forgot-password');
+  const targetEmail = location.state?.email || otpSession?.email || user?.email || '';
+  const flowPurpose = location.state?.purpose || otpSession?.purpose || 'forgot-password';
 
   const formik = useFormik({
     initialValues: {
@@ -42,14 +42,14 @@ export const OTPPage = () => {
     onSubmit: async (values, { setSubmitting }) => {
       setError('');
       try {
-        await verifyOTP(values.otp, targetEmail);
+        await verifyOTP(values.otp, targetEmail, flowPurpose);
 
-        if (flowPurpose === 'first-login') {
-          navigate('/change-password', { state: { email: targetEmail, purpose: 'first-login' } });
+        if (flowPurpose === 'register') {
+          navigate('/waiting-approval', { state: { email: targetEmail } });
           return;
         }
 
-        navigate('/change-password', { state: { email: targetEmail, purpose: 'forgot-password' } });
+        navigate('/reset-password', { state: { email: targetEmail, purpose: 'forgot-password' } });
       } catch (err) {
         setError(err.message || 'Invalid OTP');
       } finally {
@@ -90,7 +90,7 @@ export const OTPPage = () => {
     setError('');
 
     try {
-      await resendOTP(targetEmail);
+      await resendOTP(targetEmail, flowPurpose);
       setOtp(['', '', '', '', '', '']);
       setResendStatus({ type: 'success', message: 'OTP resent successfully.' });
     } catch {
@@ -100,10 +100,10 @@ export const OTPPage = () => {
     }
   };
 
-  const otpInputClass = `h-14 w-12 border text-center text-2xl font-semibold focus:outline-none sm:h-16 sm:w-14 ${
+  const otpInputClass = `h-12 w-10 rounded-2xl border text-center text-xl font-semibold transition focus:outline-none sm:h-14 sm:w-12 ${
     isDark
-      ? 'border-[#30363d] bg-[#0d1117] text-[#e6edf3] focus:border-[#2f81f7]'
-      : 'border-[#d0d7de] bg-white text-[#1f2328] focus:border-[#0969da]'
+      ? 'border-[#1f3158] bg-[#031037] text-[#edf3ff] focus:border-[#37b6c9]'
+      : 'border-[#bcc2cc] bg-[#f4f5f7] text-[#1b2540] focus:border-[#37b6c9]'
   }`;
 
   return (
@@ -117,7 +117,7 @@ export const OTPPage = () => {
       <button
         type="button"
         onClick={() => navigate('/login')}
-        className={`mb-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDark ? 'text-[#8b949e] hover:text-[#e6edf3]' : 'text-[#57606a] hover:text-[#1f2328]'}`}
+        className={`mb-6 inline-flex items-center gap-2 text-sm font-semibold transition ${isDark ? 'text-[#a3b0cb] hover:text-[#e6efff]' : 'text-[#5f6f8f] hover:text-[#1c2844]'}`}
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Login
@@ -125,19 +125,19 @@ export const OTPPage = () => {
 
       {resendStatus.message && (
         <div
-          className={`mb-6 border px-4 py-3 text-sm font-semibold ${
+          className={`mb-6 rounded-xl border px-4 py-3 text-sm font-semibold ${
             resendStatus.type === 'success'
-              ? 'border-[#238636] bg-[#0f271a] text-[#3fb950]'
-              : 'border-[#da3633] bg-[#2d1111] text-[#f85149]'
+              ? 'border-[#238636] bg-[#0f271a] text-[#52db79]'
+              : 'border-[#da3633] bg-[#2d1111] text-[#ff6a66]'
           }`}
         >
           {resendStatus.message}
         </div>
       )}
 
-      <div className="mb-8 flex justify-center">
-        <div className={`flex h-12 w-12 items-center justify-center border ${isDark ? 'border-[#30363d] bg-[#0d1117]' : 'border-[#d0d7de] bg-white'}`}>
-          <ShieldCheck className={`h-6 w-6 ${isDark ? 'text-[#2f81f7]' : 'text-[#0969da]'}`} />
+      <div className="mb-6 flex justify-center">
+        <div className={`flex h-12 w-12 items-center justify-center rounded-full border ${isDark ? 'border-[#1f3158] bg-[#031037]' : 'border-[#bcc2cc] bg-[#f4f5f7]'}`}>
+          <ShieldCheck className="h-5 w-5 text-[#37b6c9]" />
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export const OTPPage = () => {
       )}
 
       <form onSubmit={formik.handleSubmit}>
-        <div className="mb-8 flex justify-center gap-2 sm:gap-3">
+        <div className="mb-6 flex justify-center gap-2 sm:gap-3">
           {otp.map((data, index) => (
             <input
               key={index}
@@ -166,25 +166,23 @@ export const OTPPage = () => {
         <button
           type="submit"
           disabled={formik.isSubmitting || !targetEmail}
-          className={`flex w-full items-center justify-center gap-2 px-4 py-3.5 text-base font-semibold text-white ${
-            isDark ? 'bg-[#1f6feb] hover:bg-[#388bfd]' : 'bg-[#0969da] hover:bg-[#0550ae]'
-          } disabled:opacity-60 disabled:cursor-not-allowed`}
+          className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {formik.isSubmitting ? 'Verifying...' : 'Verify and Continue'}
           <ArrowRight className="h-5 w-5" />
         </button>
       </form>
 
-      <div className={`mt-8 border-t pt-6 text-center ${isDark ? 'border-[#30363d]' : 'border-[#d8dee4]'}`}>
-        <p className={`text-base ${isDark ? 'text-[#8b949e]' : 'text-[#57606a]'}`}>Didn't receive the code?</p>
+      <div className={`mt-6 border-t pt-5 text-center ${isDark ? 'border-[#1f3158]' : 'border-[#bfc4cd]'}`}>
+        <p className={`text-sm ${isDark ? 'text-[#a1aecb]' : 'text-[#5f6f8f]'}`}>Didn't receive the code?</p>
         <button
           type="button"
           onClick={handleResendOTP}
           disabled={isResending}
-          className={`mt-2 text-base font-semibold disabled:cursor-not-allowed ${
+          className={`mt-2 text-sm font-semibold transition disabled:cursor-not-allowed ${
             isDark
-              ? 'text-[#2f81f7] hover:text-[#58a6ff] disabled:text-[#6e7681]'
-              : 'text-[#0969da] hover:text-[#0550ae] disabled:text-[#8c959f]'
+              ? 'text-[#d9e7ff] hover:text-white disabled:text-[#6e7f9e]'
+              : 'text-[#223257] hover:text-[#121a33] disabled:text-[#8c95a7]'
           }`}
         >
           {isResending ? 'Resending...' : 'Resend OTP'}

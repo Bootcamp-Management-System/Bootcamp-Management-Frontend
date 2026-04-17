@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
-import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, KeyRound, Lock, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Lock, KeyRound } from 'lucide-react';
 import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
 import { changePasswordSchema, zodToFormikErrors } from '../../validation/authSchemas';
+import { useAuth } from '../../context/AuthContext';
 
 const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
 
@@ -13,15 +13,20 @@ const persistAuthTheme = (theme) => {
   localStorage.setItem('login_theme', theme);
 };
 
-export const ChangePasswordPage = () => {
+export const ResetPasswordPage = () => {
   const [error, setError] = useState('');
   const [theme, setTheme] = useState(getAuthTheme);
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  const { changePassword, user, forcePasswordSession } = useAuth();
+
+  const { resetPassword, otpSession } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const targetEmail = location.state?.email || forcePasswordSession?.email || user?.email || '';
+  const targetEmail = location.state?.email || otpSession?.email || '';
+
+  useEffect(() => {
+    persistAuthTheme(theme);
+  }, [theme]);
 
   const formik = useFormik({
     initialValues: {
@@ -38,22 +43,16 @@ export const ChangePasswordPage = () => {
     },
     onSubmit: async (values, { setSubmitting }) => {
       setError('');
-
       try {
-        const response = await changePassword(values.password, targetEmail);
-        const role = response.user?.role || user?.role || 'member';
-        navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+        await resetPassword(values.password, targetEmail);
+        navigate('/login');
       } catch (err) {
-        setError(err.message || 'Failed to update password');
+        setError(err.message || 'Failed to reset password');
       } finally {
         setSubmitting(false);
       }
     },
   });
-
-  useEffect(() => {
-    persistAuthTheme(theme);
-  }, [theme]);
 
   const inputClass = `w-full rounded-[18px] border px-12 py-3.5 text-base font-medium transition focus:outline-none ${
     isDark
@@ -63,8 +62,8 @@ export const ChangePasswordPage = () => {
 
   return (
     <AuthCardLayout
-      title="Force Change Password"
-      subtitle="Temporary credentials detected. Set a new password to continue"
+      title="Reset Password"
+      subtitle="Set a new password for your account"
       theme={theme}
       showThemeToggle
       onThemeToggle={toggleTheme}
@@ -124,6 +123,9 @@ export const ChangePasswordPage = () => {
           )}
         </div>
 
+        {!targetEmail && <p className="text-sm font-medium text-[#f85149]">OTP reset session missing. Start from forgot password.</p>}
+        {error && <p className="text-sm font-medium text-[#f85149]">{error}</p>}
+
         <div className={`rounded-2xl border px-4 py-3 ${isDark ? 'border-[#1f3158] bg-[#031037]' : 'border-[#bcc2cc] bg-[#f4f5f7]'}`}>
           <p className={`mb-2 text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-[#a5b2cd]' : 'text-[#596a8a]'}`}>Requirements</p>
           <div className="space-y-1.5">
@@ -138,15 +140,12 @@ export const ChangePasswordPage = () => {
           </div>
         </div>
 
-        {!targetEmail && <p className="text-sm font-medium text-[#f85149]">Email session is missing. Restart from login or forgot password.</p>}
-        {error && <p className="text-sm font-medium text-[#f85149]">{error}</p>}
-
         <button
           type="submit"
           disabled={formik.isSubmitting || !targetEmail}
           className="flex w-full items-center justify-center rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {formik.isSubmitting ? 'Updating...' : 'Update Password'}
+          {formik.isSubmitting ? 'Resetting...' : 'Reset Password'}
         </button>
       </form>
     </AuthCardLayout>

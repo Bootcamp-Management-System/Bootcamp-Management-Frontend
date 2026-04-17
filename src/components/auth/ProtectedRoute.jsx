@@ -18,8 +18,8 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (user?.isFirstLogin) {
-    return <Navigate to="/otp" replace />;
+  if (user?.requiresPasswordChange) {
+    return <Navigate to="/force-change-password" replace />;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
