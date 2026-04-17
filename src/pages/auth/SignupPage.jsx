@@ -28,6 +28,7 @@ export const SignupPage = () => {
       campusId: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
     validate: (values) => {
       const parsed = signupSchema.safeParse(values);
@@ -169,6 +170,26 @@ export const SignupPage = () => {
           </div>
           {formik.touched.password && formik.errors.password && (
             <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.password}</p>
+          )}
+        </div>
+
+        <div>
+          <label className={labelClass}>Confirm Password</label>
+          <div className="relative">
+            <Lock className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
+            <input
+              name="confirmPassword"
+              type="password"
+              required
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              placeholder="••••••••"
+              className={inputClass}
+            />
+          </div>
+          {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.confirmPassword}</p>
           )}
         </div>
 
