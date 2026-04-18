@@ -15,12 +15,20 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('auth_user');
 
     if (storedToken && storedUser) {
-      setState({
-        token: storedToken,
-        user: JSON.parse(storedUser),
-        isAuthenticated: true,
-        isLoading: false,
-      });
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setState({
+          token: storedToken,
+          user: parsedUser,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } catch {
+        // Clear invalid persisted auth state to avoid boot-time crashes.
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
@@ -56,6 +64,11 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
       });
+      return {
+        user: mockUser,
+        requiresApproval: false,
+        requiresPasswordChange: false,
+      };
     } else {
       setState({
         user: mockUser,
@@ -63,6 +76,11 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
       });
+      return {
+        user: mockUser,
+        requiresApproval: false,
+        requiresPasswordChange: true,
+      };
     }
   };
 
