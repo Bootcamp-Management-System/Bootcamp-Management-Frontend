@@ -1,120 +1,83 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useFormik } from 'formik';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from "framer-motion";
 import { Mail, ArrowLeft, Send } from 'lucide-react';
-import { forgotPasswordSchema, zodToFormikErrors } from '../../validation/authSchemas';
-import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
-
-const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
-
-const persistAuthTheme = (theme) => {
-  localStorage.setItem('auth_theme', theme);
-  localStorage.setItem('login_theme', theme);
-};
 
 export const ForgotPasswordPage = () => {
+  const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState('');
-  const [theme, setTheme] = useState(getAuthTheme);
-  const isDark = theme === 'dark';
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { forgotPassword } = useAuth();
   const navigate = useNavigate();
 
-  React.useEffect(() => {
-    persistAuthTheme(theme);
-  }, [theme]);
-
-  const inputClass = `w-full rounded-[18px] border px-12 py-3.5 text-base font-medium transition focus:outline-none ${
-    isDark
-      ? 'border-[#1f3158] bg-[#031037] text-[#edf3ff] placeholder:text-[#7b8cae] focus:border-[#37b6c9]'
-      : 'border-[#bcc2cc] bg-[#f4f5f7] text-[#1b2540] placeholder:text-[#7e8798] focus:border-[#37b6c9]'
-  }`;
-
-  const formik = useFormik({
-    initialValues: {
-      email: '',
-    },
-    validate: (values) => {
-      const parsed = forgotPasswordSchema.safeParse(values);
-      if (parsed.success) {
-        return {};
-      }
-
-      return zodToFormikErrors(parsed.error);
-    },
-    onSubmit: async (values, { setSubmitting }) => {
-      setError('');
-      try {
-        const payload = await forgotPassword(values.email.trim().toLowerCase());
-        setIsSubmitted(true);
-        setTimeout(() => navigate('/verify-otp', { state: { email: payload.email, purpose: 'forgot-password' } }), 1500);
-      } catch (err) {
-        setError(err.message || 'Error sending reset code');
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await forgotPassword(email);
+      setIsSubmitted(true);
+      setTimeout(() => navigate('/otp'), 2000);
+    } catch (err) {
+      alert('Error sending reset link');
+    }
+  };
 
   return (
-    <AuthCardLayout
-      title="Forgot Password?"
-      subtitle="Enter your email to receive a reset verification code"
-      theme={theme}
-      showThemeToggle
-      onThemeToggle={toggleTheme}
-    >
-      <Link
-        to="/login"
-        className={`mb-6 inline-flex items-center gap-2 text-sm font-semibold transition ${isDark ? 'text-[#a3b0cb] hover:text-[#e6efff]' : 'text-[#5f6f8f] hover:text-[#1c2844]'}`}
+    <div className="min-h-screen flex items-center justify-center bg-portal-bg relative overflow-hidden p-4">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-portal-accent/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md w-full bg-portal-card border border-portal-border rounded-[32px] p-10 shadow-2xl relative z-10"
       >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Login
-      </Link>
-
-      {!isSubmitted ? (
-        <form onSubmit={formik.handleSubmit} className="space-y-4">
-          <div>
-            <label className={`mb-2 block text-sm font-semibold ${isDark ? 'text-[#e7eeff]' : 'text-[#1c2742]'}`}>Email</label>
-            <div className="relative">
-              <Mail className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-              <input
-                name="email"
-                type="email"
-                required
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="name@example.com"
-                className={inputClass}
-              />
-            </div>
-            {formik.touched.email && formik.errors.email && (
-              <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.email}</p>
-            )}
-            {error && <p className="mt-2 text-sm font-medium text-[#f85149]">{error}</p>}
+        <Link to="/login" className="inline-flex items-center gap-2 text-xs font-bold text-portal-text-muted hover:text-white uppercase tracking-widest mb-8 transition-colors">
+          <ArrowLeft className="w-3 h-3" />
+          Back to Login
+        </Link>
+        
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Mail className="w-8 h-8 text-portal-accent" />
           </div>
-
-          <button
-            type="submit"
-            disabled={formik.isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {formik.isSubmitting ? 'Sending...' : 'Send Reset Code'}
-            <Send className="h-5 w-5" />
-          </button>
-        </form>
-      ) : (
-        <div className={`rounded-2xl border px-5 py-6 text-center ${isDark ? 'border-[#1f3158] bg-[#031037]' : 'border-[#bcc2cc] bg-[#f4f5f7]'}`}>
-          <div className={`mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border ${isDark ? 'border-[#1f3158] bg-[#051641]' : 'border-[#bcc2cc] bg-white'}`}>
-            <Send className="h-5 w-5 text-[#37b6c9]" />
-          </div>
-          <p className={`text-base font-semibold ${isDark ? 'text-[#f0f6fc]' : 'text-[#1f2328]'}`}>Check your inbox</p>
-          <p className={`mt-2 text-sm ${isDark ? 'text-[#9aa7c4]' : 'text-[#4d5b78]'}`}>A reset code has been sent. Redirecting to OTP...</p>
+          <h1 className="text-2xl font-bold text-white">Forgot Password?</h1>
+          <p className="text-portal-text-muted mt-2">Enter your email and we'll send you a code to reset your password.</p>
         </div>
-      )}
-    </AuthCardLayout>
+
+        {!isSubmitted ? (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white ml-2">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
+                <input 
+                  type="email" 
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="student@astu.edu.et"
+                  className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
+            >
+              Send Reset Code
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 bg-portal-accent text-white rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+              <Send className="w-6 h-6" />
+            </div>
+            <p className="font-bold text-white">Check your inbox!</p>
+            <p className="text-sm text-portal-text-muted mt-2">We've sent a reset code to your email.</p>
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 };

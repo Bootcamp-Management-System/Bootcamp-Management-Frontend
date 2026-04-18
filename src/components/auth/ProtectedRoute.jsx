@@ -8,8 +8,8 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sage-500"></div>
+      <div className="h-screen w-screen flex items-center justify-center bg-portal-bg">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-portal-accent"></div>
       </div>
     );
   }
@@ -18,8 +18,8 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (user?.requiresPasswordChange) {
-    return <Navigate to="/force-change-password" replace />;
+  if (user?.isFirstLogin) {
+    return <Navigate to="/otp" replace />;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {

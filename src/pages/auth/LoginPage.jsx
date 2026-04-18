@@ -1,66 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useFormik } from 'formik';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, LogIn } from 'lucide-react';
-import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
-import { loginSchema, zodToFormikErrors } from '../../validation/authSchemas';
-
-const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
-
-const persistAuthTheme = (theme) => {
-  localStorage.setItem('auth_theme', theme);
-  localStorage.setItem('login_theme', theme);
-};
+import { motion } from "framer-motion";
+import { IdCard, Lock, LogIn } from 'lucide-react';
 
 export const LoginPage = () => {
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [theme, setTheme] = useState(getAuthTheme);
-  const isDark = theme === 'dark';
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-
-  const formik = useFormik({
-    initialValues: {
-      email: '',
-      password: '',
-    },
-    validate: (values) => {
-      const parsed = loginSchema.safeParse(values);
-      if (parsed.success) {
-        return {};
-      }
-
-      return zodToFormikErrors(parsed.error);
-    },
-    onSubmit: async (values, { setSubmitting }) => {
-      setError('');
-      try {
-        const result = await login(values.email.trim(), values.password);
-        if (result.requiresApproval) {
-          navigate('/waiting-approval', { state: { email: result.user.email } });
-          return;
-        }
-
-        if (result.requiresPasswordChange) {
-          navigate('/force-change-password', { state: { email: result.user.email, purpose: 'force-change-password' } });
-          return;
-        }
-
-        const role = result.user.role;
-        navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
-      } catch (err) {
-        setError(err.message || 'Invalid email or password');
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
-
-  useEffect(() => {
-    persistAuthTheme(theme);
-  }, [theme]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -69,95 +18,140 @@ export const LoginPage = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
-  const inputClass = `w-full rounded-[18px] border px-12 py-3.5 text-base font-medium transition focus:outline-none ${
-    isDark
-      ? 'border-[#1f3158] bg-[#031037] text-[#edf3ff] placeholder:text-[#7b8cae] focus:border-[#37b6c9]'
-      : 'border-[#bcc2cc] bg-[#f4f5f7] text-[#1b2540] placeholder:text-[#7e8798] focus:border-[#37b6c9]'
-  }`;
-  const labelClass = `mb-2 block text-sm font-semibold ${isDark ? 'text-[#e9eeff]' : 'text-[#1c2742]'}`;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const result = await login(identifier, password);
+      if (result.requiresApproval) {
+        navigate('/waiting-approval', { state: { email: result.user.email } });
+        return;
+      }
+
+      if (result.requiresPasswordChange) {
+        navigate('/force-change-password', { state: { email: result.user.email, purpose: 'force-change-password' } });
+        return;
+      }
+
+      const role = result.user.role;
+      navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+    } catch (err) {
+      setError('Invalid email, ID, or password');
+    }
+  };
 
   return (
-    <AuthCardLayout
-      title="Welcome Back"
-      subtitle="Sign in to your BMS account"
-      compact
-      theme={theme}
-      showThemeToggle
-      onThemeToggle={toggleTheme}
-    >
-      <form onSubmit={formik.handleSubmit} className="space-y-4">
-        <div>
-          <label className={labelClass}>Email</label>
-          <div className="relative">
-            <Mail className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <input
-              name="email"
-              type="email"
-              required
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="name@example.com"
-              className={inputClass}
-            />
-          </div>
-          {formik.touched.email && formik.errors.email && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.email}</p>
-          )}
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-portal-bg relative overflow-hidden p-6">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-portal-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
-        <div>
-          <label className={labelClass}>Password</label>
-          <div className="relative">
-            <Lock className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <input
-              name="password"
-              type="password"
-              required
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="••••••••"
-              className={inputClass}
-            />
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-12 text-center relative z-10"
+      >
+        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">CSEC ASTU Portal</h1>
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1 }}
+        className="max-w-md w-full bg-portal-card border border-portal-border rounded-[32px] p-10 shadow-2xl relative z-10"
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-white ml-2">Email or ID Number</label>
+            <div className="relative">
+              <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
+              <input 
+                type="text" 
+                required
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="student@astu.edu.et or UGR/12345/15"
+                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+              />
+            </div>
           </div>
 
-          <div className="mt-4 text-center">
-            <Link
-              to="/forgot-password"
-              className={`text-sm font-semibold transition ${isDark ? 'text-[#9aa8c9] hover:text-[#d5ddf5]' : 'text-[#6b7892] hover:text-[#2f3f60]'}`}
-            >
-              Forgot Password?
-            </Link>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-white ml-2">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
+              <input 
+                type="password" 
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+              />
+            </div>
           </div>
-          {formik.touched.password && formik.errors.password && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.password}</p>
-          )}
+
+          {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+
+          <button 
+            type="submit"
+            className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] mt-2"
+          >
+            Access Portal
+          </button>
+        </form>
+
+        <div className="mt-8 text-center">
+          <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
+            Forgot password?
+          </Link>
         </div>
 
-        {error && <p className="text-sm font-medium text-[#f85149]">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={formik.isSubmitting}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <LogIn className="h-5 w-5" />
-          {formik.isSubmitting ? 'Checking...' : 'Access Portal'}
-        </button>
-
-        <div className="pt-1 text-center">
-          <p className={`text-sm ${isDark ? 'text-[#97a5c5]' : 'text-[#5e6c88]'}`}>
-            If you have not registered yet,{' '}
-            <Link
-              to="/register"
-              className={`font-bold uppercase tracking-wide transition ${isDark ? 'text-[#d9e7ff] hover:text-white' : 'text-[#223257] hover:text-[#121a33]'}`}
-            >
-              click here to register
-            </Link>
-          </p>
+        {/* Quick Access for Demo */}
+        <div className="mt-10 pt-8 border-t border-portal-border/50">
+          <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-[0.2em] mb-2 text-center">Demo Access</p>
+          <p className="text-[11px] text-portal-text-muted text-center">Password: DemoPass123</p>
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'Admin', email: 'admin.demo@astu.edu.et', campusId: 'UGR/90001/26' },
+                { id: 'Instructor', email: 'instructor.demo@astu.edu.et', campusId: 'UGR/90002/26' },
+                { id: 'Member', email: 'member.demo@astu.edu.et', campusId: 'UGR/90003/26' }
+              ].map(role => (
+                <button 
+                  key={role.id}
+                  onClick={() => { setIdentifier(role.email); setPassword('DemoPass123'); }}
+                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
+                >
+                  {role.id} Email
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'Admin', campusId: 'UGR/90001/26' },
+                { id: 'Instructor', campusId: 'UGR/90002/26' },
+                { id: 'Member', campusId: 'UGR/90003/26' }
+              ].map(role => (
+                <button 
+                  key={role.id}
+                  onClick={() => { setIdentifier(role.campusId); setPassword('DemoPass123'); }}
+                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
+                >
+                  {role.id} ID
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </form>
-    </AuthCardLayout>
+
+      </motion.div>
+
+      {/* Sun/Light Toggle Icon at bottom like in image */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sun">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </div>
+    </div>
   );
 };

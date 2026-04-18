@@ -1,0 +1,282 @@
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { motion } from "framer-motion";
+import { 
+  User, 
+  Mail, 
+  IdCard, 
+  Terminal, 
+  Activity, 
+  Calendar,
+  Lock,
+  Edit3,
+  Save,
+  CheckCircle2,
+  XCircle,
+  Shield
+} from 'lucide-react';
+
+export const ProfilePage = () => {
+  const { user, updateProfile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    bio: user?.bio || '',
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [notification, setNotification] = useState(null);
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      await updateProfile(formData);
+      setIsEditing(false);
+      showNotification('Profile updated successfully!', 'success');
+    } catch (err) {
+      showNotification('Failed to update profile.', 'error');
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showNotification('Passwords do not match.', 'error');
+      return;
+    }
+    // Simulate password change
+    showNotification('Password changed successfully!', 'success');
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  };
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  if (!user) return null;
+
+  return (
+    <div className="max-w-5xl mx-auto pb-20">
+      <header className="mb-10">
+        <h2 className="text-3xl font-bold mb-2 text-white">My Profile</h2>
+        <p className="text-portal-text-muted">Manage your personal information and portal settings.</p>
+      </header>
+
+      {notification && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`fixed top-8 right-8 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border ${
+            notification.type === 'success' 
+              ? 'bg-portal-accent/20 border-portal-accent text-portal-accent' 
+              : 'bg-red-500/20 border-red-500 text-red-500'
+          }`}
+        >
+          {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+          <span className="font-bold">{notification.message}</span>
+        </motion.div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Avatar & Quick Stats */}
+        <div className="lg:col-span-1 space-y-8">
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 flex flex-col items-center text-center">
+            <div className="relative group mb-6">
+              <div className="w-32 h-32 rounded-full border-4 border-portal-accent/30 flex items-center justify-center bg-portal-input overflow-hidden mb-2">
+                <User className="w-16 h-16 text-portal-accent/50" />
+              </div>
+              <button className="absolute bottom-1 right-1 p-2 bg-portal-accent text-white rounded-full shadow-lg hover:scale-110 transition-transform">
+                <Edit3 className="w-4 h-4" />
+              </button>
+            </div>
+            <h3 className="text-xl font-bold text-white">{user.name}</h3>
+            <p className="text-sm text-portal-accent font-medium mb-4">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+            <div className="w-full h-px bg-portal-border my-6" />
+            <div className="grid grid-cols-2 gap-4 w-full">
+              <div className="bg-portal-input/50 p-4 rounded-2xl border border-portal-border">
+                <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest mb-1 flex items-center gap-1">
+                  <Activity className="w-3 h-3 text-portal-accent" />
+                  Attendance
+                </p>
+                <div className="text-xl font-bold text-white">{user.attendance}</div>
+              </div>
+              <div className="bg-portal-input/50 p-4 rounded-2xl border border-portal-border">
+                <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest mb-1 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-green-400" />
+                  Status
+                </p>
+                <div className="text-sm font-bold text-green-400">{user.status}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8">
+            <h4 className="text-sm font-bold text-white mb-6 flex items-center gap-2 uppercase tracking-widest">
+              <Terminal className="w-4 h-4 text-portal-accent" />
+              Portal Access
+            </h4>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-portal-text-muted font-medium">Student ID</span>
+                <span className="text-white font-mono bg-portal-input px-2 py-1 rounded-lg border border-portal-border">{user.idNo}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-portal-text-muted font-medium">Division</span>
+                <span className="text-portal-accent font-bold">{user.division}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-portal-text-muted font-medium">Member Since</span>
+                <span className="text-white font-medium">Jan 2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Edit Profile & Security */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Verified Identity (Non-Editable) */}
+          <div className="bg-portal-card/50 border border-portal-border rounded-3xl p-8 opacity-90">
+            <h4 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+              <Shield className="w-6 h-6 text-portal-accent" />
+              Verified Identity
+              <span className="text-[10px] bg-portal-accent/10 text-portal-accent px-2 py-1 rounded-md uppercase tracking-wider ml-auto">Protected</span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Full Name</p>
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-white font-medium cursor-default">
+                  {user.name}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Email Address</p>
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-white font-medium cursor-default">
+                  {user.email}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Student ID No</p>
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-white font-mono cursor-default">
+                  {user.idNo}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Member Status</p>
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-green-400 font-bold cursor-default flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  {user.status}
+                </div>
+              </div>
+            </div>
+            <p className="mt-6 text-[11px] text-portal-text-muted italic flex items-center gap-2">
+              <Lock className="w-3 h-3" /> Identity records are managed by CSEC ASTU Administration and cannot be modified.
+            </p>
+          </div>
+
+          {/* Profile Settings (Editable) */}
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+            <div className="flex items-center justify-between mb-8">
+              <h4 className="text-xl font-bold text-white flex items-center gap-3">
+                <Edit3 className="w-6 h-6 text-portal-accent" />
+                Profile Settings
+              </h4>
+              <button 
+                onClick={() => setIsEditing(!isEditing)}
+                className={`text-sm font-bold uppercase tracking-widest transition-colors ${
+                  isEditing ? 'text-red-400 hover:text-red-300' : 'text-portal-accent hover:text-white'
+                }`}
+              >
+                {isEditing ? 'Cancel Edit' : 'Edit Bio'}
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateProfile} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-portal-text-muted flex items-center gap-2">
+                  <Terminal className="w-4 h-4" /> Personal Biography
+                </label>
+                <textarea 
+                  rows="4"
+                  disabled={!isEditing}
+                  value={formData.bio}
+                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                  className={`w-full bg-portal-input border rounded-2xl px-4 py-3 text-white outline-none transition-all resize-none ${
+                    isEditing ? 'border-portal-accent ring-2 ring-portal-accent/20' : 'border-portal-border opacity-70'
+                  }`}
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
+
+              {isEditing && (
+                <div className="flex justify-end pt-4">
+                  <button 
+                    type="submit"
+                    className="bg-portal-accent text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98]"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Bio Changes
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Account Security */}
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8">
+            <h4 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+              <Lock className="w-6 h-6 text-portal-accent" />
+              Security Settings
+            </h4>
+
+            <form onSubmit={handleChangePassword} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-portal-text-muted">Current Password</label>
+                <input 
+                  type="password"
+                  placeholder="••••••••"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white focus:border-portal-accent outline-none transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-portal-text-muted">New Password</label>
+                  <input 
+                    type="password"
+                    placeholder="••••••••"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white focus:border-portal-accent outline-none transition-colors"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-portal-text-muted">Confirm New Password</label>
+                  <input 
+                    type="password"
+                    placeholder="••••••••"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white focus:border-portal-accent outline-none transition-colors"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <button 
+                  type="submit"
+                  className="bg-white/10 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

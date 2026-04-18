@@ -1,43 +1,201 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, Clock, CheckCircle2 } from 'lucide-react';
+import { 
+  BookOpen, 
+  Clock, 
+  CheckCircle2, 
+  Calendar, 
+  ArrowRight, 
+  MoreHorizontal,
+  Circle,
+  FileText,
+  Activity
+} from 'lucide-react';
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  Tooltip as ChartTooltip 
+} from 'recharts';
 
 export const MemberDashboard = () => {
   const { user } = useAuth();
 
+  const taskStats = [
+    { name: 'Completed', value: 12, color: '#10b981' },
+    { name: 'Pending', value: 5, color: '#f59e0b' },
+    { name: 'New', value: 3, color: '#3b82f6' },
+  ];
+
+  const events = [
+    { title: 'Advanced React Workshop', type: 'Workshop', date: 'Oct 24, 2026', time: '2:00 PM', attendees: 45 },
+    { title: 'Weekly Division Sync', type: 'Meeting', date: 'Oct 26, 2026', time: '10:00 AM', attendees: 12 },
+    { title: 'UI Design Principles', type: 'Seminar', date: 'Oct 28, 2026', time: '4:30 PM', attendees: 30 },
+  ];
+
+  const upcomingTasks = [
+    { title: 'Implement Profile UI', deadline: 'Today', priority: 'High', status: 'In Progress' },
+    { title: 'Code Review: Auth Module', deadline: 'Tomorrow', priority: 'Medium', status: 'Pending' },
+    { title: 'Database Schema Design', deadline: 'Oct 25', priority: 'High', status: 'New' },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto">
-      <header className="mb-10">
-        <h2 className="text-3xl font-bold mb-2">Welcome back, {user?.name}!</h2>
-        <p className="text-sage-500">Here's what's happening in your bootcamp today.</p>
+    <div className="max-w-7xl mx-auto space-y-8 pb-10">
+      <header className="mb-2">
+        <h2 className="text-3xl font-bold mb-2 text-white">Welcome back, {user?.name}!</h2>
+        <p className="text-portal-text-muted">Stay updated with your bootcamp activities and tasks.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {[
-          { label: "Upcoming Sessions", value: "3", icon: BookOpen },
-          { label: "Pending Tasks", value: "5", icon: Clock },
-          { label: "Completed Tasks", value: "12", icon: CheckCircle2 },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white border border-sage-200 p-6 rounded-2xl shadow-sm">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 rounded-xl bg-sage-50 text-sage-500">
-                <stat.icon className="w-6 h-6" />
-              </div>
+      {/* Stats and Chart Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Metric Cards */}
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all group relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Calendar className="w-24 h-24 text-portal-accent" />
             </div>
-            <h3 className="text-sage-500 text-sm font-medium mb-1">{stat.label}</h3>
-            <div className="text-3xl font-bold">{stat.value}</div>
+            <div className="relative z-10">
+              <div className="p-3 rounded-2xl bg-portal-accent/10 text-portal-accent w-fit mb-6">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Upcoming Events</h3>
+              <div className="text-4xl font-bold text-white mb-2">3</div>
+              <p className="text-xs text-portal-text-muted">Next event in 4 hours</p>
+            </div>
           </div>
-        ))}
+
+          <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all group relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <CheckCircle2 className="w-24 h-24 text-green-400" />
+            </div>
+            <div className="relative z-10">
+              <div className="p-3 rounded-2xl bg-green-400/10 text-green-400 w-fit mb-6">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Completed Tasks</h3>
+              <div className="text-4xl font-bold text-white mb-2">12</div>
+              <p className="text-xs text-portal-text-muted">83% of total assigned tasks</p>
+            </div>
+          </div>
+
+          <div className="sm:col-span-2 bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                <FileText className="w-6 h-6 text-portal-accent" />
+                Upcoming Tasks
+              </h3>
+              <button className="text-xs font-bold text-portal-accent flex items-center gap-1 hover:text-white transition-colors uppercase tracking-widest">
+                View All <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {upcomingTasks.map((task, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-portal-input border border-portal-border/50 hover:bg-portal-border transition-colors group cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-2 h-2 rounded-full ${task.priority === 'High' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-portal-accent'}`} />
+                    <div>
+                      <h4 className="font-bold text-sm text-white group-hover:text-portal-accent transition-colors">{task.title}</h4>
+                      <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Deadline: {task.deadline}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-portal-text-muted border border-white/5">{task.status}</span>
+                    <MoreHorizontal className="w-4 h-4 text-portal-text-muted group-hover:text-white transition-colors" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Task Analysis Chart */}
+        <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl flex flex-col items-center">
+          <h3 className="text-lg font-bold text-white mb-8 self-start flex items-center gap-3">
+            <Activity className="w-5 h-5 text-portal-accent" />
+            Task Analysis
+          </h3>
+          <div className="w-full h-[240px] relative mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={taskStats}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={70}
+                  outerRadius={100}
+                  paddingAngle={8}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {taskStats.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <ChartTooltip 
+                  contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }}
+                  itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+              <div className="text-3xl font-extrabold text-white">20</div>
+              <div className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest">Total</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 w-full">
+            {taskStats.map((stat, i) => (
+              <div key={i} className="flex items-center gap-3 bg-portal-input p-3 rounded-2xl border border-portal-border/30">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stat.color }} />
+                <div>
+                  <div className="text-[10px] text-portal-text-muted font-bold uppercase">{stat.name}</div>
+                  <div className="text-sm font-bold text-white">{stat.value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white border border-sage-200 rounded-2xl p-8">
-        <h3 className="text-xl font-bold mb-6">Recent Announcements</h3>
-        <div className="space-y-4">
-          {[1, 2].map((_, i) => (
-            <div key={i} className="p-4 rounded-xl bg-sage-50 border border-sage-100">
-              <h4 className="font-bold text-sm">New Resource Uploaded: React Patterns</h4>
-              <p className="text-xs text-sage-500 mt-1">Instructor Jane Smith uploaded a new PDF for the Development division.</p>
-              <p className="text-[10px] text-sage-400 mt-2 font-bold uppercase tracking-widest">2 hours ago</p>
+      {/* Events Section */}
+      <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-xl font-bold text-white flex items-center gap-3">
+            <Calendar className="w-6 h-6 text-portal-accent" />
+            Upcoming Bootcamp Events
+          </h3>
+          <button className="text-sm font-bold text-portal-accent hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2 group">
+            See More <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {events.map((event, i) => (
+            <div key={i} className="bg-portal-input border border-portal-border/50 p-6 rounded-2xl hover:border-portal-accent/30 transition-all group relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-portal-accent/5 rounded-full blur-2xl group-hover:bg-portal-accent/10 transition-colors" />
+              <div className="flex justify-between items-start mb-6">
+                <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-portal-accent/10 text-portal-accent uppercase tracking-widest">
+                  {event.type}
+                </span>
+                <span className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">
+                  {event.attendees} Attending
+                </span>
+              </div>
+              <h4 className="text-lg font-bold text-white mb-2 group-hover:text-portal-accent transition-colors">
+                {event.title}
+              </h4>
+              <div className="flex flex-col gap-1 text-xs text-portal-text-muted font-medium mb-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5 text-portal-accent" />
+                  {event.date}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-portal-accent" />
+                  {event.time}
+                </div>
+              </div>
+              <button className="w-full py-2 bg-white/5 text-white text-xs font-bold rounded-xl border border-white/5 hover:bg-portal-accent hover:border-portal-accent transition-all">
+                Join Event
+              </button>
             </div>
           ))}
         </div>

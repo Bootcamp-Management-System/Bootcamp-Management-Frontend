@@ -1,294 +1,155 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/authService';
 
 const AuthContext = createContext(undefined);
-const AUTH_TOKEN_KEY = 'auth_token';
-const AUTH_USER_KEY = 'auth_user';
-const OTP_SESSION_KEY = 'auth_otp_session';
-const FORCE_PASSWORD_SESSION_KEY = 'auth_force_password_session';
-const APPROVAL_SESSION_KEY = 'auth_approval_session';
 
 export const AuthProvider = ({ children }) => {
-  const [state, setState] = useState(() => {
-    const storedOtpSession = localStorage.getItem(OTP_SESSION_KEY);
-    const storedForcePasswordSession = localStorage.getItem(FORCE_PASSWORD_SESSION_KEY);
-    const storedApprovalSession = localStorage.getItem(APPROVAL_SESSION_KEY);
-
-    return {
-      user: null,
-      token: null,
-      otpSession: storedOtpSession ? JSON.parse(storedOtpSession) : null,
-      forcePasswordSession: storedForcePasswordSession ? JSON.parse(storedForcePasswordSession) : null,
-      approvalSession: storedApprovalSession ? JSON.parse(storedApprovalSession) : null,
-      isAuthenticated: false,
-      isLoading: false,
-    };
+  const [state, setState] = useState({
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: true,
   });
 
-  const updateState = (patch) => {
-    setState((prev) => ({ ...prev, ...patch }));
-  };
-
   useEffect(() => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
-  }, []);
+    const storedToken = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('auth_user');
 
-  useEffect(() => {
-    if (state.token) {
-      localStorage.setItem(AUTH_TOKEN_KEY, state.token);
-    } else {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-    }
-
-    if (state.user) {
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(state.user));
-    } else {
-      localStorage.removeItem(AUTH_USER_KEY);
-    }
-
-    if (state.otpSession) {
-      localStorage.setItem(OTP_SESSION_KEY, JSON.stringify(state.otpSession));
-    } else {
-      localStorage.removeItem(OTP_SESSION_KEY);
-    }
-
-    if (state.forcePasswordSession) {
-      localStorage.setItem(FORCE_PASSWORD_SESSION_KEY, JSON.stringify(state.forcePasswordSession));
-    } else {
-      localStorage.removeItem(FORCE_PASSWORD_SESSION_KEY);
-    }
-
-    if (state.approvalSession) {
-      localStorage.setItem(APPROVAL_SESSION_KEY, JSON.stringify(state.approvalSession));
-    } else {
-      localStorage.removeItem(APPROVAL_SESSION_KEY);
-    }
-  }, [state.token, state.user, state.otpSession, state.forcePasswordSession, state.approvalSession]);
-
-  const login = async (email, password) => {
-    updateState({ isLoading: true });
-
-    try {
-      const response = await authService.login({ email, password });
-      const { user, token } = response;
-
-      if (user.approvalStatus !== 'approved') {
-        updateState({
-          user,
-          token: null,
-          isAuthenticated: false,
-          approvalSession: { email: user.email },
-          isLoading: false,
-        });
-
-        return { requiresApproval: true, user };
-      }
-
-      if (response.requiresPasswordChange || user.requiresPasswordChange) {
-        updateState({
-          user,
-          token: null,
-          isAuthenticated: false,
-          forcePasswordSession: { email: user.email, purpose: 'force-change-password' },
-          isLoading: false,
-        });
-
-        return { requiresPasswordChange: true, user };
-      }
-
-      updateState({
-        user,
-        token,
+    if (storedToken && storedUser) {
+      setState({
+        token: storedToken,
+        user: JSON.parse(storedUser),
         isAuthenticated: true,
-        otpSession: null,
-        forcePasswordSession: null,
-        approvalSession: null,
         isLoading: false,
       });
+    } else {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
 
-      return { requiresPasswordChange: false, user };
-    } catch (error) {
-      updateState({ isLoading: false });
-      throw error;
+  const login = async (email, _password) => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    
+    const isFirstLogin = email.includes('first');
+    const role = email.includes('admin') ? 'admin' : email.includes('instructor') ? 'instructor' : 'member';
+    
+    const mockUser = {
+      id: '1',
+      idNo: 'CSEC/ASTU/' + Math.floor(1000 + Math.random() * 9000),
+      email,
+      role,
+      isFirstLogin,
+      name: email.split('@')[0].split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      bio: "CSEC Member since 2024. Passionate about building impactful software.",
+      status: "Active Member",
+      attendance: "92%",
+      division: role === 'member' ? "Web Development" : "CORE Team"
+    };
+
+    const mockToken = 'mock_jwt_token_' + Math.random().toString(36).substring(7);
+
+    if (!isFirstLogin) {
+      localStorage.setItem('auth_token', mockToken);
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      setState({
+        user: mockUser,
+        token: mockToken,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } else {
+      setState({
+        user: mockUser,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
   };
 
   const googleLogin = async () => {
-    updateState({ isLoading: true });
-
-    try {
-      const response = await authService.googleLogin();
-      updateState({
-        user: response.user,
-        token: response.token,
-        isAuthenticated: true,
-        otpSession: null,
-        forcePasswordSession: null,
-        approvalSession: null,
-        isLoading: false,
-      });
-
-      return response;
-    } catch (error) {
-      updateState({ isLoading: false });
-      throw error;
-    }
-  };
-
-  const signup = async (payload) => {
-    const response = await authService.signup(payload);
-    updateState({
-      otpSession: { email: response.user.email, purpose: 'register' },
-      approvalSession: null,
-      forcePasswordSession: null,
-    });
-    return response;
+    await login('google_user@example.com', '');
   };
 
   const logout = () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
-    localStorage.removeItem(OTP_SESSION_KEY);
-    localStorage.removeItem(FORCE_PASSWORD_SESSION_KEY);
-    localStorage.removeItem(APPROVAL_SESSION_KEY);
-    updateState({
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    setState({
       user: null,
       token: null,
-      otpSession: null,
-      forcePasswordSession: null,
-      approvalSession: null,
       isAuthenticated: false,
       isLoading: false,
     });
   };
 
-  const forgotPassword = async (email) => {
-    const response = await authService.forgotPassword({ email });
-
-    updateState({ otpSession: { email: response.email, purpose: 'forgot-password' } });
-
-    return response;
+  const verifyOTP = async (_otp) => {
+    if (state.user) {
+      // Logic for OTP verification
+    }
   };
 
-  const resendOTP = async (email, purpose) => {
-    const targetEmail = email || state.otpSession?.email || state.user?.email;
-    const targetPurpose = purpose || state.otpSession?.purpose || 'forgot-password';
-
-    if (!targetEmail) {
-      throw new Error('No email available for OTP resend');
-    }
-
-    return authService.resendOtp({ email: targetEmail, purpose: targetPurpose });
-  };
-
-  const verifyOTP = async (otp, email, purpose) => {
-    const targetEmail = email || state.otpSession?.email || state.user?.email;
-    const targetPurpose = purpose || state.otpSession?.purpose;
-
-    if (!targetEmail) {
-      throw new Error('No email available for OTP verification');
-    }
-
-    if (!targetPurpose) {
-      throw new Error('No OTP purpose available for verification');
-    }
-
-    const response = await authService.verifyOtp({ email: targetEmail, otp, purpose: targetPurpose });
-
-    if (targetPurpose === 'register') {
-      updateState({
-        otpSession: null,
-        approvalSession: { email: targetEmail },
+  const changePassword = async (_password) => {
+    if (state.user) {
+      const updatedUser = { ...state.user, isFirstLogin: false };
+      const mockToken = 'mock_jwt_token_after_first_login';
+      
+      localStorage.setItem('auth_token', mockToken);
+      localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      
+      setState({
+        user: updatedUser,
+        token: mockToken,
+        isAuthenticated: true,
+        isLoading: false,
       });
     }
-
-    return response;
   };
 
-  const checkApproval = async (email) => {
-    const targetEmail = email || state.approvalSession?.email;
-
-    if (!targetEmail) {
-      throw new Error('No email available for approval check');
-    }
-
-    const response = await authService.checkApproval({ email: targetEmail });
-
-    if (response.isApproved) {
-      updateState({ approvalSession: null });
-    }
-
-    return response;
+  const forgotPassword = async (_email) => {
+    // Simulate sending OTP
   };
 
-  const mockApproveUser = async (email) => {
-    const targetEmail = email || state.approvalSession?.email;
-
-    if (!targetEmail) {
-      throw new Error('No email available for approval action');
-    }
-
-    const response = await authService.mockApproveUser({ email: targetEmail });
-    updateState({ approvalSession: null });
-    return response;
+  const resetPassword = async (_otp, _newPassword) => {
+    // Simulate password reset
   };
 
-  const changePassword = async (password, email) => {
-    const targetEmail = email || state.forcePasswordSession?.email || state.user?.email;
-
-    if (!targetEmail) {
-      throw new Error('No email available for password change');
+  const updateProfile = async (updates) => {
+    if (state.user) {
+      // Strictly prevent updating verified/identity fields from the user side
+      const { 
+        id, 
+        idNo, 
+        email, 
+        role, 
+        attendance, 
+        division, 
+        status, 
+        isFirstLogin,
+        ...allowedUpdates 
+      } = updates;
+      
+      const updatedUser = { ...state.user, ...allowedUpdates };
+      localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      setState(prev => ({ ...prev, user: updatedUser }));
     }
-
-    const response = await authService.changePassword({ email: targetEmail, password });
-
-    updateState({
-      user: response.user,
-      token: response.token,
-      otpSession: null,
-      forcePasswordSession: null,
-      approvalSession: null,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-
-    return response;
-  };
-
-  const resetPassword = async (newPassword, email) => {
-    const targetEmail = email || state.otpSession?.email;
-
-    if (!targetEmail) {
-      throw new Error('No email available for password reset');
-    }
-
-    const response = await authService.resetPassword({ email: targetEmail, password: newPassword });
-    updateState({ otpSession: null });
-    return response;
   };
 
   return (
     <AuthContext.Provider value={{ 
       ...state, 
       login, 
-      signup,
       googleLogin, 
       logout, 
       verifyOTP, 
-      checkApproval,
-      mockApproveUser,
       changePassword, 
       forgotPassword, 
-      resendOTP,
-      resetPassword 
+      resetPassword,
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

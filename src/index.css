@@ -5,21 +5,17 @@
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
   
-  --color-sage-50: #f4f6f3;
-  --color-sage-100: #e9ede7;
-  --color-sage-200: #d3dbcf;
-  --color-sage-300: #b0bfab;
-  --color-sage-400: #899e81;
-  --color-sage-500: #637d5a;
-  --color-sage-600: #4d6146;
-  --color-sage-700: #3e4d38;
-  --color-sage-800: #333f2e;
-  --color-sage-900: #2b3527;
-  --color-sage-950: #141a12;
+  --color-portal-bg: #020617;
+  --color-portal-card: #0b1120;
+  --color-portal-accent: #2ab1c2;
+  --color-portal-accent-hover: #2299a8;
+  --color-portal-border: #1e293b;
+  --color-portal-input: #0f172a;
+  --color-portal-text-muted: #94a3b8;
 }
 
 @layer base {
   body {
-    @apply bg-white text-sage-900 font-sans antialiased;
+    @apply bg-portal-bg text-white font-sans antialiased;
   }
 }
