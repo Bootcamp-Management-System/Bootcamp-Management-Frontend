@@ -16,6 +16,7 @@ import { InstructorPanel } from './pages/dashboard/InstructorPanel';
 import { AdminPanel } from './pages/dashboard/AdminPanel';
 import { ProfilePage } from './pages/ProfilePage';
 import { MyTasksPage } from './pages/Task/MemberTaskPage';
+import { MemberSessionPage as SessionsPage } from './pages/session/MemberSessionPage';
 
 export default function App() {
   return (
@@ -57,6 +58,17 @@ export default function App() {
               <ProtectedRoute allowedRoles={['member']}>
                 <Layout>
                   <MyTasksPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/sessions" 
+            element={
+              <ProtectedRoute allowedRoles={['member', 'instructor']}>
+                <Layout>
+                  <SessionsPage />
                 </Layout>
               </ProtectedRoute>
             } 

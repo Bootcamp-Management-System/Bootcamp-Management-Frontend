@@ -108,13 +108,20 @@ export const MyTasksPage = () => {
                   }}
                   className={`
                     w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer
-                    transition-all duration-300 transform hover:scale-110 z-20 group
-                    ${isDone ? 'bg-portal-accent text-white shadow-[0_0_20px_rgba(45,212,191,0.4)]' : ''}
+                    transition-all duration-500 transform hover:scale-110 z-20 group relative
+                    ${isDone ? 'bg-portal-accent shadow-[0_0_25px_rgba(45,212,191,0.5)]' : ''}
                     ${isOngoing ? 'bg-slate-800 border-2 border-portal-accent/50 text-portal-accent animate-pulse shadow-[0_0_15px_rgba(45,212,191,0.2)]' : ''}
                     ${isNew ? 'bg-portal-card border-2 border-portal-border text-portal-text-muted' : ''}
                   `}
+                  style={isDone ? { 
+                    borderRadius: '45% 55% 50% 50% / 55% 45% 55% 45%',
+                  } : {}}
                 >
-                  {isDone && <Check className="w-8 h-8 stroke-[3]" />}
+                  {isDone && (
+                    <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center shadow-inner">
+                      <Check className="w-5 h-5 text-white stroke-[4]" />
+                    </div>
+                  )}
                   {isOngoing && <Play className="w-8 h-8 fill-current" />}
                   {isNew && <Lock className="w-8 h-8 opacity-40" />}
                 </motion.div>

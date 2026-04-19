@@ -8,6 +8,8 @@ import {
   ClipboardList, 
   Settings, 
   LogOut,
+  ChevronRight,
+  ChevronLeft,
   GraduationCap,
   BookOpen,
   Shield,
@@ -49,20 +51,22 @@ export const Sidebar = () => {
 
     return [
       ...base,
-      { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
+      { id: 'sessions', icon: BookOpen, label: 'My Sessions', path: '/sessions' },
       { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
+      { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
     ];
   };
 
   const navItems = getNavItems();
 
   return (
-    <motion.aside
+    <motion.aside 
       initial={false}
       animate={{ width: isCollapsed ? '80px' : '280px' }}
-      className="bg-portal-card border-r border-portal-border flex flex-col shrink-0 relative"
+      className="bg-portal-card border-r border-portal-border flex flex-col shrink-0 relative transition-colors duration-300"
     >
-      <button
+      {/* Toggle Button */}
+      <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute -right-3 top-20 w-6 h-6 bg-portal-accent rounded-full flex items-center justify-center text-white shadow-lg shadow-portal-accent/20 z-50 hover:scale-110 transition-transform"
       >
@@ -88,18 +92,21 @@ export const Sidebar = () => {
           </AnimatePresence>
         </div>
 
-        <nav className="space-y-3 flex-1 overflow-hidden pb-4">
+        <nav className="space-y-2 flex-1 overflow-hidden">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.id}
                 to={item.path || '#'}
-                className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-bold transition-all group relative ${
-                  isActive
-                    ? 'bg-portal-accent/10 text-portal-accent'
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group relative
+                  ${isActive 
+                    ? 'bg-portal-accent/10 text-portal-accent' 
                     : 'text-portal-text-muted hover:bg-white/5 hover:text-white'
-                } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                  }
+                  ${isCollapsed ? 'justify-center px-0' : ''}
+                `}
               >
                 <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-portal-accent' : ''}`} />
                 <AnimatePresence>
@@ -115,9 +122,9 @@ export const Sidebar = () => {
                   )}
                 </AnimatePresence>
                 {!isCollapsed && isActive && (
-                  <motion.div
+                  <motion.div 
                     layoutId="active-pill"
-                    className="absolute left-0 w-1 h-6 bg-portal-accent rounded-r-full"
+                    className="absolute left-0 w-1 h-6 bg-portal-accent rounded-r-full" 
                   />
                 )}
               </Link>
