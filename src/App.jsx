@@ -14,7 +14,8 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { MemberDashboard } from './pages/dashboard/MemberDashboard';
 import { InstructorPanel } from './pages/dashboard/InstructorPanel';
 import { AdminPanel } from './pages/dashboard/AdminPanel';
-import { ProfilePage } from './pages/dashboard/ProfilePage';
+import { ProfilePage } from './pages/ProfilePage';
+import { MyTasksPage } from './pages/Task/MemberTaskPage';
 
 export default function App() {
   return (
@@ -45,6 +46,17 @@ export default function App() {
               <ProtectedRoute allowedRoles={['member', 'instructor', 'admin']}>
                 <Layout>
                   <ProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/my-tasks" 
+            element={
+              <ProtectedRoute allowedRoles={['member']}>
+                <Layout>
+                  <MyTasksPage />
                 </Layout>
               </ProtectedRoute>
             } 
