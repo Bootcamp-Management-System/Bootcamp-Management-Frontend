@@ -15,7 +15,10 @@ import {
   Shield,
   User,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  UserCheck,
+  FileBarChart,
+  Layers as LayersIcon
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -31,10 +34,12 @@ export const Sidebar = () => {
 
     if (user?.role === 'admin') {
       return [
-        ...base,
-        { id: 'users', icon: Users, label: 'User Management', path: '/users' },
-        { id: 'divisions', icon: BookOpen, label: 'Divisions', path: '/divisions' },
-        { id: 'security', icon: Shield, label: 'Security', path: '/security' },
+        { id: 'admin-dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+        { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
+        { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
+        { id: 'admin-sessions', icon: BookOpen, label: 'Sessions', path: '/admin/sessions' },
+        { id: 'admin-groups', icon: LayersIcon, label: 'Groups', path: '/admin/groups' },
+        { id: 'admin-reports', icon: FileBarChart, label: 'Reports', path: '/admin/reports' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
     }

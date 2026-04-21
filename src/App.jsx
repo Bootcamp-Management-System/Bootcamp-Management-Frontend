@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/Layout';
+import { DivisionProvider } from './context/DivisionContext';
 
 // Auth Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -11,18 +12,24 @@ import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 
 // Dashboard Pages
-import { MemberDashboard } from './pages/dashboard/MemberDashboard';
-import { InstructorPanel } from './pages/dashboard/InstructorPanel';
-import { AdminPanel } from './pages/dashboard/AdminPanel';
+import { MemberDashboard } from './pages/auth/dashboard/MemberDashboard';
+import { InstructorPanel } from './pages/auth/dashboard/InstructorPanel';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminMembersPage } from './pages/admin/AdminMembersPage';
+import { AdminInstructorsPage } from './pages/admin/AdminInstructorsPage';
+import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
+import { AdminGroupsPage } from './pages/admin/AdminGroupsPage';
+import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { MyTasksPage } from './pages/Task/MemberTaskPage';
-import { MemberSessionPage as SessionsPage } from './pages/session/MemberSessionPage';
+import { MemberTaskPage } from './pages/Task/MemberTaskPage';
+import { MemberSessionPage } from './pages/Session/MemberSessionPage';
 
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
+      <DivisionProvider>
+        <Router>
+          <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -57,7 +64,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['member']}>
                 <Layout>
-                  <MyTasksPage />
+                  <MemberTaskPage />
                 </Layout>
               </ProtectedRoute>
             } 
@@ -68,7 +75,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['member', 'instructor']}>
                 <Layout>
-                  <SessionsPage />
+                  <MemberSessionPage />
                 </Layout>
               </ProtectedRoute>
             } 
@@ -87,10 +94,70 @@ export default function App() {
 
           <Route 
             path="/admin" 
+            element={<Navigate to="/admin/dashboard" replace />} 
+          />
+
+          <Route 
+            path="/admin/dashboard" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Layout>
-                  <AdminPanel />
+                  <AdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/members" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminMembersPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/instructors" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminInstructorsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/sessions" 
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'instructor']}>
+                <Layout>
+                  <AdminSessionsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/groups" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminGroupsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/reports" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminReportsPage />
                 </Layout>
               </ProtectedRoute>
             } 
@@ -101,6 +168,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
+      </DivisionProvider>
     </AuthProvider>
   );
 }

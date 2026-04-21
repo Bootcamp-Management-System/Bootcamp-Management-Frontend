@@ -13,11 +13,54 @@ import {
   Save,
   CheckCircle2,
   XCircle,
-  Shield
+  Shield,
+  Layers,
+  ArrowRight,
+  Monitor,
+  Cpu,
+  Globe,
+  Briefcase
 } from 'lucide-react';
+import { DivisionSelector } from '../components/Profile/DivisionContext';
+import { useDivision } from '../context/DivisionContext';
+
+const divisionContent = {
+  'Development': {
+    title: 'Software Engineering Stack',
+    desc: 'Building modern web and mobile applications using React, Node.js, and Cloud architectures.',
+    items: ['Full-stack Excellence', 'Mobile Dev Node', 'DevOps Principles'],
+    color: 'text-blue-400'
+  },
+  'Cyber Security': {
+    title: 'Offensive & Defensive Ops',
+    desc: 'Mastering vulnerability research, network auditing, and secure system design.',
+    items: ['CTF Training', 'Red Teaming', 'Threat Analysis'],
+    color: 'text-red-400'
+  },
+  'Data Science': {
+    title: 'AI & Analytical Engines',
+    desc: 'Unlocking insights through statistical modeling, machine learning, and big data processing.',
+    items: ['Machine Learning', 'Big Data Ethics', 'NLP Frontiers'],
+    color: 'text-purple-400'
+  },
+  'CP (Competitive Programming)': {
+    title: 'Algorithmic Problem Solving',
+    desc: 'Optimizing solutions for complex computational challenges and competitive arenas.',
+    items: ['Graph Theory', 'Dynamic Programming', 'Complexity Ops'],
+    color: 'text-orange-400'
+  }
+};
 
 export const ProfilePage = () => {
   const { user, updateProfile } = useAuth();
+  const { activeDivision } = useDivision();
+  
+  // Ensure we have divisions to show
+  const divisions = user?.role === 'member' 
+    ? (user?.divisions?.length > 0 ? user.divisions : ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"])
+    : (user?.divisions || ["CORE Team"]);
+
+  const activeContent = divisionContent[activeDivision] || divisionContent['Development'];
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     bio: user?.bio || '',
@@ -125,7 +168,7 @@ export const ProfilePage = () => {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-portal-text-muted font-medium">Division</span>
-                <span className="text-portal-accent font-bold">{user.division}</span>
+                <span className="text-portal-accent font-bold">{activeDivision}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-portal-text-muted font-medium">Member Since</span>
@@ -175,6 +218,47 @@ export const ProfilePage = () => {
             <p className="mt-6 text-[11px] text-portal-text-muted italic flex items-center gap-2">
               <Lock className="w-3 h-3" /> Identity records are managed by CSEC ASTU Administration and cannot be modified.
             </p>
+          </div>
+
+          {/* Division Switcher */}
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+            <h4 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+              <Layers className="w-6 h-6 text-portal-accent" />
+              My Division
+            </h4>
+            
+            <DivisionSelector 
+              assignedDivisions={divisions} 
+              onSwitch={(div) => showNotification(`Switched to ${div} Division`, 'success')}
+            />
+
+            {/* Division Content Bonus */}
+            <motion.div 
+              key={activeDivision}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="mt-10 p-8 bg-portal-input/40 border border-portal-border/50 rounded-3xl"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <h5 className={`text-xl font-bold ${activeContent.color}`}>{activeContent.title}</h5>
+                  <p className="text-sm text-portal-text-muted max-w-lg leading-relaxed">
+                    {activeContent.desc}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {activeContent.items.map(item => (
+                    <span key={item} className="text-[10px] bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-8 flex items-center gap-3 text-xs font-bold text-portal-accent cursor-pointer group">
+                Enter Division Workspace
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+              </div>
+            </motion.div>
           </div>
 
           {/* Profile Settings (Editable) */}

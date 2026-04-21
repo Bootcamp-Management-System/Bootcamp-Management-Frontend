@@ -15,20 +15,19 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('auth_user');
 
     if (storedToken && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setState({
-          token: storedToken,
-          user: parsedUser,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } catch {
-        // Clear invalid persisted auth state to avoid boot-time crashes.
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-        setState(prev => ({ ...prev, isLoading: false }));
+      const parsedUser = JSON.parse(storedUser);
+      // Migration: Ensure divisions exist for old sessions
+      if (parsedUser.role === 'member' && (!parsedUser.divisions || parsedUser.divisions.length < 4)) {
+        parsedUser.divisions = ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"];
+        localStorage.setItem('auth_user', JSON.stringify(parsedUser));
       }
+      
+      setState({
+        token: storedToken,
+        user: parsedUser,
+        isAuthenticated: true,
+        isLoading: false,
+      });
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
@@ -40,6 +39,14 @@ export const AuthProvider = ({ children }) => {
     const isFirstLogin = email.includes('first');
     const role = email.includes('admin') ? 'admin' : email.includes('instructor') ? 'instructor' : 'member';
     
+    let userDivision = "Development";
+    if (role === 'admin') {
+      if (email.includes('cyber')) userDivision = "Cyber Security";
+      else if (email.includes('data')) userDivision = "Data Science";
+      else if (email.includes('cp')) userDivision = "CP (Competitive Programming)";
+      else userDivision = "Development";
+    }
+
     const mockUser = {
       id: '1',
       idNo: 'CSEC/ASTU/' + Math.floor(1000 + Math.random() * 9000),
@@ -47,10 +54,11 @@ export const AuthProvider = ({ children }) => {
       role,
       isFirstLogin,
       name: email.split('@')[0].split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      bio: "CSEC Member since 2024. Passionate about building impactful software.",
+      bio: role === 'admin' ? "System Administrator" : "CSEC Member since 2024. Passionate about building impactful software.",
       status: "Active Member",
       attendance: "92%",
-      division: role === 'member' ? "Web Development" : "CORE Team"
+      division: role === 'member' ? "Development" : userDivision,
+      divisions: role === 'member' ? ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"] : [userDivision]
     };
 
     const mockToken = 'mock_jwt_token_' + Math.random().toString(36).substring(7);
@@ -64,11 +72,6 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
       });
-      return {
-        user: mockUser,
-        requiresApproval: false,
-        requiresPasswordChange: false,
-      };
     } else {
       setState({
         user: mockUser,
@@ -76,11 +79,6 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
       });
-      return {
-        user: mockUser,
-        requiresApproval: false,
-        requiresPasswordChange: true,
-      };
     }
   };
 

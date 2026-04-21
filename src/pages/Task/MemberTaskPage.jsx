@@ -53,7 +53,7 @@ const tasks = [
   }
 ];
 
-export const MyTasksPage = () => {
+export const MemberTaskPage = () => {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4 min-h-screen">
       <header className="text-center mb-16">

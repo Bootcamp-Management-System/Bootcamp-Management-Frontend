@@ -1,5 +1,6 @@
 import React from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
+import { useDivision } from '../../../context/DivisionContext';
 import { 
   BookOpen, 
   Clock, 
@@ -13,7 +14,11 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Timer
+  Timer,
+  Terminal,
+  Shield,
+  Database,
+  Cpu
 } from 'lucide-react';
 import { 
   PieChart, 
@@ -27,6 +32,17 @@ import { Link } from 'react-router-dom';
 
 export const MemberDashboard = () => {
   const { user } = useAuth();
+  const { activeDivision } = useDivision();
+
+  const divisionThemes = {
+    'Development': { icon: Terminal, color: 'text-blue-400', label: 'Dev Node' },
+    'Cyber Security': { icon: Shield, color: 'text-red-400', label: 'Sec Ops' },
+    'Data Science': { icon: Database, color: 'text-purple-400', label: 'Data Engine' },
+    'CP (Competitive Programming)': { icon: Cpu, color: 'text-orange-400', label: 'Algorithmic' }
+  };
+
+  const theme = divisionThemes[activeDivision] || divisionThemes['Development'];
+  const ThemeIcon = theme.icon;
 
   const taskStats = [
     { name: 'Completed', value: 12, color: '#10b981' },
@@ -48,9 +64,20 @@ export const MemberDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
-      <header className="mb-2">
-        <h2 className="text-3xl font-bold mb-2 text-white">Welcome back, {user?.name}!</h2>
-        <p className="text-portal-text-muted">Stay updated with your bootcamp activities and tasks.</p>
+      <header className="mb-2 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold mb-2 text-white">Welcome back, {user?.name}!</h2>
+          <p className="text-portal-text-muted">Stay updated with your bootcamp activities and tasks.</p>
+        </div>
+        <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl bg-portal-card border ${theme.color.replace('text-', 'border-')}/30 shadow-xl`}>
+          <div className={`p-2 rounded-xl ${theme.color.replace('text-', 'bg-')}/10 ${theme.color}`}>
+            <ThemeIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest leading-none mb-1">Active context</p>
+            <p className={`text-sm font-bold ${theme.color}`}>{activeDivision}</p>
+          </div>
+        </div>
       </header>
 
       {/* Stats and Chart Section */}
