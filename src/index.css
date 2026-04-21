@@ -12,10 +12,92 @@
   --color-portal-border: #1e293b;
   --color-portal-input: #0f172a;
   --color-portal-text-muted: #94a3b8;
+  --color-portal-text: #ffffff;
+}
+
+:root,
+html.dark {
+  --color-portal-bg: #020617;
+  --color-portal-card: #0b1120;
+  --color-portal-accent: #2ab1c2;
+  --color-portal-accent-hover: #2299a8;
+  --color-portal-border: #1e293b;
+  --color-portal-input: #0f172a;
+  --color-portal-text-muted: #94a3b8;
+  --color-portal-text: #ffffff;
+}
+
+html.light {
+  --color-portal-bg: #f3f7fb;
+  --color-portal-card: #ffffff;
+  --color-portal-accent: #f06a6a;
+  --color-portal-accent-hover: #e35d5d;
+  --color-portal-border: #d8e0ea;
+  --color-portal-input: #f8fafc;
+  --color-portal-text-muted: #64748b;
+  --color-portal-text: #0f172a;
 }
 
 @layer base {
   body {
-    @apply bg-portal-bg text-white font-sans antialiased;
+    @apply bg-portal-bg text-portal-text font-sans antialiased;
   }
+}
+
+html.dark .super-admin-theme {
+  color: #ffffff;
+}
+
+html.dark .super-admin-theme .bg-white,
+html.dark .super-admin-theme .bg-\[\#f6f8fa\],
+html.dark .super-admin-theme .bg-\[\#ffffff\] {
+  background-color: #0b1120 !important;
+}
+
+html.dark .super-admin-theme .bg-\[\#161b22\],
+html.dark .super-admin-theme .bg-\[\#0d1117\],
+html.dark .super-admin-theme .dark\:bg-\[\#161b22\],
+html.dark .super-admin-theme .dark\:bg-\[\#0d1117\] {
+  background-color: #0b1120 !important;
+}
+
+html.dark .super-admin-theme .border-\[\#d0d7de\],
+html.dark .super-admin-theme .dark\:border-\[\#30363d\],
+html.dark .super-admin-theme .border-gray-200,
+html.dark .super-admin-theme .border-gray-300 {
+  border-color: #1e293b !important;
+}
+
+html.dark .super-admin-theme .text-\[\#24292f\],
+html.dark .super-admin-theme .text-gray-900,
+html.dark .super-admin-theme .text-gray-800,
+html.dark .super-admin-theme .dark\:text-\[\#c9d1d9\] {
+  color: #ffffff !important;
+}
+
+html.dark .super-admin-theme .text-\[\#57606a\],
+html.dark .super-admin-theme .text-gray-600,
+html.dark .super-admin-theme .text-gray-500,
+html.dark .super-admin-theme .dark\:text-\[\#8b949e\] {
+  color: #94a3b8 !important;
+}
+
+html.dark .super-admin-theme .hover\:bg-\[\#f6f8fa\]:hover,
+html.dark .super-admin-theme .hover\:bg-gray-50:hover,
+html.dark .super-admin-theme .hover\:bg-gray-100:hover,
+html.dark .super-admin-theme .dark\:hover\:bg-\[\#21262d\]:hover {
+  background-color: #0f172a !important;
+}
+
+html.dark .super-admin-theme .bg-\[\#ddf4ff\],
+html.dark .super-admin-theme .bg-\[\#dafbe1\],
+html.dark .super-admin-theme .bg-\[\#f4ecff\],
+html.dark .super-admin-theme .bg-\[\#ffebe9\],
+html.dark .super-admin-theme .bg-\[\#fff8c5\] {
+  opacity: 0.92;
+}
+
+html.dark .super-admin-theme table thead,
+html.dark .super-admin-theme table tbody tr {
+  background-color: transparent !important;
 }

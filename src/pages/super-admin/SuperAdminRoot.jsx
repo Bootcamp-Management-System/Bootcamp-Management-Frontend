@@ -5,7 +5,7 @@ import { Toaster } from './app/components/ui/sonner';
 
 export function SuperAdminRoot() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="bms-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="bms-theme">
       <Layout />
       <Toaster />
     </ThemeProvider>

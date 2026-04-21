@@ -13,7 +13,9 @@ import {
   LogOut,
   Moon,
   Sun,
-  Laptop
+  Laptop,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { cn } from '../../lib/utils';
@@ -28,143 +30,166 @@ const navItems = [
   { path: `${SUPER_ADMIN_BASE}/applications`, label: 'Applications', icon: FileText },
   { path: `${SUPER_ADMIN_BASE}/sessions`, label: 'Sessions', icon: CalendarDays },
   { path: `${SUPER_ADMIN_BASE}/announcements`, label: 'Announcements', icon: Megaphone },
-  { path: `${SUPER_ADMIN_BASE}/settings`, label: 'Settings', icon: Settings },
 ];
 
 export function Layout() {
   const { theme, setTheme } = useTheme();
-  const auth = useAuth() as { logout?: () => void };
+  const auth = useAuth() as { logout?: () => void; user?: { name?: string } };
   const navigate = useNavigate();
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const isNotificationsPage = location.pathname === `${SUPER_ADMIN_BASE}/notifications`;
+  const userName = auth.user?.name || 'Super Admin';
+  const userInitials = userName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 
   const handleLogout = () => {
     auth.logout?.();
     navigate('/login');
   };
 
+  const isDarkTheme =
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const handleThemeToggle = () => {
+    setTheme(isDarkTheme ? 'light' : 'dark');
+  };
+
   return (
-    <div className="min-h-screen flex w-full bg-[#f6f8fa] dark:bg-[#0d1117] text-[#24292f] dark:text-[#c9d1d9] transition-colors duration-200">
+    <div className="flex h-screen w-full overflow-hidden bg-portal-bg text-portal-text font-sans transition-colors duration-300">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 flex flex-col bg-white dark:bg-[#161b22] border-r border-[#d0d7de] dark:border-[#30363d] sticky top-0 h-screen overflow-y-auto">
-        <div className="p-4 border-b border-[#d0d7de] dark:border-[#30363d] flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-sm ring-1 ring-[#d0d7de] dark:ring-[#30363d] bg-white">
+      <aside className={cn(
+        'flex-shrink-0 flex flex-col bg-portal-card border-r border-portal-border h-screen overflow-visible relative transition-all duration-300',
+        isCollapsed ? 'w-24' : 'w-72'
+      )}>
+        <button
+          onClick={() => setIsCollapsed((current) => !current)}
+          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="absolute -right-4 top-6 h-9 w-9 bg-portal-accent rounded-full flex items-center justify-center text-white border-2 border-portal-bg shadow-xl shadow-portal-accent/40 z-50 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-portal-accent focus:ring-offset-2 focus:ring-offset-portal-card transition-transform"
+        >
+          {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </button>
+        <div className="p-6 border-b border-portal-border flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl overflow-hidden bg-white shadow-lg shadow-portal-accent/10 ring-1 ring-white/10">
             <img
               src={csecLogo}
               alt="CSEC logo"
               className="h-full w-full object-cover"
             />
           </div>
-          <div className="min-w-0">
-            <h1 className="font-bold text-lg tracking-tight text-[#24292f] dark:text-[#c9d1d9] leading-none">CSEC BMS</h1>
-            <p className="mt-1 text-xs font-semibold tracking-wide text-[#0969da] dark:text-[#58a6ff]">Super Admin</p>
-          </div>
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <h1 className="font-extrabold text-lg leading-none tracking-tight text-portal-text">CSEC BMS</h1>
+              <p className="mt-1 text-[11px] font-semibold tracking-wide text-portal-accent">Super Admin Panel</p>
+            </div>
+          )}
         </div>
         
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
+                  'flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all relative',
                   isActive
-                    ? 'bg-[#0969da] text-white dark:bg-[#1f6feb] dark:text-white font-medium'
-                    : 'text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f3f4f6] dark:hover:bg-[#21262d]'
+                    ? 'bg-portal-accent/10 text-portal-accent'
+                    : 'text-portal-text-muted hover:bg-white/5 hover:text-portal-text'
                 )
               }
             >
-              <item.icon className="w-4 h-4" />
-              {item.label}
+              <item.icon className="w-5 h-5 shrink-0" />
+              {!isCollapsed && item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-[#d0d7de] dark:border-[#30363d] space-y-3">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0969da] to-[#1a7f37] flex items-center justify-center text-white font-semibold shadow-sm">
-              SA
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold">Alex Superadmin</span>
-              <span className="text-xs text-[#57606a] dark:text-[#8b949e]">System Owner</span>
-            </div>
-          </div>
+        <div className="mt-6 pt-6 border-t border-portal-border space-y-2 px-4 pb-5">
+          <button
+            onClick={() => navigate(`${SUPER_ADMIN_BASE}/settings`)}
+            className={cn(
+              'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-portal-text-muted hover:text-portal-text transition-colors rounded-xl hover:bg-white/5',
+              isCollapsed ? 'justify-center px-0' : ''
+            )}
+          >
+            <Settings className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span>Settings</span>}
+          </button>
           <button
             onClick={handleLogout}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] px-3 py-2 text-sm font-medium text-[#cf222e] dark:text-[#ff7b72] hover:bg-[#ffebe9] dark:hover:bg-[#490202] transition-colors"
+            className={cn(
+              'w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-400 hover:text-red-300 transition-colors rounded-xl hover:bg-red-500/10',
+              isCollapsed ? 'justify-center px-0' : ''
+            )}
           >
-            <LogOut className="w-4 h-4" />
-            Logout
+            <LogOut className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 bg-portal-bg">
         {/* Header */}
-        <header className="h-16 flex-shrink-0 bg-white dark:bg-[#161b22] border-b border-[#d0d7de] dark:border-[#30363d] flex items-center justify-between px-6 z-10">
-          <h1 className="text-lg font-semibold">Bootcamp Management System</h1>
+        <header className="h-20 flex-shrink-0 bg-portal-bg/80 backdrop-blur-xl border-b border-portal-border flex items-center justify-between px-8 z-10">
+          <div>
+            <h1 className="text-lg font-bold text-portal-text">Bootcamp Management System</h1>
+            <p className="text-xs text-portal-text-muted mt-1">Super Admin workspace</p>
+          </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={handleThemeToggle}
+              className="p-2.5 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all"
+              title={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkTheme ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button
               onClick={() => navigate(`${SUPER_ADMIN_BASE}/notifications`)}
               className={cn(
-                'relative p-2 rounded-md transition-colors',
+                'relative p-2.5 rounded-lg transition-colors',
                 isNotificationsPage
-                  ? 'bg-[#0969da] text-white dark:bg-[#1f6feb]'
-                  : 'hover:bg-[#f3f4f6] dark:hover:bg-[#21262d] text-[#57606a] dark:text-[#8b949e]'
+                  ? 'bg-portal-accent/15 text-portal-accent'
+                  : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10'
               )}
               title="Notifications"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-6 h-6" />
               <span className={cn(
-                'absolute top-1.5 right-1.5 w-2 h-2 rounded-full border',
+                'absolute top-2 right-2 w-2 h-2 rounded-full border-2',
                 isNotificationsPage
-                  ? 'bg-white border-[#1f6feb]'
-                  : 'bg-[#cf222e] border-white dark:border-[#161b22]'
+                  ? 'bg-portal-accent border-portal-bg'
+                  : 'bg-red-500 border-portal-bg'
               )}></span>
             </button>
-            <div className="h-6 w-px bg-[#d0d7de] dark:bg-[#30363d]"></div>
-            <div className="flex items-center gap-1 bg-[#f6f8fa] dark:bg-[#21262d] p-1 rounded-lg border border-[#d0d7de] dark:border-[#30363d]">
-              <button
-                onClick={() => setTheme('light')}
-                className={cn(
-                  'p-1.5 rounded-md transition-colors',
-                  theme === 'light' ? 'bg-white shadow-sm text-[#24292f]' : 'text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]'
-                )}
-                title="Light mode"
-              >
-                <Sun className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setTheme('system')}
-                className={cn(
-                  'p-1.5 rounded-md transition-colors',
-                  theme === 'system' ? 'bg-white dark:bg-[#30363d] shadow-sm text-[#24292f] dark:text-[#c9d1d9]' : 'text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]'
-                )}
-                title="System theme"
-              >
-                <Laptop className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setTheme('dark')}
-                className={cn(
-                  'p-1.5 rounded-md transition-colors',
-                  theme === 'dark' ? 'bg-[#30363d] shadow-sm text-[#c9d1d9]' : 'text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]'
-                )}
-                title="Dark mode"
-              >
-                <Moon className="w-4 h-4" />
-              </button>
+            <div className="flex items-center gap-3 pl-4 border-l border-portal-border">
+              <div className="flex items-center gap-3 pl-1">
+                <div className="text-right hidden sm:block">
+                  <p className="text-base font-extrabold leading-none text-portal-text">{userName}</p>
+                  <p className="text-xs text-portal-accent mt-1 uppercase font-bold tracking-wider">super admin</p>
+                </div>
+                <div className="w-11 h-11 rounded-full bg-portal-accent flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-portal-accent/20 border border-white/10 uppercase">
+                  {userInitials || 'SA'}
+                </div>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+        <div className="flex-1 overflow-y-auto p-8 relative">
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-portal-accent/5 rounded-full blur-[100px] pointer-events-none" />
+          <div className="super-admin-theme relative z-10 min-h-full bg-transparent p-0">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>
