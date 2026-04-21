@@ -20,10 +20,10 @@ export const mockUsers = [
   { id: 8, name: 'Ruth Tesfaye', email: 'ruth.cpd@example.com', role: 'Admin', divisions: ['CPD'], year: 'All', status: 'Active' },
   { id: 9, name: 'Michael Nuru', email: 'michael.cyber@example.com', role: 'Admin', divisions: ['Cybersecurity'], year: 'All', status: 'Active' },
   { id: 10, name: 'Selam Ayele', email: 'selam.datascience@example.com', role: 'Admin', divisions: ['Data Science'], year: 'All', status: 'Active' },
-  { id: 11, name: 'Meron Desta', email: 'meron.member@example.com', role: 'Member', divisions: ['Development'], year: 'All', status: 'Active' },
-  { id: 12, name: 'Abel Tarekegn', email: 'abel.member@example.com', role: 'Member', divisions: ['Cybersecurity'], year: 'All', status: 'Active' },
-  { id: 13, name: 'Liya Solomon', email: 'liya.member@example.com', role: 'Member', divisions: ['Data Science'], year: 'All', status: 'Active' },
-  { id: 14, name: 'Hana Bekele', email: 'hana.member@example.com', role: 'Member', divisions: ['CPD'], year: 'All', status: 'Suspended' },
+  { id: 11, name: 'Meron Desta', email: 'meron.member@example.com', role: 'Member', divisions: ['Development'], year: 'All', status: 'Active', isInstructor: false, isAdmin: false },
+  { id: 12, name: 'Abel Tarekegn', email: 'abel.member@example.com', role: 'Member', divisions: ['Cybersecurity'], year: 'All', status: 'Active', isInstructor: false, isAdmin: false },
+  { id: 13, name: 'Liya Solomon', email: 'liya.member@example.com', role: 'Member', divisions: ['Data Science'], year: 'All', status: 'Active', isInstructor: false, isAdmin: false },
+  { id: 14, name: 'Hana Bekele', email: 'hana.member@example.com', role: 'Member', divisions: ['CPD'], year: 'All', status: 'Suspended', isInstructor: false, isAdmin: false },
 ];
 
 const USERS_STORAGE_KEY = 'super_admin_users';
@@ -36,6 +36,14 @@ const statusData = [
 
 const divisionOptions = ['All Divisions', 'CPD', 'Data Science', 'Cybersecurity', 'Development'];
 const statusOptions = ['All Statuses', 'Active', 'Suspended', 'Graduated'];
+
+const belongsToTab = (user, tab) => {
+  if (tab === 'Member') return user.role === 'Member';
+  if (tab === 'Student') return user.role === 'Student';
+  if (tab === 'Instructor') return user.role === 'Instructor' || user.isInstructor || user.isAdmin;
+  if (tab === 'Admin') return user.role === 'Admin' || user.isAdmin;
+  return false;
+};
 
 export function Users() {
   const navigate = useNavigate();
@@ -67,14 +75,17 @@ export function Users() {
 
   const roleCounts = users.reduce(
     (counts, user) => {
-      counts[user.role] = (counts[user.role] || 0) + 1;
+      if (belongsToTab(user, 'Member')) counts.Member += 1;
+      if (belongsToTab(user, 'Student')) counts.Student += 1;
+      if (belongsToTab(user, 'Instructor')) counts.Instructor += 1;
+      if (belongsToTab(user, 'Admin')) counts.Admin += 1;
       return counts;
     },
     { Member: 0, Student: 0, Instructor: 0, Admin: 0 }
   );
 
   const filteredUsers = users.filter(u => 
-    u.role === activeTab &&
+    belongsToTab(u, activeTab) &&
     (selectedDivision === 'All Divisions' || u.divisions.includes(selectedDivision)) &&
     (selectedStatus === 'All Statuses' || u.status === selectedStatus) &&
     (selectedYear === 'All' || u.year === selectedYear || u.year === 'All') &&
@@ -84,19 +95,19 @@ export function Users() {
   const handlePromoteInstructor = (event, user) => {
     event.stopPropagation();
     const nextUsers = users.map((currentUser) =>
-        currentUser.id === user.id ? { ...currentUser, role: 'Admin', year: 'All' } : currentUser
+        currentUser.id === user.id ? { ...currentUser, isAdmin: true, year: 'All' } : currentUser
     );
     syncUsers(nextUsers);
-    toast.success(`${user.name} has been promoted to Admin for ${user.divisions[0]}.`);
+    toast.success(`${user.name} now has Admin access for ${user.divisions[0]} and remains listed as Instructor.`);
   };
 
   const handlePromoteMember = (event, user) => {
     event.stopPropagation();
     const nextUsers = users.map((currentUser) =>
-        currentUser.id === user.id ? { ...currentUser, role: 'Instructor' } : currentUser
+        currentUser.id === user.id ? { ...currentUser, isInstructor: true } : currentUser
     );
     syncUsers(nextUsers);
-    toast.success(`${user.name} has been promoted to Instructor for ${user.divisions[0]}.`);
+    toast.success(`${user.name} now has Instructor access for ${user.divisions[0]} and remains listed as Member.`);
   };
 
   const handleAddMember = () => {
@@ -116,6 +127,8 @@ export function Users() {
       campusId: newMember.campusId || `CSEC/ASTU/${Date.now().toString().slice(-4)}`,
       phone: newMember.phone || '+251 900 000 000',
       status: newMember.status,
+      isInstructor: false,
+      isAdmin: false,
     };
 
     const nextUsers = [createdMember, ...users];
@@ -303,7 +316,7 @@ export function Users() {
                     </td>
                     <td className="px-6 py-4 text-right actions-cell">
                       <div className="flex items-center justify-end gap-3">
-                        {user.role === 'Member' && (
+                        {user.role === 'Member' && !user.isInstructor && (
                           <button 
                             onClick={(event) => handlePromoteMember(event, user)}
                             className="flex items-center gap-1 text-[#0969da] dark:text-[#58a6ff] hover:text-[#0550ae] hover:bg-[#ddf4ff] dark:hover:bg-[#051d4d] p-1.5 rounded transition-colors text-xs font-medium" 
@@ -312,7 +325,7 @@ export function Users() {
                             <ArrowUpCircle className="w-4 h-4" /> Promote to Instructor
                           </button>
                         )}
-                        {user.role === 'Instructor' && (
+                        {(user.role === 'Instructor' || user.isInstructor) && !user.isAdmin && (
                           <button 
                             onClick={(event) => handlePromoteInstructor(event, user)}
                             className="flex items-center gap-1 text-[#1a7f37] dark:text-[#3fb950] hover:text-[#2ea043] hover:bg-[#dafbe1] dark:hover:bg-[#238636]/20 p-1.5 rounded transition-colors text-xs font-medium" 

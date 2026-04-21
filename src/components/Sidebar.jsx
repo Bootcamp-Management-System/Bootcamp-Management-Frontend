@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import csecLogo from '../assets/csec logo.jpg';
 import { 
   LayoutDashboard, 
   Users, 
@@ -25,6 +26,13 @@ export const Sidebar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const panelLabel =
+    user?.role === 'admin'
+      ? 'Admin Panel'
+      : user?.role === 'instructor'
+        ? 'Instructor Panel'
+        : 'Student Panel';
 
   const getNavItems = () => {
     const dashboardPath = user?.role === 'admin' ? '/admin' : user?.role === 'instructor' ? '/instructor' : '/dashboard';
@@ -80,8 +88,12 @@ export const Sidebar = () => {
 
       <div className={`p-6 flex-1 flex flex-col ${isCollapsed ? 'items-center' : ''}`}>
         <div className="flex items-center gap-3 mb-10 overflow-hidden whitespace-nowrap">
-          <div className="w-10 h-10 bg-portal-accent rounded-xl flex items-center justify-center shadow-lg shadow-portal-accent/20 shrink-0">
-            <GraduationCap className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-white/95 shadow-lg shadow-portal-accent/15 shrink-0 overflow-hidden ring-1 ring-white/10">
+            <img
+              src={csecLogo}
+              alt="CSEC logo"
+              className="h-full w-full object-cover"
+            />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -90,8 +102,8 @@ export const Sidebar = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
               >
-                <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC ASTU</h1>
-                <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">Portal {user?.role}</p>
+                <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC BMS</h1>
+                <p className="text-[11px] text-portal-accent mt-1 font-semibold tracking-wide">{panelLabel}</p>
               </motion.div>
             )}
           </AnimatePresence>

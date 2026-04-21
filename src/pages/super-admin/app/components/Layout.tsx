@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import csecLogo from '../../../../assets/csec logo.jpg';
 import {
   LayoutDashboard,
   Building2,
@@ -47,11 +48,18 @@ export function Layout() {
     <div className="min-h-screen flex w-full bg-[#f6f8fa] dark:bg-[#0d1117] text-[#24292f] dark:text-[#c9d1d9] transition-colors duration-200">
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 flex flex-col bg-white dark:bg-[#161b22] border-r border-[#d0d7de] dark:border-[#30363d] sticky top-0 h-screen overflow-y-auto">
-        <div className="p-4 border-b border-[#d0d7de] dark:border-[#30363d] flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#24292f] dark:bg-[#c9d1d9] flex items-center justify-center text-white dark:text-[#0d1117] font-bold">
-            BMS
+        <div className="p-4 border-b border-[#d0d7de] dark:border-[#30363d] flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-sm ring-1 ring-[#d0d7de] dark:ring-[#30363d] bg-white">
+            <img
+              src={csecLogo}
+              alt="CSEC logo"
+              className="h-full w-full object-cover"
+            />
           </div>
-          <span className="font-semibold text-lg tracking-tight">Super Admin</span>
+          <div className="min-w-0">
+            <h1 className="font-bold text-lg tracking-tight text-[#24292f] dark:text-[#c9d1d9] leading-none">CSEC BMS</h1>
+            <p className="mt-1 text-xs font-semibold tracking-wide text-[#0969da] dark:text-[#58a6ff]">Super Admin</p>
+          </div>
         </div>
         
         <nav className="flex-1 p-3 space-y-1">
