@@ -72,6 +72,12 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
       });
+      return {
+        user: mockUser,
+        token: mockToken,
+        requiresApproval: false,
+        requiresPasswordChange: false,
+      };
     } else {
       setState({
         user: mockUser,
@@ -79,6 +85,12 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
       });
+      return {
+        user: mockUser,
+        token: null,
+        requiresApproval: false,
+        requiresPasswordChange: true,
+      };
     }
   };
 

@@ -1,22 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from "framer-motion";
-import { IdCard, Lock, LogIn } from 'lucide-react';
+import { Crown, IdCard, Lock } from 'lucide-react';
 
 export const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, isAuthenticated, user } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const role = user.role;
-      navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
-    }
-  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,6 +30,17 @@ export const LoginPage = () => {
       navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
     } catch (err) {
       setError('Invalid email, ID, or password');
+    }
+  };
+
+  const handleSuperAdminDemo = async () => {
+    setError('');
+
+    try {
+      await login('admin.demo@astu.edu.et', 'DemoPass123');
+      navigate('/super-admin/dashboard');
+    } catch (err) {
+      setError('Unable to open the Super Admin demo right now.');
     }
   };
 
@@ -110,6 +114,14 @@ export const LoginPage = () => {
         <div className="mt-10 pt-8 border-t border-portal-border/50">
           <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-[0.2em] mb-2 text-center">Demo Access</p>
           <p className="text-[11px] text-portal-text-muted text-center">Password: DemoPass123</p>
+          <button
+            type="button"
+            onClick={handleSuperAdminDemo}
+            className="w-full mt-4 mb-4 py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:opacity-95 transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+          >
+            <Crown className="w-4 h-4" />
+            Super Admin Demo
+          </button>
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               {[
