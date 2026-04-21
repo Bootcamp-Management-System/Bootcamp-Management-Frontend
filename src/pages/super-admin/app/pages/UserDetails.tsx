@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, CalendarDays, Edit, ShieldAlert, BookOpen, GraduationCap, CheckCircle2, Clock, Trash2, KeyRound } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, CalendarDays, ShieldAlert, BookOpen, GraduationCap, CheckCircle2, Clock, Trash2, KeyRound, Users as MembersIcon } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { mockUsers } from './Users';
 import { cn } from '../../lib/utils';
@@ -17,9 +17,11 @@ const studentProgress = [
 export function UserDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const storedUsers = localStorage.getItem('super_admin_users');
+  const users = storedUsers ? JSON.parse(storedUsers) : mockUsers;
 
   // Find user from mock data or default to first
-  const user = mockUsers.find(u => u.id === Number(id)) || mockUsers[0];
+  const user = users.find(u => u.id === Number(id)) || users[0];
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -53,6 +55,7 @@ export function UserDetails() {
                   {user.role === 'Admin' && <ShieldAlert className="w-4 h-4 text-[#cf222e] dark:text-[#f85149]" />}
                   {user.role === 'Instructor' && <GraduationCap className="w-4 h-4 text-[#8250df] dark:text-[#d2a8ff]" />}
                   {user.role === 'Student' && <BookOpen className="w-4 h-4 text-[#0969da] dark:text-[#58a6ff]" />}
+                  {user.role === 'Member' && <MembersIcon className="w-4 h-4 text-[#0a7ea4] dark:text-[#56d4ff]" />}
                   {user.role}
                 </span>
                 <span className="text-[#d0d7de] dark:text-[#30363d]">•</span>
@@ -63,12 +66,13 @@ export function UserDetails() {
         </div>
         
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] hover:bg-[#f6f8fa] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md text-sm font-medium transition-colors shadow-sm">
-            <Edit className="w-4 h-4" />
-            Edit Profile
-          </button>
-          {user.role === 'Student' && user.status === 'Active' && (
+          {user.role === 'Instructor' && (
             <button className="flex items-center gap-2 px-3 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm">
+              Promote to Admin
+            </button>
+          )}
+          {user.role === 'Member' && (
+            <button className="flex items-center gap-2 px-3 py-2 bg-[#0969da] hover:bg-[#0550ae] text-white rounded-md text-sm font-medium transition-colors shadow-sm">
               Promote to Instructor
             </button>
           )}
@@ -146,7 +150,7 @@ export function UserDetails() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-base font-semibold text-[#24292f] dark:text-[#c9d1d9]">Enrolled Bootcamps</h3>
+              <h3 className="text-base font-semibold text-[#24292f] dark:text-[#c9d1d9]">{user.role === 'Member' ? 'Division Membership' : 'Enrolled Bootcamps'}</h3>
               {user.role === 'Student' && (
                 <button className="text-sm text-[#0969da] dark:text-[#58a6ff] hover:underline font-medium">Manage Enrollments</button>
               )}
@@ -178,6 +182,11 @@ export function UserDetails() {
                         <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#1a7f37]" /> 24/26 Sessions</span>
                         <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 2 Absences</span>
                       </div>
+                    </div>
+                  ) : user.role === 'Member' ? (
+                    <div className="mt-auto pt-3 border-t border-[#d0d7de] dark:border-[#30363d] text-sm text-[#57606a] dark:text-[#8b949e]">
+                      <p>Registered CSEC member</p>
+                      <p className="mt-1 font-medium text-[#24292f] dark:text-[#c9d1d9]">Not enrolled in a bootcamp yet</p>
                     </div>
                   ) : (
                     <div className="mt-auto pt-3 border-t border-[#d0d7de] dark:border-[#30363d] text-sm text-[#57606a] dark:text-[#8b949e]">
