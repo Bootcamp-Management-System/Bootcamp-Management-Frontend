@@ -18,6 +18,7 @@ import {
   PanelLeftOpen,
   UserCheck,
   FileBarChart,
+  TrendingUp,
   Layers as LayersIcon
 } from 'lucide-react';
 
@@ -27,16 +28,24 @@ export const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getNavItems = () => {
-    const dashboardPath = user?.role === 'admin' ? '/admin' : user?.role === 'instructor' ? '/instructor' : '/dashboard';
+    const dashboardPath = user?.role === 'admin' || user?.role === 'super_admin' ? '/admin' : user?.role === 'instructor' ? '/instructor' : '/dashboard';
     const base = [
       { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: dashboardPath },
     ];
 
-    if (user?.role === 'admin') {
-      return [
-        { id: 'admin-dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+    if (user?.role === 'admin' || user?.role === 'super_admin') {
+      const adminItems = [
+        { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? 'Global Dashboard' : 'Dashboard', path: '/admin/dashboard' },
         { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
         { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
+      ];
+
+      if (user.role === 'super_admin') {
+        adminItems.push({ id: 'admin-admins', icon: Shield, label: 'Admins', path: '/admin/admins' });
+      }
+
+      return [
+        ...adminItems,
         { id: 'admin-sessions', icon: BookOpen, label: 'Sessions', path: '/admin/sessions' },
         { id: 'admin-groups', icon: LayersIcon, label: 'Groups', path: '/admin/groups' },
         { id: 'admin-reports', icon: FileBarChart, label: 'Reports', path: '/admin/reports' },
@@ -58,6 +67,7 @@ export const Sidebar = () => {
       ...base,
       { id: 'sessions', icon: BookOpen, label: 'My Sessions', path: '/sessions' },
       { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
+      { id: 'progress', icon: TrendingUp, label: 'Weekly Progress', path: '/progress' },
       { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
     ];
   };
@@ -91,13 +101,15 @@ export const Sidebar = () => {
                 exit={{ opacity: 0, x: -10 }}
               >
                 <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC ASTU</h1>
-                <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">Portal {user?.role}</p>
+                <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
+                  Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role}
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <nav className="space-y-2 flex-1 overflow-hidden">
+        <nav className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (

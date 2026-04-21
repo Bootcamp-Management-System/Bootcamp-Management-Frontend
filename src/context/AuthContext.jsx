@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(undefined);
 
@@ -9,6 +10,10 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
   });
+  const [selectedDivision, setSelectedDivision] = useState(() => {
+    const saved = localStorage.getItem('global_division');
+    return saved || 'All';
+  });
 
   useEffect(() => {
     const storedToken = localStorage.getItem('auth_token');
@@ -16,7 +21,13 @@ export const AuthProvider = ({ children }) => {
 
     if (storedToken && storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      // Migration: Ensure divisions exist for old sessions
+      // Migration: Normalize backend roles and ensure divisions exist for old sessions
+      if (parsedUser.role === 'student') {
+        parsedUser.role = 'member';
+      } else if (parsedUser.role === 'super-admin' || parsedUser.role === 'super admin') {
+        parsedUser.role = 'super_admin';
+      }
+
       if (parsedUser.role === 'member' && (!parsedUser.divisions || parsedUser.divisions.length < 4)) {
         parsedUser.divisions = ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"];
         localStorage.setItem('auth_user', JSON.stringify(parsedUser));
@@ -28,57 +39,53 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
       });
+
+      if (parsedUser.role === 'super_admin') {
+        const savedDivision = localStorage.getItem('global_division') || 'All';
+        setSelectedDivision(savedDivision);
+      } else if (parsedUser.division) {
+        setSelectedDivision(parsedUser.division);
+      }
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
 
-  const login = async (email, _password) => {
+  const login = async (identifier, password) => {
     setState(prev => ({ ...prev, isLoading: true }));
-    
-    const isFirstLogin = email.includes('first');
-    const role = email.includes('admin') ? 'admin' : email.includes('instructor') ? 'instructor' : 'member';
-    
-    let userDivision = "Development";
-    if (role === 'admin') {
-      if (email.includes('cyber')) userDivision = "Cyber Security";
-      else if (email.includes('data')) userDivision = "Data Science";
-      else if (email.includes('cp')) userDivision = "CP (Competitive Programming)";
-      else userDivision = "Development";
-    }
 
-    const mockUser = {
-      id: '1',
-      idNo: 'CSEC/ASTU/' + Math.floor(1000 + Math.random() * 9000),
-      email,
-      role,
-      isFirstLogin,
-      name: email.split('@')[0].split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      bio: role === 'admin' ? "System Administrator" : "CSEC Member since 2024. Passionate about building impactful software.",
-      status: "Active Member",
-      attendance: "92%",
-      division: role === 'member' ? "Development" : userDivision,
-      divisions: role === 'member' ? ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"] : [userDivision]
-    };
+    try {
+      const result = await authService.login({ email: identifier, password });
+      const { user, token, requiresPasswordChange, requiresApproval } = result || {};
 
-    const mockToken = 'mock_jwt_token_' + Math.random().toString(36).substring(7);
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      } else {
+        localStorage.removeItem('auth_token');
+      }
 
-    if (!isFirstLogin) {
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      if (user) {
+        localStorage.setItem('auth_user', JSON.stringify(user));
+      }
+
       setState({
-        user: mockUser,
-        token: mockToken,
-        isAuthenticated: true,
+        user: user || null,
+        token: token || null,
+        isAuthenticated: Boolean(token) && !requiresPasswordChange && !requiresApproval,
         isLoading: false,
       });
-    } else {
-      setState({
-        user: mockUser,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
+
+      if (user?.role === 'super_admin') {
+        const savedDivision = localStorage.getItem('global_division') || 'All';
+        setSelectedDivision(savedDivision);
+      } else if (user?.division) {
+        setSelectedDivision(user.division);
+      }
+
+      return result;
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
     }
   };
 
@@ -89,12 +96,19 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('global_division');
     setState({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
     });
+    setSelectedDivision('All');
+  };
+
+  const setGlobalDivision = (division) => {
+    setSelectedDivision(division);
+    localStorage.setItem('global_division', division);
   };
 
   const verifyOTP = async (_otp) => {
@@ -152,6 +166,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ 
       ...state, 
+      selectedDivision,
+      setGlobalDivision,
       login, 
       googleLogin, 
       logout, 

@@ -32,6 +32,13 @@ export const ALL_MEMBERS = [
   { id: 24, name: 'Quinn CP', email: 'quinn@cp.com', role: 'instructor', division: 'CP (Competitive Programming)', idNo: 'INST/CP/002', status: 'Active', attendance: '100%', divisions: ['CP (Competitive Programming)'] },
 ];
 
+export const ALL_ADMINS = [
+  { id: 101, name: 'Admin Dev', email: 'admin@dev.com', role: 'admin', division: 'Development', idNo: 'ADM/DEV/001', status: 'Active' },
+  { id: 102, name: 'Admin Cyber', email: 'admin@cyber.com', role: 'admin', division: 'Cyber Security', idNo: 'ADM/SEC/001', status: 'Active' },
+  { id: 103, name: 'Admin Data', email: 'admin@data.com', role: 'admin', division: 'Data Science', idNo: 'ADM/DS/001', status: 'Active' },
+  { id: 104, name: 'Admin CP', email: 'admin@cp.com', role: 'admin', division: 'CP (Competitive Programming)', idNo: 'ADM/CP/001', status: 'Active' },
+];
+
 export const ALL_SESSIONS = [
   { id: 1, title: 'React Performance', description: 'Advanced hooks and memoization.', date: '2026-04-25', time: '14:00', division: 'Development', instructor: 'Charlie Dev' },
   { id: 2, title: 'Network Auditing', description: 'Using Nmap and Wireshark.', date: '2026-04-26', time: '10:00', division: 'Cyber Security', instructor: 'Frank Cyber' },
@@ -51,4 +58,23 @@ export const ALL_GROUPS = [
   { id: 2, name: 'Red Team Alpha', division: 'Cyber Security', membersCount: 3 },
   { id: 3, name: 'ML Researchers', division: 'Data Science', membersCount: 4 },
   { id: 4, name: 'Algorithm Crackers', division: 'CP (Competitive Programming)', membersCount: 6 },
+];
+
+export const RESOURCES = [
+  { id: 1, title: 'React Performance Guide', type: 'PDF', division: 'Development', url: '#', date: '2026-04-20' },
+  { id: 2, title: 'Nmap Cheat Sheet', type: 'Link', division: 'Cyber Security', url: '#', date: '2026-04-21' },
+];
+
+export const SUBMISSIONS = [
+  { id: 1, taskId: 3, student: 'Alice Dev', file: 'dom_assignment.zip', status: 'Pending', submittedAt: '2026-04-21T10:00:00Z', division: 'Development' },
+  { id: 2, taskId: 3, student: 'Bob Dev', file: 'dom_fix.js', status: 'Reviewed', submittedAt: '2026-04-21T09:30:00Z', division: 'Development' },
+];
+
+export const FEEDBACK_AGGREGATED = [
+  { sessionId: 1, avgRating: 4.8, count: 12, topPros: ['Clear examples', 'Good pace'], topCons: ['Audio crackle'] },
+  { sessionId: 2, avgRating: 4.5, count: 8, topPros: ['Hands-on lab'], topCons: ['Too advanced for some'] },
+];
+
+export const WEEKLY_PROGRESS = [
+  { id: 1, groupId: 1, week: 1, progress: 85, status: 'On Track', reports: ['Implemented routing', 'Styled landing page'] },
 ];

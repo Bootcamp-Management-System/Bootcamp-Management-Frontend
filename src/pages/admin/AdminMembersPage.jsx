@@ -20,15 +20,19 @@ import { ALL_MEMBERS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminMembersPage = () => {
-  const { user: admin } = useAuth();
+  const { user: admin, selectedDivision } = useAuth();
   const adminDivision = admin?.division || 'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
   
-  const initialMembers = ALL_MEMBERS.filter(m => m.division === adminDivision);
-  const [members, setMembers] = useState(initialMembers);
+  const [members, setMembers] = React.useState(ALL_MEMBERS.filter(m => currentDivision === 'All' || m.division === currentDivision));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [infoMember, setInfoMember] = useState(null);
+
+  React.useEffect(() => {
+    setMembers(ALL_MEMBERS.filter(m => currentDivision === 'All' || m.division === currentDivision));
+  }, [currentDivision]);
 
   const columns = [
     { 
@@ -282,9 +286,18 @@ export const AdminMembersPage = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted">Target Division</label>
-                <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed">
-                  {adminDivision}
-                </div>
+                {admin?.role === 'super_admin' ? (
+                  <select className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={selectedMember?.division || 'Development'}>
+                    <option>Development</option>
+                    <option>Cyber Security</option>
+                    <option>Data Science</option>
+                    <option>CP (Competitive Programming)</option>
+                  </select>
+                ) : (
+                  <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
+                    {adminDivision}
+                  </div>
+                )}
               </div>
             </div>
           </div>

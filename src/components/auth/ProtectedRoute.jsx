@@ -22,9 +22,16 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/otp" replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    const redirectPath = user.role === 'admin' ? '/admin' : user.role === 'instructor' ? '/instructor' : '/dashboard';
-    return <Navigate to={redirectPath} replace />;
+  if (allowedRoles && user) {
+    const normalizedRole = user.role === 'student'
+      ? 'member'
+      : user.role === 'super-admin' || user.role === 'super admin'
+        ? 'super_admin'
+        : user.role;
+    if (!allowedRoles.includes(normalizedRole)) {
+      const redirectPath = normalizedRole === 'admin' ? '/admin' : normalizedRole === 'instructor' ? '/instructor' : '/dashboard';
+      return <Navigate to={redirectPath} replace />;
+    }
   }
 
   return <>{children}</>;

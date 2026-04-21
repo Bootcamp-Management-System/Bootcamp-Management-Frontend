@@ -45,27 +45,30 @@ const divisionDistribution = [
 ];
 
 export const AdminDashboard = () => {
-  const { user } = useAuth();
-  const adminDivision = user?.division || 'Data Science';
+  const { user, selectedDivision } = useAuth();
+  
+  const currentDivision = user?.role === 'super_admin' ? selectedDivision : (user?.division || 'Development');
 
   // Division-Scoped Logic
-  const divisionMembers = ALL_MEMBERS.filter(m => m.division === adminDivision);
-  const divisionInstructors = divisionMembers.filter(m => m.role === 'instructor');
-  const divisionSessions = ALL_SESSIONS.filter(s => s.division === adminDivision);
-  const divisionTasks = ALL_TASKS.filter(t => t.division === adminDivision);
+  const divisionMembers = ALL_MEMBERS.filter(m => currentDivision === 'All' || m.division === currentDivision);
+  const divisionInstructors = ALL_MEMBERS.filter(m => (currentDivision === 'All' || m.division === currentDivision) && m.role === 'instructor');
+  const divisionSessions = ALL_SESSIONS.filter(s => currentDivision === 'All' || s.division === currentDivision);
+  const divisionTasks = ALL_TASKS.filter(t => currentDivision === 'All' || t.division === currentDivision);
 
   const stats = [
-    { label: "Division Members", value: divisionMembers.length, change: "+2", icon: Users, color: "text-blue-400" },
-    { label: "Instructors", value: divisionInstructors.length, change: "+0", icon: UserCheck, color: "text-green-400" },
-    { label: "Sessions", value: divisionSessions.length, change: "+1", icon: BookOpen, color: "text-purple-400" },
-    { label: "Active Tasks", value: divisionTasks.length, change: "+3", icon: ClipboardList, color: "text-orange-400" },
+    { label: currentDivision === 'All' ? "Total Members" : "Division Members", value: divisionMembers.length, change: "+2", icon: Users, color: "text-blue-400" },
+    { label: currentDivision === 'All' ? "Total Instructors" : "Instructors", value: divisionInstructors.length, change: "+0", icon: UserCheck, color: "text-green-400" },
+    { label: currentDivision === 'All' ? "Total Sessions" : "Sessions", value: divisionSessions.length, change: "+1", icon: BookOpen, color: "text-purple-400" },
+    { label: currentDivision === 'All' ? "Total Tasks" : "Active Tasks", value: divisionTasks.length, change: "+3", icon: ClipboardList, color: "text-orange-400" },
   ];
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header>
-        <h2 className="text-3xl font-bold mb-2 text-white">System Metrics</h2>
-        <p className="text-portal-text-muted">High-level overview of CSEC ASTU Portal performance.</p>
+        <h2 className="text-3xl font-bold mb-2 text-white">
+          {currentDivision === 'All' ? 'Global System Metrics' : `${currentDivision} Metrics`}
+        </h2>
+        <p className="text-portal-text-muted italic">Monitoring {currentDivision === 'All' ? 'all divisions' : `the ${currentDivision} node`} in real-time.</p>
       </header>
 
       {/* Hero Stats */}

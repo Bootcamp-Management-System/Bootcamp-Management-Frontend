@@ -18,13 +18,17 @@ import { ALL_SESSIONS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminSessionsPage = () => {
-  const { user: admin } = useAuth();
+  const { user: admin, selectedDivision } = useAuth();
   const adminDivision = admin?.division || 'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
 
-  const initialSessions = ALL_SESSIONS.filter(s => s.division === adminDivision);
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = React.useState(ALL_SESSIONS.filter(s => currentDivision === 'All' || s.division === currentDivision));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
+
+  React.useEffect(() => {
+    setSessions(ALL_SESSIONS.filter(s => currentDivision === 'All' || s.division === currentDivision));
+  }, [currentDivision]);
 
   const columns = [
     { 
@@ -137,10 +141,19 @@ export const AdminSessionsPage = () => {
                <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Active Division</label>
                 <div className="relative">
-                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent" />
-                  <div className="w-full bg-portal-input/30 border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text-muted cursor-not-allowed">
-                    {adminDivision}
-                  </div>
+                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent z-10" />
+                  {admin?.role === 'super_admin' ? (
+                    <select className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-white outline-none focus:border-portal-accent appearance-none" defaultValue={selectedSession?.division || 'Development'}>
+                      <option>Development</option>
+                      <option>Cyber Security</option>
+                      <option>Data Science</option>
+                      <option>CP (Competitive Programming)</option>
+                    </select>
+                  ) : (
+                    <div className="w-full bg-portal-input/30 border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text-muted cursor-not-allowed">
+                      {adminDivision}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

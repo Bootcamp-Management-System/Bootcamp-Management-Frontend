@@ -14,13 +14,17 @@ import { ALL_GROUPS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminGroupsPage = () => {
-  const { user: admin } = useAuth();
+  const { user: admin, selectedDivision } = useAuth();
   const adminDivision = admin?.division || 'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
   
-  const initialGroups = ALL_GROUPS.filter(g => g.division === adminDivision);
-  const [groups, setGroups] = useState(initialGroups);
+  const [groups, setGroups] = React.useState(ALL_GROUPS.filter(g => currentDivision === 'All' || g.division === currentDivision));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
+
+  React.useEffect(() => {
+    setGroups(ALL_GROUPS.filter(g => currentDivision === 'All' || g.division === currentDivision));
+  }, [currentDivision]);
 
   const columns = [
     { 
@@ -49,7 +53,7 @@ export const AdminGroupsPage = () => {
     },
     { 
       header: 'Division Scope', 
-      render: () => <span className="text-[10px] font-bold text-portal-accent uppercase tracking-tighter">{adminDivision}</span>
+      render: (row) => <span className="text-[10px] font-bold text-portal-accent uppercase tracking-tighter">{row.division}</span>
     }
   ];
 
@@ -62,8 +66,8 @@ export const AdminGroupsPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Focus Groups</h2>
-          <p className="text-portal-text-muted">Sub-divisions and research clusters within {adminDivision}.</p>
+          <h2 className="text-3xl font-bold mb-2 text-white">{currentDivision === 'All' ? 'Global Focus Groups' : `${currentDivision} Focus Groups`}</h2>
+          <p className="text-portal-text-muted">Sub-divisions and research clusters within {currentDivision === 'All' ? 'the organization' : currentDivision}.</p>
         </div>
         <button 
           onClick={() => { setSelectedGroup(null); setIsModalOpen(true); }}
@@ -96,7 +100,7 @@ export const AdminGroupsPage = () => {
             <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Assign Core Members</label>
             <div className="bg-portal-input/40 border border-portal-border rounded-2xl p-6 flex flex-col items-center justify-center border-dashed gap-3">
                 <UserPlus className="w-8 h-8 text-portal-text-muted" />
-                <p className="text-xs text-portal-text-muted font-medium italic">Only specialists from the <strong>{adminDivision}</strong> division are eligible for this cluster.</p>
+                <p className="text-xs text-portal-text-muted font-medium italic text-center">Only specialists from the <strong>{currentDivision === 'All' ? 'selected' : currentDivision}</strong> division are eligible for this cluster.</p>
                 <button type="button" className="text-portal-accent text-[10px] font-bold uppercase tracking-widest hover:underline mt-2">Initialize Scanner</button>
             </div>
           </div>

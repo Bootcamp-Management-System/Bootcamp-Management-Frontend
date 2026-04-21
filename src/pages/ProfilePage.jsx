@@ -171,7 +171,7 @@ export const ProfilePage = () => {
                 <span className="text-portal-accent font-bold">{activeDivision}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-portal-text-muted font-medium">Member Since</span>
+                <span className="text-portal-text-muted font-medium">Student Since</span>
                 <span className="text-white font-medium">Jan 2024</span>
               </div>
             </div>
@@ -208,7 +208,7 @@ export const ProfilePage = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Member Status</p>
+                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Student Status</p>
                 <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-green-400 font-bold cursor-default flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
                   {user.status}

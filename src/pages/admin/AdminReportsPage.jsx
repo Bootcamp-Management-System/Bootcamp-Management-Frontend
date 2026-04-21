@@ -40,15 +40,18 @@ const completionData = [
 ];
 
 export const AdminReportsPage = () => {
-  const { user: admin } = useAuth();
+  const { user: admin, selectedDivision } = useAuth();
   const adminDivision = admin?.division || 'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Division Intelligence</h2>
-          <p className="text-portal-text-muted">Data-driven insights for the {adminDivision} track.</p>
+          <h2 className="text-3xl font-bold mb-2 text-white">
+            {currentDivision === 'All' ? 'Global System Intelligence' : `${currentDivision} Intelligence`}
+          </h2>
+          <p className="text-portal-text-muted">Data-driven insights for the {currentDivision === 'All' ? 'entire organization' : `${currentDivision} track`}.</p>
         </div>
         <button className="flex items-center gap-2 bg-white/5 border border-portal-border px-6 py-2.5 rounded-xl text-sm font-bold text-white hover:bg-white/10 transition-all">
           <Download className="w-4 h-4 text-portal-accent" />

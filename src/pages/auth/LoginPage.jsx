@@ -14,7 +14,7 @@ export const LoginPage = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       const role = user.role;
-      navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -34,7 +34,7 @@ export const LoginPage = () => {
       }
 
       const role = result.user.role;
-      navigate(role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
     } catch (err) {
       setError('Invalid email, ID, or password');
     }
@@ -115,7 +115,7 @@ export const LoginPage = () => {
               {[
                 { id: 'Admin', email: 'admin.demo@astu.edu.et', campusId: 'UGR/90001/26' },
                 { id: 'Instructor', email: 'instructor.demo@astu.edu.et', campusId: 'UGR/90002/26' },
-                { id: 'Member', email: 'member.demo@astu.edu.et', campusId: 'UGR/90003/26' }
+                { id: 'Student', email: 'member.demo@astu.edu.et', campusId: 'UGR/90003/26' }
               ].map(role => (
                 <button 
                   key={role.id}
@@ -130,7 +130,7 @@ export const LoginPage = () => {
               {[
                 { id: 'Admin', campusId: 'UGR/90001/26' },
                 { id: 'Instructor', campusId: 'UGR/90002/26' },
-                { id: 'Member', campusId: 'UGR/90003/26' }
+                { id: 'Student', campusId: 'UGR/90003/26' }
               ].map(role => (
                 <button 
                   key={role.id}

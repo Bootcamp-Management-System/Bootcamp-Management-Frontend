@@ -18,15 +18,19 @@ import { ALL_MEMBERS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminInstructorsPage = () => {
-  const { user: admin } = useAuth();
+  const { user: admin, selectedDivision } = useAuth();
   const adminDivision = admin?.division || 'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
   
-  const initialInstructors = ALL_MEMBERS.filter(m => m.division === adminDivision && m.role === 'instructor');
-  const [instructors, setInstructors] = useState(initialInstructors);
+  const [instructors, setInstructors] = React.useState(ALL_MEMBERS.filter(m => (currentDivision === 'All' || m.division === currentDivision) && m.role === 'instructor'));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [infoInstructor, setInfoInstructor] = useState(null);
+
+  React.useEffect(() => {
+    setInstructors(ALL_MEMBERS.filter(m => (currentDivision === 'All' || m.division === currentDivision) && m.role === 'instructor'));
+  }, [currentDivision]);
 
   const columns = [
     { 
@@ -90,8 +94,8 @@ export const AdminInstructorsPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Instructor Cohort</h2>
-          <p className="text-portal-text-muted">Domain experts managing the {adminDivision} curriculum.</p>
+          <h2 className="text-3xl font-bold mb-2 text-white">{currentDivision === 'All' ? 'Global Instructor Cohort' : `${currentDivision} Instructors`}</h2>
+          <p className="text-portal-text-muted">Domain experts managing the {currentDivision === 'All' ? 'system-wide' : `${currentDivision}`} curriculum.</p>
         </div>
         <button 
           onClick={() => { setSelectedInstructor(null); setIsModalOpen(true); }}
@@ -242,7 +246,7 @@ export const AdminInstructorsPage = () => {
           <div className="bg-portal-input/20 border border-portal-border rounded-2xl p-6">
              <div className="flex items-center gap-3 text-portal-text-muted">
                 <ShieldCheck className="w-5 h-5 text-portal-accent" />
-                <p className="text-xs">Instructors registered here will be automatically constrained to the <strong>{adminDivision}</strong> division access scope.</p>
+                <p className="text-xs">Instructors registered here will be constrained to the <strong>{currentDivision === 'All' ? 'selected primary' : currentDivision}</strong> division scope.</p>
              </div>
           </div>
 

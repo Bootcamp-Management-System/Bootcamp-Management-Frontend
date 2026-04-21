@@ -20,6 +20,7 @@ import { AdminInstructorsPage } from './pages/admin/AdminInstructorsPage';
 import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
 import { AdminGroupsPage } from './pages/admin/AdminGroupsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
+import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { MemberTaskPage } from './pages/Task/MemberTaskPage';
 import { MemberSessionPage } from './pages/Session/MemberSessionPage';
@@ -51,7 +52,7 @@ export default function App() {
           <Route 
             path="/profile" 
             element={
-              <ProtectedRoute allowedRoles={['member', 'instructor', 'admin']}>
+              <ProtectedRoute allowedRoles={['member', 'instructor', 'admin', 'super_admin']}>
                 <Layout>
                   <ProfilePage />
                 </Layout>
@@ -81,6 +82,7 @@ export default function App() {
             } 
           />
           
+          
           <Route 
             path="/instructor" 
             element={
@@ -100,7 +102,7 @@ export default function App() {
           <Route 
             path="/admin/dashboard" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                 <Layout>
                   <AdminDashboard />
                 </Layout>
@@ -111,7 +113,7 @@ export default function App() {
           <Route 
             path="/admin/members" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                 <Layout>
                   <AdminMembersPage />
                 </Layout>
@@ -122,7 +124,7 @@ export default function App() {
           <Route 
             path="/admin/instructors" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                 <Layout>
                   <AdminInstructorsPage />
                 </Layout>
@@ -133,7 +135,7 @@ export default function App() {
           <Route 
             path="/admin/sessions" 
             element={
-              <ProtectedRoute allowedRoles={['admin', 'instructor']}>
+              <ProtectedRoute allowedRoles={['admin', 'instructor', 'super_admin']}>
                 <Layout>
                   <AdminSessionsPage />
                 </Layout>
@@ -144,7 +146,7 @@ export default function App() {
           <Route 
             path="/admin/groups" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                 <Layout>
                   <AdminGroupsPage />
                 </Layout>
@@ -155,9 +157,20 @@ export default function App() {
           <Route 
             path="/admin/reports" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                 <Layout>
                   <AdminReportsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/admins" 
+            element={
+              <ProtectedRoute allowedRoles={['super_admin']}>
+                <Layout>
+                  <AdminAdminsPage />
                 </Layout>
               </ProtectedRoute>
             } 
