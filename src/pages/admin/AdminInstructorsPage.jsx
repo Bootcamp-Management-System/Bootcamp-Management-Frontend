@@ -12,7 +12,8 @@ import {
   Eye,
   Clock,
   Layers,
-  Activity
+  Activity,
+  ArrowUpRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { divisionService } from '../../services/divisionService';
@@ -35,20 +36,39 @@ export const AdminInstructorsPage = () => {
   const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivisionName;
   
   const [instructors, setInstructors] = React.useState([]);
+  const [members, setMembers] = React.useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isSelectMemberModalOpen, setIsSelectMemberModalOpen] = useState(false);
+  const [isCandidateInfoModalOpen, setIsCandidateInfoModalOpen] = useState(false);
+  const [candidateInfo, setCandidateInfo] = useState(null);
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [infoInstructor, setInfoInstructor] = useState(null);
+  const [promoteMember, setPromoteMember] = useState(null);
+  const [isPromoting, setIsPromoting] = useState(false);
+  const [promoteError, setPromoteError] = useState('');
+  const [promoteSuccess, setPromoteSuccess] = useState(null);
 
   const buildDisplayUser = (user) => {
     const email = user?.email || '';
     const nameSource = user?.name || email.split('@')[0] || 'User';
     const cleanName = nameSource.replace(/[._-]+/g, ' ').trim();
     const prettyName = cleanName ? `${cleanName.charAt(0).toUpperCase()}${cleanName.slice(1)}` : 'User';
-    const divisionName = user?.division?.name || user?.division || 'Unassigned';
+    let divisionName = user?.division?.name || user?.division || 'Unassigned';
+    const divisionObj = divisions.find(d => d._id === divisionName || d.id === divisionName);
+    if (divisionObj) {
+      divisionName = divisionObj.name;
+    }
+
     const divisionId = user?.division?._id || user?.division || '';
+    
     const assignedNames = Array.isArray(user?.assignedDivisions)
-      ? user.assignedDivisions.map((div) => div?.name || div).filter(Boolean)
+      ? user.assignedDivisions.map((div) => {
+          const idOrName = div?.name || div;
+          const divObj = divisions.find(d => d._id === idOrName || d.id === idOrName);
+          return divObj ? divObj.name : idOrName;
+        }).filter(Boolean)
       : [];
 
     return {
@@ -95,11 +115,22 @@ export const AdminInstructorsPage = () => {
   }, []);
 
   React.useEffect(() => {
-    const filtered = users
+    const filteredInstructors = users
       .filter((user) => user?.role === 'instructor')
       .map(buildDisplayUser)
       .filter((user) => currentDivision === 'All' || user.division === currentDivision);
-    setInstructors(filtered);
+    setInstructors(filteredInstructors);
+
+    let filteredMembers = users
+      .filter((user) => user?.role === 'student')
+      .map(buildDisplayUser)
+      .filter((user) => 
+        currentDivision === 'All' || 
+        user.division === currentDivision || 
+        (user.assignedDivisions && user.assignedDivisions.includes(currentDivision))
+      );
+    
+    setMembers(filteredMembers);
   }, [currentDivision, users]);
 
   const resolveDivisionId = (divisionValue) => {
@@ -143,6 +174,50 @@ export const AdminInstructorsPage = () => {
       setFormError(error?.response?.data?.message || error?.message || 'Failed to create user.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePromoteUser = async (event) => {
+    event.preventDefault();
+    setPromoteError('');
+    setIsPromoting(true);
+    setPromoteSuccess(null);
+
+    const form = new FormData(event.currentTarget);
+    const reason = String(form.get('reason') || '').trim();
+    const selectedDivisionValue = form.get('division');
+
+    const divisionId = admin?.role === 'super_admin'
+      ? resolveDivisionId(selectedDivisionValue)
+      : resolveDivisionId(adminDivisionId) || adminDivisionId || null;
+
+    if (!promoteMember?.id) {
+      setPromoteError('No member selected.');
+      setIsPromoting(false);
+      return;
+    }
+
+    try {
+      const response = await userService.promoteUser(promoteMember.id, {
+        newRole: 'instructor',
+        divisionId: divisionId || undefined,
+        reason,
+      });
+
+      setPromoteSuccess({ tempPassword: response?.tempPassword || '' });
+      await loadUsers();
+      
+      if (!response?.tempPassword) {
+        setTimeout(() => {
+          setIsPromoteModalOpen(false);
+          setIsSelectMemberModalOpen(false);
+          setPromoteMember(null);
+        }, 1500);
+      }
+    } catch (error) {
+      setPromoteError(error?.response?.data?.message || error?.message || 'Failed to promote member.');
+    } finally {
+      setIsPromoting(false);
     }
   };
 
@@ -256,11 +331,11 @@ export const AdminInstructorsPage = () => {
           <p className="text-portal-text-muted">Domain experts managing the {currentDivision === 'All' ? 'system-wide' : `${currentDivision}`} curriculum.</p>
         </div>
         <button 
-          onClick={() => { setSelectedInstructor(null); setIsModalOpen(true); }}
+          onClick={() => { setIsSelectMemberModalOpen(true); }}
           className="bg-portal-accent text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all"
         >
           <UserPlus className="w-5 h-5" />
-          Register Instructor
+          Assign Instructor
         </button>
       </header>
 
@@ -447,6 +522,210 @@ export const AdminInstructorsPage = () => {
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
             <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 disabled:opacity-60">
               {selectedInstructor ? 'Update Specialist' : 'Confirm Registration'}
+            </button>
+          </div>
+        </form>
+      </AdminModal>
+
+      {/* Select Member to Promote Modal */}
+      <AdminModal 
+        isOpen={isSelectMemberModalOpen} 
+        onClose={() => setIsSelectMemberModalOpen(false)}
+        title="Select Member to Promote"
+      >
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+          {members.length === 0 ? (
+            <div className="text-center text-portal-text-muted py-8 text-sm font-medium bg-portal-input/10 rounded-2xl border border-portal-border/50">
+              No eligible members found in this division.
+            </div>
+          ) : (
+            members.map((member) => (
+              <div key={member.id} className="bg-portal-input/20 border border-portal-border rounded-xl p-4 flex items-center justify-between hover:bg-portal-input/40 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-portal-accent/10 flex items-center justify-center font-bold text-portal-accent border border-portal-accent/20 shadow-inner">
+                    {member.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-portal-text">{member.name}</div>
+                    <div className="text-[11px] text-portal-text-muted mt-0.5">{member.email}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => {
+                      setCandidateInfo(member);
+                      setIsCandidateInfoModalOpen(true);
+                    }}
+                    className="p-2 hover:bg-portal-accent/10 rounded-xl text-portal-text-muted hover:text-portal-accent transition-all duration-200"
+                    title="View Profile"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setPromoteMember(member);
+                      setPromoteSuccess(null);
+                      setPromoteError('');
+                      setIsPromoteModalOpen(true);
+                      setIsSelectMemberModalOpen(false);
+                    }}
+                    className="px-5 py-2.5 bg-portal-accent/10 text-portal-accent hover:bg-portal-accent hover:text-white rounded-xl text-xs font-bold transition-all duration-300 shadow-sm"
+                  >
+                    Promote
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="flex justify-end pt-6 border-t border-portal-border mt-4">
+          <button onClick={() => setIsSelectMemberModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Close</button>
+        </div>
+      </AdminModal>
+
+      {/* Candidate Info Modal */}
+      <AdminModal 
+        isOpen={isCandidateInfoModalOpen} 
+        onClose={() => setIsCandidateInfoModalOpen(false)}
+        title="Candidate Profile Dossier"
+      >
+        {candidateInfo && (
+          <div className="space-y-8">
+            <div className="flex items-center gap-6 pb-6 border-b border-portal-border">
+              <div className="w-20 h-20 rounded-2xl bg-portal-accent/10 border border-portal-accent/20 flex items-center justify-center font-black text-3xl text-portal-accent shadow-inner">
+                {candidateInfo.name.charAt(0)}
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-2xl font-bold text-portal-text">{candidateInfo.name}</h3>
+                <p className="text-sm font-mono text-portal-accent">{candidateInfo.idNo}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-green-400/10 text-green-400">
+                    {candidateInfo.status || 'Active'}
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-portal-accent/10 text-portal-accent">
+                    Eligible for Promotion
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Digital Channel</label>
+                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium">
+                    <Mail className="w-4 h-4 text-portal-accent" /> {candidateInfo.email}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Active Division</label>
+                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium">
+                    <Layers className="w-4 h-4 text-portal-accent" /> {candidateInfo.division}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                 <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Experience Topics</label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {(candidateInfo.experienceTopics || ['React', 'Node.js', 'System Architecture']).map((topic, i) => (
+                      <span key={i} className="text-xs font-bold text-portal-text bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 gap-4 border-t border-portal-border">
+              <button 
+                onClick={() => {
+                  setPromoteMember(candidateInfo);
+                  setPromoteSuccess(null);
+                  setPromoteError('');
+                  setIsCandidateInfoModalOpen(false);
+                  setIsSelectMemberModalOpen(false);
+                  setIsPromoteModalOpen(true);
+                }}
+                className="bg-portal-accent/10 text-portal-accent px-8 py-3 rounded-xl font-bold hover:bg-portal-accent hover:text-white transition-all duration-300 shadow-sm flex items-center gap-2"
+              >
+                <ArrowUpRight className="w-5 h-5" />
+                Promote to Instructor
+              </button>
+              <button 
+                onClick={() => setIsCandidateInfoModalOpen(false)}
+                className="bg-portal-input hover:bg-portal-input/80 text-portal-text px-8 py-3 rounded-xl font-bold transition-colors border border-portal-border/50"
+              >
+                Close Dossier
+              </button>
+            </div>
+          </div>
+        )}
+      </AdminModal>
+
+      {/* Promote Member Modal */}
+      <AdminModal 
+        isOpen={isPromoteModalOpen} 
+        onClose={() => setIsPromoteModalOpen(false)}
+        title="Promote to Instructor"
+      >
+        <form className="space-y-6" onSubmit={handlePromoteUser}>
+          <div className="space-y-4">
+            <p className="text-sm text-portal-text-muted bg-portal-input/20 p-4 rounded-xl border border-portal-border/50">
+              You are about to promote <span className="font-bold text-portal-text">{promoteMember?.name}</span> to an instructor role.
+            </p>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Target Division</label>
+              {admin?.role === 'super_admin' ? (
+                <select name="division" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={resolveDivisionId(promoteMember?.division) || divisions[0]?._id || divisions[0]?.id || ''}>
+                  {divisions.map((division) => (
+                    <option key={division._id || division.id} value={division._id || division.id}>
+                      {division.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
+                  {adminDivisionName}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Reason for Promotion</label>
+              <input name="reason" type="text" placeholder="e.g. Demonstrated excellence in division" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" required />
+            </div>
+          </div>
+
+          {promoteSuccess ? (
+            <div className="bg-green-400/10 border border-green-400/30 rounded-xl px-4 py-4 text-sm text-green-400 flex flex-col gap-3 shadow-inner">
+              <span className="font-bold flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5" />
+                Promotion successful!
+              </span>
+              {promoteSuccess.tempPassword && (
+                <div className="bg-black/20 p-3 rounded-lg border border-green-400/20">
+                  <span className="text-xs text-portal-text-muted block mb-1">Temporary password:</span>
+                  <span className="font-mono font-bold text-portal-text text-lg tracking-wider">{promoteSuccess.tempPassword}</span>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {promoteError ? (
+            <div className="text-xs font-bold text-red-400 bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+              {promoteError}
+            </div>
+          ) : null}
+
+          <div className="flex justify-end pt-6 gap-4 border-t border-portal-border">
+            <button type="button" onClick={() => setIsPromoteModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
+            <button type="submit" disabled={isPromoting || promoteSuccess} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 flex items-center gap-2">
+              <ArrowUpRight className="w-5 h-5" />
+              Confirm Promotion
             </button>
           </div>
         </form>

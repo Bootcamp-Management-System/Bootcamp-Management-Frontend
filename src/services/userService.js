@@ -13,4 +13,8 @@ export const userService = {
     const response = await api.put(`/users/${userId}`, payload);
     return response.data;
   },
+  async promoteUser(userId, payload) {
+    const response = await api.patch(`/users/${userId}/promote`, payload);
+    return response.data;
+  },
 };
