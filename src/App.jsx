@@ -13,7 +13,7 @@ import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 
 // Dashboard Pages
-import { MemberDashboard } from './pages/auth/dashboard/MemberDashboard';
+import { StudentDashboard } from './pages/auth/dashboard/StudentDashboard';
 import { InstructorPanel } from './pages/auth/dashboard/InstructorPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminMembersPage } from './pages/admin/AdminMembersPage';
@@ -23,8 +23,10 @@ import { AdminGroupsPage } from './pages/admin/AdminGroupsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { MemberTaskPage } from './pages/Task/MemberTaskPage';
-import { MemberSessionPage } from './pages/Session/MemberSessionPage';
+import { StudentTaskPage } from './pages/Task/StudentTaskPage';
+import { InstructorTasksPage } from './pages/Task/InstructorTasksPage';
+import { StudentSessionPage } from './pages/Session/StudentSessionPage';
+import { WeeklyProgressPage } from './pages/WeeklyProgressPage';
 
 export default function App() {
   return (
@@ -45,7 +47,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['member']}>
                 <Layout>
-                  <MemberDashboard />
+                  <StudentDashboard />
                 </Layout>
               </ProtectedRoute>
             } 
@@ -67,7 +69,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['member']}>
                 <Layout>
-                  <MemberTaskPage />
+                  <StudentTaskPage />
                 </Layout>
               </ProtectedRoute>
             } 
@@ -78,7 +80,18 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['member', 'instructor']}>
                 <Layout>
-                  <MemberSessionPage />
+                  <StudentSessionPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/progress" 
+            element={
+              <ProtectedRoute allowedRoles={['member']}>
+                <Layout>
+                  <WeeklyProgressPage />
                 </Layout>
               </ProtectedRoute>
             } 
@@ -91,6 +104,17 @@ export default function App() {
               <ProtectedRoute allowedRoles={['instructor']}>
                 <Layout>
                   <InstructorPanel />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/instructor/tasks" 
+            element={
+              <ProtectedRoute allowedRoles={['instructor', 'admin', 'super_admin']}>
+                <Layout>
+                  <InstructorTasksPage />
                 </Layout>
               </ProtectedRoute>
             } 

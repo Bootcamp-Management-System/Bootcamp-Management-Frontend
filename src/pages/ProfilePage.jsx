@@ -136,7 +136,9 @@ export const ProfilePage = () => {
               </button>
             </div>
             <h3 className="text-xl font-bold text-portal-text">{user.name}</h3>
-            <p className="text-sm text-portal-accent font-medium mb-4">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+            <p className="text-sm text-portal-accent font-medium mb-4">
+              {user.role === 'member' ? 'Student' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            </p>
             <div className="w-full h-px bg-portal-border my-6" />
             <div className="grid grid-cols-2 gap-4 w-full">
               <div className="bg-portal-input/50 p-4 rounded-2xl border border-portal-border">

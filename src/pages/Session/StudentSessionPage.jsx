@@ -63,7 +63,7 @@ const mockSessions = [
   }
 ];
 
-export const MemberSessionPage = () => {
+export const StudentSessionPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dayFilter, setDayFilter] = useState('All');
   const [showAll, setShowAll] = useState(false);

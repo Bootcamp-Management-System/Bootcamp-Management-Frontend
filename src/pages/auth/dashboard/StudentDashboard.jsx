@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useDivision } from '../../../context/DivisionContext';
 import { 
@@ -8,7 +8,6 @@ import {
   Calendar, 
   ArrowRight, 
   MoreHorizontal,
-  Circle,
   FileText,
   Activity,
   Users,
@@ -18,7 +17,10 @@ import {
   Terminal,
   Shield,
   Database,
-  Cpu
+  Cpu,
+  Loader2,
+  AlertCircle,
+  Link as LinkIcon
 } from 'lucide-react';
 import { 
   PieChart, 
@@ -27,12 +29,33 @@ import {
   ResponsiveContainer, 
   Tooltip as ChartTooltip 
 } from 'recharts';
+import { Link, useNavigate } from 'react-router-dom';
+import taskService from '../../../services/taskService';
+import submissionService from '../../../services/submissionService';
 
-import { Link } from 'react-router-dom';
+// ─── helpers ─────────────────────────────────────────────────────────────────
+const fmtDeadline = (date) => {
+  if (!date) return '—';
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = d - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return 'Overdue';
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
 
-export const MemberDashboard = () => {
+const isOverdue = (date) => new Date(date) < new Date();
+
+export const StudentDashboard = () => {
   const { user } = useAuth();
   const { activeDivision } = useDivision();
+  const navigate = useNavigate();
+
+  const [tasks, setTasks] = useState([]);
+  const [mySubmissions, setMySubmissions] = useState({});
+  const [loadingTasks, setLoadingTasks] = useState(true);
 
   const divisionThemes = {
     'Development': { icon: Terminal, color: 'text-blue-400', label: 'Dev Node' },
@@ -44,29 +67,64 @@ export const MemberDashboard = () => {
   const theme = divisionThemes[activeDivision] || divisionThemes['Development'];
   const ThemeIcon = theme.icon;
 
+  // ── Fetch tasks + submissions ───────────────────────────────────────────────
+  const fetchTaskData = useCallback(async () => {
+    setLoadingTasks(true);
+    try {
+      const [tasksRes, subsRes] = await Promise.all([
+        taskService.getTasks({ division: user?.division }),
+        submissionService.getSubmissions(),
+      ]);
+
+      const allTasks = tasksRes.data || [];
+      const allSubs = subsRes.data || [];
+
+      // Map submissions by taskId
+      const subMap = {};
+      allSubs.forEach(s => {
+        const taskId = s.task?._id || s.task;
+        if (taskId) subMap[taskId] = s;
+      });
+
+      setTasks(allTasks);
+      setMySubmissions(subMap);
+    } catch {
+      // fail silently — dashboard is secondary
+    } finally {
+      setLoadingTasks(false);
+    }
+  }, [user?.division]);
+
+  useEffect(() => { fetchTaskData(); }, [fetchTaskData]);
+
+  // ── Derived stats ───────────────────────────────────────────────────────────
+  const total = tasks.length;
+  const completed = tasks.filter(t => mySubmissions[t._id]).length;
+  const pending = tasks.filter(t => !mySubmissions[t._id] && !isOverdue(t.deadline)).length;
+  const overdueCount = tasks.filter(t => !mySubmissions[t._id] && isOverdue(t.deadline)).length;
+
   const taskStats = [
-    { name: 'Completed', value: 12, color: '#10b981' },
-    { name: 'Pending', value: 5, color: '#f59e0b' },
-    { name: 'New', value: 3, color: '#3b82f6' },
+    { name: 'Completed', value: completed || 0, color: '#10b981' },
+    { name: 'Pending', value: pending || 0, color: '#f59e0b' },
+    { name: 'Overdue', value: overdueCount || 0, color: '#ef4444' },
   ];
+
+  // Upcoming = not submitted, sorted by deadline ascending, take 3
+  const upcomingTasks = tasks
+    .filter(t => !mySubmissions[t._id])
+    .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+    .slice(0, 3);
 
   const events = [
     { title: 'Advanced React Workshop', type: 'Workshop', date: 'Oct 24, 2026', time: '2:00 PM', attendees: 45 },
     { title: 'Weekly Division Sync', type: 'Meeting', date: 'Oct 26, 2026', time: '10:00 AM', attendees: 12 },
-    { title: 'UI Design Principles', type: 'Seminar', date: 'Oct 28, 2026', time: '4:30 PM', attendees: 30 },
-  ];
-
-  const upcomingTasks = [
-    { title: 'Implement Profile UI', deadline: 'Today', priority: 'High', status: 'In Progress' },
-    { title: 'Code Review: Auth Module', deadline: 'Tomorrow', priority: 'Medium', status: 'Pending' },
-    { title: 'Database Schema Design', deadline: 'Oct 25', priority: 'High', status: 'New' },
   ];
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="mb-2 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-portal-text">Welcome back, {user?.name}!</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text">Welcome back, {user?.name || user?.email?.split('@')[0]}!</h2>
           <p className="text-portal-text-muted">Stay updated with your bootcamp activities and tasks.</p>
         </div>
         <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl bg-portal-card border ${theme.color.replace('text-', 'border-')}/30 shadow-xl`}>
@@ -86,20 +144,26 @@ export const MemberDashboard = () => {
         <div className="lg:col-span-2 space-y-8">
           {/* Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Total Tasks */}
             <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all group relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Calendar className="w-24 h-24 text-portal-accent" />
+                <FileText className="w-24 h-24 text-portal-accent" />
               </div>
               <div className="relative z-10">
                 <div className="p-3 rounded-2xl bg-portal-accent/10 text-portal-accent w-fit mb-6">
-                  <Calendar className="w-6 h-6" />
+                  <FileText className="w-6 h-6" />
                 </div>
-                <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Upcoming Events</h3>
-                <div className="text-4xl font-bold text-portal-text mb-2">3</div>
-                <p className="text-xs text-portal-text-muted">Next event in 4 hours</p>
+                <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Total Tasks</h3>
+                <div className="text-4xl font-bold text-portal-text mb-2">
+                  {loadingTasks ? <Loader2 className="w-6 h-6 animate-spin text-portal-accent" /> : total}
+                </div>
+                <p className="text-xs text-portal-text-muted">
+                  {loadingTasks ? '' : `${pending} pending, ${overdueCount} overdue`}
+                </p>
               </div>
             </div>
 
+            {/* Completed Tasks */}
             <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all group relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                 <CheckCircle2 className="w-24 h-24 text-green-400" />
@@ -109,100 +173,142 @@ export const MemberDashboard = () => {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Completed Tasks</h3>
-                <div className="text-4xl font-bold text-portal-text mb-2">12</div>
-                <p className="text-xs text-portal-text-muted">83% of total assigned tasks</p>
+                <div className="text-4xl font-bold text-portal-text mb-2">
+                  {loadingTasks ? <Loader2 className="w-6 h-6 animate-spin text-green-400" /> : completed}
+                </div>
+                <p className="text-xs text-portal-text-muted">
+                  {loadingTasks ? '' : total > 0 ? `${Math.round((completed / total) * 100)}% of total assigned` : 'No tasks yet'}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Upcoming Tasks */}
+          {/* Upcoming Tasks — LIVE */}
           <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
                 <FileText className="w-6 h-6 text-portal-accent" />
                 Upcoming Tasks
               </h3>
-              <Link 
+              <Link
                 to="/my-tasks"
                 className="text-xs font-bold text-portal-accent flex items-center gap-1 hover:text-portal-text transition-colors uppercase tracking-widest"
               >
                 View All <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-            <div className="space-y-4">
-              {upcomingTasks.map((task, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-portal-input border border-portal-border/50 hover:bg-portal-border transition-colors group cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-2 h-2 rounded-full ${task.priority === 'High' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-portal-accent'}`} />
-                    <div>
-                      <h4 className="font-bold text-sm text-portal-text group-hover:text-portal-accent transition-colors">{task.title}</h4>
-                      <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Deadline: {task.deadline}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-portal-text-muted border border-white/5">{task.status}</span>
-                    <MoreHorizontal className="w-4 h-4 text-portal-text-muted group-hover:text-portal-text transition-colors" />
-                  </div>
-                </div>
-              ))}
-            </div>
+
+            {loadingTasks ? (
+              <div className="flex items-center gap-2 text-portal-text-muted text-sm py-4">
+                <Loader2 className="w-4 h-4 animate-spin text-portal-accent" /> Loading tasks…
+              </div>
+            ) : upcomingTasks.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center text-portal-text-muted">
+                <CheckCircle2 className="w-8 h-8 text-green-400/40" />
+                <p className="text-sm font-semibold">
+                  {total === 0 ? 'No tasks assigned yet' : 'All tasks submitted! 🎉'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {upcomingTasks.map((task) => {
+                  const overdue = isOverdue(task.deadline);
+                  return (
+                    <button
+                      key={task._id}
+                      onClick={() => navigate('/my-tasks')}
+                      className="w-full flex items-center justify-between p-4 rounded-2xl bg-portal-input border border-portal-border/50 hover:bg-portal-border transition-colors group cursor-pointer text-left"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${overdue ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-portal-accent shadow-[0_0_8px_rgba(45,212,191,0.4)]'}`} />
+                        <div>
+                          <h4 className="font-bold text-sm text-portal-text group-hover:text-portal-accent transition-colors line-clamp-1">{task.title}</h4>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${overdue ? 'text-red-400' : 'text-portal-text-muted'}`}>
+                            Deadline: {fmtDeadline(task.deadline)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${overdue ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-white/5 text-portal-text-muted border-white/5'}`}>
+                          {overdue ? 'Overdue' : 'Open'}
+                        </span>
+                        <ArrowRight className="w-4 h-4 text-portal-text-muted group-hover:text-portal-accent transition-colors" />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column Container */}
+        {/* Right Column — Task Analysis Chart LIVE */}
         <div className="space-y-8">
-          {/* Task Analysis Chart */}
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl flex flex-col items-center">
             <h3 className="text-lg font-bold text-portal-text mb-8 self-start flex items-center gap-3">
               <Activity className="w-5 h-5 text-portal-accent" />
               Task Analysis
             </h3>
-            <div className="w-full h-[240px] relative mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={taskStats}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={100}
-                    paddingAngle={8}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {taskStats.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip 
-                    contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }}
-                    itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <div className="text-3xl font-extrabold text-portal-text">20</div>
-                <div className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest">Total</div>
+
+            {loadingTasks ? (
+              <div className="flex items-center justify-center h-[240px] text-portal-text-muted">
+                <Loader2 className="w-8 h-8 animate-spin text-portal-accent" />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 w-full">
-              {taskStats.map((stat, i) => (
-                <div key={i} className="flex items-center gap-3 bg-portal-input p-3 rounded-2xl border border-portal-border/30">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stat.color }} />
-                  <div>
-                    <div className="text-[10px] text-portal-text-muted font-bold uppercase">{stat.name}</div>
-                    <div className="text-sm font-bold text-portal-text">{stat.value}</div>
+            ) : total === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[240px] text-portal-text-muted gap-2">
+                <AlertCircle className="w-8 h-8 text-portal-accent/30" />
+                <p className="text-sm">No data yet</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-full h-[240px] relative mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={taskStats.filter(s => s.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={100}
+                        paddingAngle={8}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {taskStats.filter(s => s.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip
+                        contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }}
+                        itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                    <div className="text-3xl font-extrabold text-portal-text">{total}</div>
+                    <div className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest">Total</div>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-cols-2 gap-4 w-full">
+                  {taskStats.map((stat, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-portal-input p-3 rounded-2xl border border-portal-border/30">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: stat.color }} />
+                      <div>
+                        <div className="text-[10px] text-portal-text-muted font-bold uppercase">{stat.name}</div>
+                        <div className="text-sm font-bold text-portal-text">{stat.value}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
       {/* Events and Attendance Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Upcoming Events - taking 2/3 width */}
+        {/* Upcoming Events */}
         <div className="lg:col-span-2 bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
@@ -246,9 +352,8 @@ export const MemberDashboard = () => {
           </div>
         </div>
 
-        {/* Attendance Tracker - taking 1/3 width */}
+        {/* Attendance Tracker */}
         <div className="bg-portal-card border border-portal-border rounded-3xl overflow-hidden shadow-xl flex flex-col">
-          {/* Top Summary Banner */}
           <div className="bg-portal-accent p-6 relative overflow-hidden shrink-0">
             <div className="absolute top-1/2 left-6 -translate-y-1/2 opacity-20 transform">
               <Timer className="w-12 h-12 text-portal-text" />
@@ -264,7 +369,6 @@ export const MemberDashboard = () => {
             </div>
           </div>
 
-          {/* Month Selector */}
           <div className="p-4 border-b border-portal-border flex items-center justify-between bg-portal-card/30">
             <h3 className="text-[10px] font-bold text-portal-text flex items-center gap-2 uppercase tracking-wider">
               <Users className="w-3.5 h-3.5 text-portal-accent" />
@@ -281,7 +385,6 @@ export const MemberDashboard = () => {
             </div>
           </div>
 
-          {/* Calendar Grid */}
           <div className="p-4 flex-1 flex flex-col">
             <div className="grid grid-cols-7 gap-y-3 mb-auto">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, dayIdx) => (
@@ -289,7 +392,6 @@ export const MemberDashboard = () => {
                   {day}
                 </div>
               ))}
-
               {Array.from({ length: 30 }).map((_, i) => {
                 const dayNum = i + 1;
                 let dotColor = '';
@@ -308,14 +410,8 @@ export const MemberDashboard = () => {
 
                 return (
                   <div key={i} className="flex flex-col items-center justify-center relative select-none h-6">
-                    <div className={`
-                      w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold 
-                      transition-all duration-300 relative z-10 cursor-pointer
-                      ${textStyle}
-                    `}>
-                      {dotColor && (
-                        <div className={`absolute inset-0 rounded-full ${dotColor} -z-10`} />
-                      )}
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold transition-all duration-300 relative z-10 cursor-pointer ${textStyle}`}>
+                      {dotColor && <div className={`absolute inset-0 rounded-full ${dotColor} -z-10`} />}
                       {dayNum}
                     </div>
                   </div>
@@ -323,20 +419,17 @@ export const MemberDashboard = () => {
               })}
             </div>
 
-            {/* Legend */}
             <div className="mt-6 flex items-center justify-around border-t border-portal-border/30 pt-4">
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-portal-accent" />
-                <span className="text-[6px] font-black text-portal-text-muted uppercase tracking-tighter">Present</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                <span className="text-[6px] font-black text-portal-text-muted uppercase tracking-tighter">Late</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                <span className="text-[6px] font-black text-portal-text-muted uppercase tracking-tighter">Absent</span>
-              </div>
+              {[
+                { color: 'bg-portal-accent', label: 'Present' },
+                { color: 'bg-yellow-500', label: 'Late' },
+                { color: 'bg-red-500', label: 'Absent' },
+              ].map(({ color, label }) => (
+                <div key={label} className="flex flex-col items-center gap-1">
+                  <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
+                  <span className="text-[6px] font-black text-portal-text-muted uppercase tracking-tighter">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

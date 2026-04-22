@@ -57,8 +57,7 @@ export const Sidebar = () => {
       return [
         ...base,
         { id: 'sessions', icon: BookOpen, label: 'Sessions', path: '/sessions' },
-        { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/tasks' },
-        { id: 'students', icon: Users, label: 'Students', path: '/students' },
+        { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/instructor/tasks' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
     }
@@ -102,7 +101,7 @@ export const Sidebar = () => {
               >
                 <h1 className="font-extrabold text-lg leading-none text-portal-text tracking-tight">CSEC ASTU</h1>
                 <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
-                  Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role}
+                  Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'member' ? 'Student' : user?.role}
                 </p>
               </motion.div>
             )}
@@ -111,7 +110,7 @@ export const Sidebar = () => {
 
         <nav className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
               <Link
                 key={item.id}
