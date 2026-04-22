@@ -91,7 +91,7 @@ export const Sidebar = () => {
       <div className={`p-6 flex-1 flex flex-col ${isCollapsed ? 'items-center' : ''}`}>
         <div className="flex items-center gap-3 mb-10 overflow-hidden whitespace-nowrap">
           <div className="w-10 h-10 bg-portal-accent rounded-xl flex items-center justify-center shadow-lg shadow-portal-accent/20 shrink-0">
-            <GraduationCap className="w-6 h-6 text-white" />
+            <GraduationCap className="w-6 h-6 text-portal-text" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -100,7 +100,7 @@ export const Sidebar = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
               >
-                <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC ASTU</h1>
+                <h1 className="font-extrabold text-lg leading-none text-portal-text tracking-tight">CSEC ASTU</h1>
                 <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
                   Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role}
                 </p>
@@ -120,7 +120,7 @@ export const Sidebar = () => {
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group relative
                   ${isActive 
                     ? 'bg-portal-accent/10 text-portal-accent' 
-                    : 'text-portal-text-muted hover:bg-white/5 hover:text-white'
+                    : 'text-portal-text-muted hover:bg-portal-text/5 hover:text-portal-text'
                   }
                   ${isCollapsed ? 'justify-center px-0' : ''}
                 `}
@@ -150,7 +150,7 @@ export const Sidebar = () => {
         </nav>
 
         <div className={`mt-6 pt-6 border-t border-portal-border space-y-2 ${isCollapsed ? 'items-center' : ''}`}>
-          <button className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-portal-text-muted hover:text-white transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
+          <button className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-portal-text-muted hover:text-portal-text transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
             <Settings className="w-5 h-5 shrink-0" />
             {!isCollapsed && <span>Settings</span>}
           </button>

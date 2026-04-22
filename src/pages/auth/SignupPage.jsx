@@ -56,7 +56,7 @@ export const SignupPage = () => {
           whyDivision: values.whyDivision.trim(),
         });
         setSuccess('Registration complete. Verify OTP to continue.');
-        setTimeout(() => navigate('/verify-otp', { state: { email: values.email.trim().toLowerCase(), purpose: 'register' } }), 1000);
+        setTimeout(() => navigate('/otp', { state: { email: values.email.trim().toLowerCase(), purpose: 'register' } }), 1000);
       } catch (err) {
         setError(err.message || 'Unable to create account.');
       } finally {
@@ -264,7 +264,7 @@ export const SignupPage = () => {
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-portal-text transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <UserPlus className="h-5 w-5" />
           {formik.isSubmitting ? 'Submitting Application...' : 'Register'}

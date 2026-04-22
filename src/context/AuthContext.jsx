@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const result = await authService.login({ email: identifier, password });
-      const { user, token, requiresPasswordChange, requiresApproval } = result || {};
+      const { user, token, requiresPasswordChange, requiresApproval, requiresOtp } = result || {};
 
       if (token) {
         localStorage.setItem('auth_token', token);
@@ -66,6 +66,10 @@ export const AuthProvider = ({ children }) => {
 
       if (user) {
         localStorage.setItem('auth_user', JSON.stringify(user));
+      }
+
+      if (requiresOtp && user?.email) {
+        localStorage.setItem('pending_otp_email', user.email);
       }
 
       setState({
@@ -111,10 +115,20 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('global_division', division);
   };
 
-  const verifyOTP = async (_otp) => {
-    if (state.user) {
-      // Logic for OTP verification
+  const verifyOTP = async ({ email, otp, newPassword }) => {
+    const targetEmail = email || state.user?.email || localStorage.getItem('pending_otp_email');
+    if (!targetEmail) {
+      throw new Error('Email is required for OTP verification.');
     }
+
+    const response = await authService.verifyOtpBackend({
+      email: targetEmail,
+      otp,
+      newPassword,
+    });
+
+    localStorage.removeItem('pending_otp_email');
+    return response;
   };
 
   const changePassword = async (_password) => {

@@ -89,7 +89,7 @@ export const MemberSessionPage = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header>
-        <h2 className="text-3xl font-bold mb-2 text-white">My Learning Sessions</h2>
+        <h2 className="text-3xl font-bold mb-2 text-portal-text">My Learning Sessions</h2>
         <p className="text-portal-text-muted">Explore your bootcamp journey, node by node.</p>
       </header>
 
@@ -108,7 +108,7 @@ export const MemberSessionPage = () => {
               <Clock className="w-6 h-6" />
             </div>
             <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Daily Sessions</h3>
-            <div className="text-4xl font-extrabold text-white mb-2">{todaySessions.length}</div>
+            <div className="text-4xl font-extrabold text-portal-text mb-2">{todaySessions.length}</div>
             <p className="text-xs text-portal-text-muted">Live and scheduled for today</p>
           </div>
         </motion.div>
@@ -127,7 +127,7 @@ export const MemberSessionPage = () => {
               <BookOpen className="w-6 h-6" />
             </div>
             <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Total Curriculum</h3>
-            <div className="text-4xl font-extrabold text-white mb-2">{totalSessions}</div>
+            <div className="text-4xl font-extrabold text-portal-text mb-2">{totalSessions}</div>
             <p className="text-xs text-portal-text-muted">Total masterclasses in the program</p>
           </div>
         </motion.div>
@@ -142,7 +142,7 @@ export const MemberSessionPage = () => {
             placeholder="Search sessions or instructors..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-portal-input border border-portal-border placeholder:text-portal-text-muted text-white pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:border-portal-accent/50 transition-all"
+            className="w-full bg-portal-input border border-portal-border placeholder:text-portal-text-muted text-portal-text pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:border-portal-accent/50 transition-all"
           />
         </div>
 
@@ -168,14 +168,14 @@ export const MemberSessionPage = () => {
       {/* Main Section */}
       <section className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-white flex items-center gap-3">
+          <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
             <Video className="w-6 h-6 text-portal-accent" />
             {showAll ? 'All Sessions' : 'Upcoming Sessions'}
           </h3>
           {filteredSessions.length > 3 && (
             <button 
               onClick={() => setShowAll(!showAll)}
-              className="text-xs font-black text-portal-accent hover:text-white transition-colors uppercase tracking-[0.2em] flex items-center gap-2 group"
+              className="text-xs font-black text-portal-accent hover:text-portal-text transition-colors uppercase tracking-[0.2em] flex items-center gap-2 group"
             >
               {showAll ? 'View Less' : 'See More'} 
               <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${showAll ? '-rotate-90' : 'group-hover:translate-x-1'}`} />
@@ -206,7 +206,7 @@ export const MemberSessionPage = () => {
                   >
                     {isToday && (
                       <div className="absolute top-0 right-0 bg-portal-accent px-4 py-1.5 rounded-bl-2xl">
-                        <span className="text-[10px] font-black uppercase text-white tracking-widest">Happening Today</span>
+                        <span className="text-[10px] font-black uppercase text-portal-text tracking-widest">Happening Today</span>
                       </div>
                     )}
 
@@ -220,7 +220,7 @@ export const MemberSessionPage = () => {
                     </div>
 
                     <div className="flex-1">
-                      <h4 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-portal-accent transition-colors">
+                      <h4 className="text-xl font-bold text-portal-text mb-3 tracking-tight group-hover:text-portal-accent transition-colors">
                         {session.title}
                       </h4>
                       <p className="text-sm text-portal-text-muted leading-relaxed font-medium line-clamp-3 mb-6">
@@ -235,7 +235,7 @@ export const MemberSessionPage = () => {
                         </div>
                         <div>
                           <p className="text-[8px] font-black text-portal-text-muted uppercase tracking-widest">Instructor</p>
-                          <p className="text-xs font-bold text-white">{session.instructor}</p>
+                          <p className="text-xs font-bold text-portal-text">{session.instructor}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -251,7 +251,7 @@ export const MemberSessionPage = () => {
                 <div className="w-20 h-20 bg-portal-input rounded-3xl flex items-center justify-center mx-auto mb-6 border border-portal-border/50">
                   <Search className="w-10 h-10 text-portal-text-muted" />
                 </div>
-                <h4 className="text-xl font-bold text-white mb-2">No sessions found</h4>
+                <h4 className="text-xl font-bold text-portal-text mb-2">No sessions found</h4>
                 <p className="text-portal-text-muted text-sm">Try adjusting your filters or search keywords.</p>
               </div>
             )}

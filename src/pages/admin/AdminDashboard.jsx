@@ -65,7 +65,7 @@ export const AdminDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header>
-        <h2 className="text-3xl font-bold mb-2 text-white">
+        <h2 className="text-3xl font-bold mb-2 text-portal-text">
           {currentDivision === 'All' ? 'Global System Metrics' : `${currentDivision} Metrics`}
         </h2>
         <p className="text-portal-text-muted italic">Monitoring {currentDivision === 'All' ? 'all divisions' : `the ${currentDivision} node`} in real-time.</p>
@@ -85,7 +85,7 @@ export const AdminDashboard = () => {
               </div>
             </div>
             <h3 className="text-portal-text-muted text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</h3>
-            <div className="text-3xl font-bold text-white tracking-tight">{stat.value}</div>
+            <div className="text-3xl font-bold text-portal-text tracking-tight">{stat.value}</div>
           </div>
         ))}
       </div>
@@ -94,11 +94,11 @@ export const AdminDashboard = () => {
         {/* Growth Chart */}
         <div className="lg:col-span-2 bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold text-white flex items-center gap-3">
+            <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
               <Activity className="w-6 h-6 text-portal-accent" />
               Registration Growth
             </h3>
-            <select className="bg-portal-input border border-portal-border rounded-xl px-4 py-2 text-xs font-bold text-white outline-none">
+            <select className="bg-portal-input border border-portal-border rounded-xl px-4 py-2 text-xs font-bold text-portal-text outline-none">
               <option>Last 7 Days</option>
               <option>Last 30 Days</option>
             </select>
@@ -145,7 +145,7 @@ export const AdminDashboard = () => {
 
         {/* Division Split */}
         <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-          <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+          <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
             <Shield className="w-6 h-6 text-portal-accent" />
             Division Split
           </h3>
@@ -173,7 +173,7 @@ export const AdminDashboard = () => {
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-sm font-medium text-portal-text-muted">{item.name} Division</span>
                 </div>
-                <span className="text-sm font-bold text-white">{item.value}%</span>
+                <span className="text-sm font-bold text-portal-text">{item.value}%</span>
               </div>
             ))}
           </div>
@@ -183,11 +183,11 @@ export const AdminDashboard = () => {
       {/* Recent Activity */}
       <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-xl font-bold text-white flex items-center gap-3">
+          <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
             <Clock className="w-6 h-6 text-portal-accent" />
             Division Activity
           </h3>
-          <button className="text-xs font-bold text-portal-accent uppercase tracking-widest hover:text-white transition-colors">View All Logs</button>
+          <button className="text-xs font-bold text-portal-accent uppercase tracking-widest hover:text-portal-text transition-colors">View All Logs</button>
         </div>
         <div className="space-y-4">
           {divisionSessions.map((session, i) => (
@@ -197,7 +197,7 @@ export const AdminDashboard = () => {
                   {session.instructor.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-bold text-portal-text">
                     <span className="text-portal-accent">{session.instructor}</span> created session "{session.title}"
                   </p>
                   <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Instructor • {session.date}</p>
@@ -213,7 +213,7 @@ export const AdminDashboard = () => {
                   {member.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-bold text-portal-text">
                     <span className="text-portal-accent">{member.name}</span> reached 80% attendance milestone
                   </p>
                   <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Member • Today</p>

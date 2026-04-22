@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from "framer-motion";
-import { IdCard, Lock, LogIn } from 'lucide-react';
+import { IdCard, Lock, LogIn, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isAuthenticated, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +25,10 @@ export const LoginPage = () => {
     setError('');
     try {
       const result = await login(identifier, password);
+      if (result.requiresOtp) {
+        navigate('/otp', { state: { email: result.user?.email || identifier } });
+        return;
+      }
       if (result.requiresApproval) {
         navigate('/waiting-approval', { state: { email: result.user.email } });
         return;
@@ -50,7 +56,7 @@ export const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-12 text-center relative z-10"
       >
-        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">CSEC ASTU Portal</h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-portal-text tracking-tight">CSEC ASTU Portal</h1>
       </motion.div>
 
       <motion.div 
@@ -61,7 +67,7 @@ export const LoginPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white ml-2">Email or ID Number</label>
+            <label className="block text-sm font-medium text-portal-text ml-2">Email or ID Number</label>
             <div className="relative">
               <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
               <input 
@@ -70,13 +76,13 @@ export const LoginPage = () => {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="student@astu.edu.et or UGR/12345/15"
-                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-portal-text text-sm focus:outline-none focus:border-portal-accent transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white ml-2">Password</label>
+            <label className="block text-sm font-medium text-portal-text ml-2">Password</label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
               <input 
@@ -85,7 +91,7 @@ export const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-portal-text text-sm focus:outline-none focus:border-portal-accent transition-all"
               />
             </div>
           </div>
@@ -101,7 +107,7 @@ export const LoginPage = () => {
         </form>
 
         <div className="mt-8 text-center">
-          <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
+          <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-portal-text transition-colors">
             Forgot password?
           </Link>
         </div>
@@ -120,7 +126,7 @@ export const LoginPage = () => {
                 <button 
                   key={role.id}
                   onClick={() => { setIdentifier(role.email); setPassword('DemoPass123'); }}
-                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
+                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-portal-text hover:border-portal-accent transition-all"
                 >
                   {role.id} Email
                 </button>
@@ -135,7 +141,7 @@ export const LoginPage = () => {
                 <button 
                   key={role.id}
                   onClick={() => { setIdentifier(role.campusId); setPassword('DemoPass123'); }}
-                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
+                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-portal-text hover:border-portal-accent transition-all"
                 >
                   {role.id} ID
                 </button>
@@ -147,11 +153,12 @@ export const LoginPage = () => {
       </motion.div>
 
       {/* Sun/Light Toggle Icon at bottom like in image */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sun">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>
-        </svg>
-      </div>
+      <button 
+        onClick={toggleTheme}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 p-2 rounded-full text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 transition-all focus:outline-none"
+      >
+        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
     </div>
   );
 };

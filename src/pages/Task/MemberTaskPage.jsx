@@ -60,7 +60,7 @@ export const MemberTaskPage = () => {
         <motion.h2 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-extrabold text-white mb-4 tracking-tight"
+          className="text-4xl font-extrabold text-portal-text mb-4 tracking-tight"
         >
           Your Cyber Path
         </motion.h2>
@@ -119,7 +119,7 @@ export const MemberTaskPage = () => {
                 >
                   {isDone && (
                     <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center shadow-inner">
-                      <Check className="w-5 h-5 text-white stroke-[4]" />
+                      <Check className="w-5 h-5 text-portal-text stroke-[4]" />
                     </div>
                   )}
                   {isOngoing && <Play className="w-8 h-8 fill-current" />}
@@ -156,7 +156,7 @@ export const MemberTaskPage = () => {
                       • {task.status}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-white group-hover:text-portal-accent transition-colors">
+                  <h3 className="text-xl font-bold text-portal-text group-hover:text-portal-accent transition-colors">
                     {task.title}
                   </h3>
                   <p className="text-sm text-portal-text-muted font-medium leading-relaxed">
@@ -177,7 +177,7 @@ export const MemberTaskPage = () => {
 
                 {/* Mobile View Label */}
                 <div className="absolute -bottom-10 md:hidden text-center whitespace-nowrap">
-                  <h4 className="text-sm font-bold text-white">{task.title}</h4>
+                  <h4 className="text-sm font-bold text-portal-text">{task.title}</h4>
                   <p className="text-[10px] text-portal-text-muted uppercase tracking-widest">{task.type}</p>
                 </div>
               </div>

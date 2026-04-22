@@ -14,7 +14,7 @@ export const InstructorPanel = () => {
     <div className="max-w-7xl mx-auto">
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Instructor Panel</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text">Instructor Panel</h2>
           <p className="text-portal-text-muted">Manage your sessions, students, and tasks from here.</p>
         </div>
         <button 
@@ -39,14 +39,14 @@ export const InstructorPanel = () => {
               </div>
             </div>
             <h3 className="text-portal-text-muted text-sm font-medium mb-1">{stat.label}</h3>
-            <div className="text-3xl font-bold text-white tracking-tight">{stat.value}</div>
+            <div className="text-3xl font-bold text-portal-text tracking-tight">{stat.value}</div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-portal-card border border-portal-border rounded-2xl p-6 shadow-xl">
-          <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-6 text-portal-text flex items-center gap-2">
             <div className="w-1.5 h-6 bg-portal-accent rounded-full" />
             Upcoming Sessions
           </h3>
@@ -54,17 +54,17 @@ export const InstructorPanel = () => {
             {[1, 2].map((_, i) => (
               <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-portal-input border border-portal-border hover:bg-portal-border transition-colors group">
                 <div>
-                  <h4 className="font-bold text-sm text-white">Advanced React Patterns</h4>
+                  <h4 className="font-bold text-sm text-portal-text">Advanced React Patterns</h4>
                   <p className="text-xs text-portal-text-muted mt-1">Today, 10:00 AM - 12:00 PM • Room 302</p>
                 </div>
-                <button className="text-xs font-bold text-portal-accent hover:text-white uppercase tracking-wider transition-colors">Manage</button>
+                <button className="text-xs font-bold text-portal-accent hover:text-portal-text uppercase tracking-wider transition-colors">Manage</button>
               </div>
             ))}
           </div>
         </div>
 
         <div className="bg-portal-card border border-portal-border rounded-2xl p-6 shadow-xl">
-          <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-6 text-portal-text flex items-center gap-2">
             <div className="w-1.5 h-6 bg-portal-accent rounded-full" />
             Recent Submissions
           </h3>
@@ -72,7 +72,7 @@ export const InstructorPanel = () => {
             {[1, 2].map((_, i) => (
               <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-portal-input border border-portal-border hover:bg-portal-border transition-colors">
                 <div>
-                  <h4 className="font-bold text-sm text-white">Alex Rivera</h4>
+                  <h4 className="font-bold text-sm text-portal-text">Alex Rivera</h4>
                   <p className="text-xs text-portal-text-muted mt-1">Final Project Proposal • 15 mins ago</p>
                 </div>
                 <button className="bg-portal-accent text-white px-4 py-2 rounded-lg text-xs font-bold shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all">Grade</button>

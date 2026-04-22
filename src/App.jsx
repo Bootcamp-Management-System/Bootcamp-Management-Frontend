@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { DivisionProvider } from './context/DivisionContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Auth Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -27,9 +28,10 @@ import { MemberSessionPage } from './pages/Session/MemberSessionPage';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <DivisionProvider>
-        <Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <DivisionProvider>
+          <Router>
           <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -182,6 +184,7 @@ export default function App() {
         </Routes>
       </Router>
       </DivisionProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

@@ -16,23 +16,148 @@ import {
   Briefcase
 } from 'lucide-react';
 
-import { ALL_MEMBERS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
+import { divisionService } from '../../services/divisionService';
+import { userService } from '../../services/userService';
 
 export const AdminMembersPage = () => {
   const { user: admin, selectedDivision } = useAuth();
-  const adminDivision = admin?.division || 'Data Science';
-  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
+  const [divisions, setDivisions] = React.useState([]);
+  const [users, setUsers] = React.useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState(null);
+  const adminDivisionId = admin?.division || '';
+  const adminDivisionName =
+    divisions.find((division) => division._id === adminDivisionId || division.id === adminDivisionId)?.name ||
+    adminDivisionId ||
+    'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivisionName;
   
-  const [members, setMembers] = React.useState(ALL_MEMBERS.filter(m => currentDivision === 'All' || m.division === currentDivision));
+  const [members, setMembers] = React.useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [infoMember, setInfoMember] = useState(null);
 
+  const buildDisplayUser = (user) => {
+    const email = user?.email || '';
+    const nameSource = user?.name || email.split('@')[0] || 'User';
+    const cleanName = nameSource.replace(/[._-]+/g, ' ').trim();
+    const prettyName = cleanName ? `${cleanName.charAt(0).toUpperCase()}${cleanName.slice(1)}` : 'User';
+    const divisionName = user?.division?.name || user?.division || 'Unassigned';
+    const divisionId = user?.division?._id || user?.division || '';
+
+    return {
+      id: user?._id || user?.id || email,
+      name: prettyName,
+      email,
+      role: user?.role === 'student' ? 'member' : user?.role,
+      division: divisionName,
+      divisionId,
+      divisions: divisionName ? [divisionName] : [],
+      status: user?.verified ? 'Active' : 'Pending',
+      attendance: 'N/A',
+      idNo: user?.campusId || user?.idNo || (user?._id ? user._id.slice(-6).toUpperCase() : 'N/A'),
+    };
+  };
+
+  const loadUsers = async () => {
+    setIsLoadingUsers(true);
+    setLoadError('');
+    try {
+      const response = await userService.getUsers();
+      const userData = response?.data || response?.data?.data || [];
+      setUsers(Array.isArray(userData) ? userData : []);
+    } catch (error) {
+      setUsers([]);
+      setLoadError(error?.response?.data?.message || error?.message || 'Failed to load users.');
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
   React.useEffect(() => {
-    setMembers(ALL_MEMBERS.filter(m => currentDivision === 'All' || m.division === currentDivision));
-  }, [currentDivision]);
+    const loadDivisions = async () => {
+      try {
+        const response = await divisionService.getDivisions();
+        const divisionData = response?.data || response?.data?.data || [];
+        setDivisions(Array.isArray(divisionData) ? divisionData : []);
+      } catch {
+        setDivisions([]);
+      }
+    };
+
+    loadDivisions();
+    loadUsers();
+  }, []);
+
+  React.useEffect(() => {
+    const filtered = users
+      .filter((user) => user?.role === 'student')
+      .map(buildDisplayUser)
+      .filter((user) => currentDivision === 'All' || user.division === currentDivision);
+    setMembers(filtered);
+  }, [currentDivision, users]);
+
+  const resolveDivisionId = (divisionValue) => {
+    if (!divisionValue) return null;
+    const matchById = divisions.find((division) => division._id === divisionValue || division.id === divisionValue);
+    if (matchById) return matchById._id || matchById.id;
+    const matchByName = divisions.find((division) => division.name === divisionValue);
+    return matchByName ? matchByName._id || matchByName.id : null;
+  };
+
+  const handleCreateUser = async (event) => {
+    event.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+    setCreatedCredentials(null);
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get('email') || '').trim();
+    const role = String(form.get('role') || 'student').trim();
+    const selectedDivisionValue = form.get('division');
+
+    if (!email) {
+      setFormError('Email is required.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const divisionId = admin?.role === 'super_admin'
+      ? resolveDivisionId(selectedDivisionValue)
+      : resolveDivisionId(adminDivisionId) || adminDivisionId || null;
+
+    try {
+      const response = await userService.createUser({
+        email,
+        role,
+        division: divisionId || undefined,
+      });
+
+      setCreatedCredentials({ email, tempPassword: response?.tempPassword || '' });
+      await loadUsers();
+    } catch (error) {
+      setFormError(error?.response?.data?.message || error?.message || 'Failed to create user.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDivisionChange = async (member, divisionValue) => {
+    const divisionId = resolveDivisionId(divisionValue);
+    if (!divisionId) return;
+
+    try {
+      await userService.updateUser(member.id, { division: divisionId });
+      await loadUsers();
+    } catch (error) {
+      setLoadError(error?.response?.data?.message || error?.message || 'Failed to update division.');
+    }
+  };
 
   const columns = [
     { 
@@ -43,7 +168,7 @@ export const AdminMembersPage = () => {
             {row.name.charAt(0)}
           </div>
           <div>
-            <div className="text-sm font-bold text-white">{row.name}</div>
+            <div className="text-sm font-bold text-portal-text">{row.name}</div>
             <div className="text-[10px] text-portal-text-muted flex items-center gap-1">
               <Mail className="w-2 h-2" /> {row.email}
             </div>
@@ -60,22 +185,28 @@ export const AdminMembersPage = () => {
       )
     },
     { 
-      header: 'Divisions', 
+      header: 'Division', 
       render: (row) => (
-        <div className="flex flex-wrap gap-1">
-          {row.divisions.map((div, i) => (
-            <span key={i} className="text-[9px] font-bold bg-white/5 text-white/70 px-2 py-0.5 rounded-full border border-white/5">
-              {div}
-            </span>
+        <select
+          value={row.divisionId || ''}
+          onChange={(event) => handleDivisionChange(row, event.target.value)}
+          disabled={admin?.role !== 'super_admin'}
+          className="bg-portal-input border border-portal-border rounded-lg px-2 py-1 text-[10px] font-bold text-portal-text uppercase tracking-widest"
+        >
+          <option value="">Unassigned</option>
+          {divisions.map((division) => (
+            <option key={division._id || division.id} value={division._id || division.id}>
+              {division.name}
+            </option>
           ))}
-        </div>
+        </select>
       )
     },
     { 
       header: 'Attendance', 
       render: (row) => (
         <div className="flex items-center gap-2">
-           <span className="text-xs font-bold text-white">{row.attendance}</span>
+           <span className="text-xs font-bold text-portal-text">{row.attendance}</span>
            <button className="text-[10px] text-portal-accent hover:underline">Manual Update</button>
         </div>
       )
@@ -125,7 +256,7 @@ export const AdminMembersPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Member Directory</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text">Member Directory</h2>
           <p className="text-portal-text-muted">Manage user roles, division assignments, and access control.</p>
         </div>
         <button 
@@ -139,6 +270,13 @@ export const AdminMembersPage = () => {
           Add New Member
         </button>
       </header>
+
+      {isLoadingUsers ? (
+        <div className="text-xs text-portal-text-muted">Loading students...</div>
+      ) : null}
+      {loadError ? (
+        <div className="text-xs text-red-400">{loadError}</div>
+      ) : null}
 
       <DataTable 
         columns={columns} 
@@ -160,7 +298,7 @@ export const AdminMembersPage = () => {
                 {infoMember.name.charAt(0)}
               </div>
               <div className="space-y-1">
-                <h3 className="text-2xl font-bold text-white">{infoMember.name}</h3>
+                <h3 className="text-2xl font-bold text-portal-text">{infoMember.name}</h3>
                 <p className="text-sm font-mono text-portal-accent">{infoMember.idNo}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${
@@ -179,13 +317,13 @@ export const AdminMembersPage = () => {
               <div className="space-y-6">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Digital Address</label>
-                  <p className="text-sm text-white flex items-center gap-2 font-medium">
+                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium">
                     <Mail className="w-4 h-4 text-portal-accent" /> {infoMember.email}
                   </p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Active Division</label>
-                  <p className="text-sm text-white flex items-center gap-2 font-medium">
+                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium">
                     <Layers className="w-4 h-4 text-portal-accent" /> {infoMember.division}
                   </p>
                 </div>
@@ -201,12 +339,12 @@ export const AdminMembersPage = () => {
                          style={{ width: infoMember.attendance || '0%' }}
                        />
                     </div>
-                    <span className="text-sm font-black text-white">{infoMember.attendance || '0%'}</span>
+                    <span className="text-sm font-black text-portal-text">{infoMember.attendance || '0%'}</span>
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Specialist Tier</label>
-                  <p className="text-sm text-white flex items-center gap-2 font-medium capitalize">
+                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium capitalize">
                     <ShieldCheck className="w-4 h-4 text-portal-accent" /> Alpha Team
                   </p>
                 </div>
@@ -214,18 +352,18 @@ export const AdminMembersPage = () => {
             </div>
 
             <div className="bg-portal-input/20 border border-portal-border rounded-2xl p-6 flex flex-col gap-4">
-              <h4 className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <h4 className="text-xs font-bold text-portal-text uppercase tracking-widest flex items-center gap-2">
                 <Clock className="w-4 h-4 text-portal-accent" />
                 Recent Operational Logs
               </h4>
               <div className="space-y-3">
                  <div className="text-[11px] text-portal-text-muted flex justify-between border-b border-portal-border/30 pb-2">
                     <span>Synchronized division data</span>
-                    <span className="text-white/40">2 hours ago</span>
+                    <span className="text-portal-text/40">2 hours ago</span>
                  </div>
                  <div className="text-[11px] text-portal-text-muted flex justify-between border-b border-portal-border/30 pb-2">
                     <span>Submitted weekly pentest report</span>
-                    <span className="text-white/40">Yesterday</span>
+                    <span className="text-portal-text/40">Yesterday</span>
                  </div>
               </div>
             </div>
@@ -245,25 +383,25 @@ export const AdminMembersPage = () => {
       <AdminModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        title={selectedMember ? 'Edit Member Assignment' : 'Add New Member'}
+        title={selectedMember ? 'Edit Member Assignment' : 'Add New Student'}
       >
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleCreateUser}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Full Name</label>
-              <input type="text" defaultValue={selectedMember?.name} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors" />
+              <input type="text" defaultValue={selectedMember?.name} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Email Address</label>
-              <input type="email" defaultValue={selectedMember?.email} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors" />
+              <input name="email" type="email" defaultValue={selectedMember?.email} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Student ID No</label>
-              <input type="text" defaultValue={selectedMember?.idNo} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors" />
+              <input type="text" defaultValue={selectedMember?.idNo} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Current Status</label>
-              <select className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors appearance-none">
+              <select className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none">
                 <option>Active</option>
                 <option>Pending</option>
                 <option>Suspended</option>
@@ -279,33 +417,46 @@ export const AdminMembersPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted">User Role</label>
-                <select className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={selectedMember?.role || 'member'}>
-                  <option value="member">Member</option>
+                <select name="role" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={selectedMember?.role === 'instructor' ? 'instructor' : 'student'}>
+                  <option value="student">Student</option>
                   <option value="instructor">Instructor</option>
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted">Target Division</label>
                 {admin?.role === 'super_admin' ? (
-                  <select className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={selectedMember?.division || 'Development'}>
-                    <option>Development</option>
-                    <option>Cyber Security</option>
-                    <option>Data Science</option>
-                    <option>CP (Competitive Programming)</option>
+                  <select name="division" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={resolveDivisionId(selectedMember?.division) || divisions[0]?._id || divisions[0]?.id || ''}>
+                    {divisions.map((division) => (
+                      <option key={division._id || division.id} value={division._id || division.id}>
+                        {division.name}
+                      </option>
+                    ))}
                   </select>
                 ) : (
                   <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
-                    {adminDivision}
+                    {adminDivisionName}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
+          {createdCredentials?.tempPassword ? (
+            <div className="bg-portal-accent/10 border border-portal-accent/30 rounded-xl px-4 py-3 text-xs text-portal-text-muted">
+              Temporary password for <span className="font-bold text-portal-text">{createdCredentials.email}</span>: <span className="font-mono text-portal-accent">{createdCredentials.tempPassword}</span>
+            </div>
+          ) : null}
+
+          {formError ? (
+            <div className="text-xs font-bold text-red-400">
+              {formError}
+            </div>
+          ) : null}
+
           <div className="flex justify-end pt-6 gap-4">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-white transition-colors">Cancel</button>
-            <button type="submit" className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              {selectedMember ? 'Update Member' : 'Create Member'}
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
+            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60">
+              {selectedMember ? 'Update Student' : 'Create Student'}
             </button>
           </div>
         </form>

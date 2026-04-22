@@ -208,6 +208,17 @@ export const authService = {
         password,
       });
 
+      if (response?.data?.message && !response?.data?.token && !response?.data?.user) {
+        return {
+          user: { email },
+          token: null,
+          requiresOtp: true,
+          requiresPasswordChange: false,
+          requiresApproval: false,
+          message: response.data.message,
+        };
+      }
+
       const normalized = normalizeAuthResponse(response);
 
       if (!normalized.user && !normalized.token && response?.data?.message) {
@@ -224,6 +235,26 @@ export const authService = {
       const message = error?.response?.data?.message || error?.message || 'Login failed.';
       return fail(message, error?.response?.status || 400);
     }
+  },
+
+  async verifyOtpBackend({ email, otp, newPassword }) {
+    await ensureValidEmail(email);
+
+    if (!String(otp || '').trim()) {
+      return fail('OTP is required.', 422);
+    }
+
+    if (!String(newPassword || '').trim()) {
+      return fail('New password is required.', 422);
+    }
+
+    const response = await api.post('/auth/verify-otp', {
+      email,
+      otp,
+      newPassword,
+    });
+
+    return response.data;
   },
 
   async googleLogin() {

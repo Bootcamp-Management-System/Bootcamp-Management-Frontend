@@ -34,7 +34,7 @@ export const AdminGroupsPage = () => {
           <div className="w-10 h-10 rounded-xl bg-orange-400/10 flex items-center justify-center font-bold text-orange-400 border border-orange-400/20">
             {row.name.charAt(0)}
           </div>
-          <span className="text-sm font-bold text-white">{row.name}</span>
+          <span className="text-sm font-bold text-portal-text">{row.name}</span>
         </div>
       )
     },
@@ -66,7 +66,7 @@ export const AdminGroupsPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">{currentDivision === 'All' ? 'Global Focus Groups' : `${currentDivision} Focus Groups`}</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text">{currentDivision === 'All' ? 'Global Focus Groups' : `${currentDivision} Focus Groups`}</h2>
           <p className="text-portal-text-muted">Sub-divisions and research clusters within {currentDivision === 'All' ? 'the organization' : currentDivision}.</p>
         </div>
         <button 
@@ -93,7 +93,7 @@ export const AdminGroupsPage = () => {
         <form className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Cluster Identifier</label>
-            <input type="text" defaultValue={selectedGroup?.name} placeholder="e.g. Transformers Research Unit" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent" />
+            <input type="text" defaultValue={selectedGroup?.name} placeholder="e.g. Transformers Research Unit" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent" />
           </div>
 
           <div className="space-y-4">

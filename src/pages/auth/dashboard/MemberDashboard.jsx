@@ -66,7 +66,7 @@ export const MemberDashboard = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="mb-2 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Welcome back, {user?.name}!</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text">Welcome back, {user?.name}!</h2>
           <p className="text-portal-text-muted">Stay updated with your bootcamp activities and tasks.</p>
         </div>
         <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl bg-portal-card border ${theme.color.replace('text-', 'border-')}/30 shadow-xl`}>
@@ -95,7 +95,7 @@ export const MemberDashboard = () => {
                   <Calendar className="w-6 h-6" />
                 </div>
                 <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Upcoming Events</h3>
-                <div className="text-4xl font-bold text-white mb-2">3</div>
+                <div className="text-4xl font-bold text-portal-text mb-2">3</div>
                 <p className="text-xs text-portal-text-muted">Next event in 4 hours</p>
               </div>
             </div>
@@ -109,7 +109,7 @@ export const MemberDashboard = () => {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <h3 className="text-portal-text-muted text-sm font-bold uppercase tracking-widest mb-1">Completed Tasks</h3>
-                <div className="text-4xl font-bold text-white mb-2">12</div>
+                <div className="text-4xl font-bold text-portal-text mb-2">12</div>
                 <p className="text-xs text-portal-text-muted">83% of total assigned tasks</p>
               </div>
             </div>
@@ -118,13 +118,13 @@ export const MemberDashboard = () => {
           {/* Upcoming Tasks */}
           <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold text-white flex items-center gap-3">
+              <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
                 <FileText className="w-6 h-6 text-portal-accent" />
                 Upcoming Tasks
               </h3>
               <Link 
                 to="/my-tasks"
-                className="text-xs font-bold text-portal-accent flex items-center gap-1 hover:text-white transition-colors uppercase tracking-widest"
+                className="text-xs font-bold text-portal-accent flex items-center gap-1 hover:text-portal-text transition-colors uppercase tracking-widest"
               >
                 View All <ArrowRight className="w-3 h-3" />
               </Link>
@@ -135,13 +135,13 @@ export const MemberDashboard = () => {
                   <div className="flex items-center gap-4">
                     <div className={`w-2 h-2 rounded-full ${task.priority === 'High' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-portal-accent'}`} />
                     <div>
-                      <h4 className="font-bold text-sm text-white group-hover:text-portal-accent transition-colors">{task.title}</h4>
+                      <h4 className="font-bold text-sm text-portal-text group-hover:text-portal-accent transition-colors">{task.title}</h4>
                       <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Deadline: {task.deadline}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-portal-text-muted border border-white/5">{task.status}</span>
-                    <MoreHorizontal className="w-4 h-4 text-portal-text-muted group-hover:text-white transition-colors" />
+                    <MoreHorizontal className="w-4 h-4 text-portal-text-muted group-hover:text-portal-text transition-colors" />
                   </div>
                 </div>
               ))}
@@ -153,7 +153,7 @@ export const MemberDashboard = () => {
         <div className="space-y-8">
           {/* Task Analysis Chart */}
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl flex flex-col items-center">
-            <h3 className="text-lg font-bold text-white mb-8 self-start flex items-center gap-3">
+            <h3 className="text-lg font-bold text-portal-text mb-8 self-start flex items-center gap-3">
               <Activity className="w-5 h-5 text-portal-accent" />
               Task Analysis
             </h3>
@@ -181,7 +181,7 @@ export const MemberDashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <div className="text-3xl font-extrabold text-white">20</div>
+                <div className="text-3xl font-extrabold text-portal-text">20</div>
                 <div className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest">Total</div>
               </div>
             </div>
@@ -191,7 +191,7 @@ export const MemberDashboard = () => {
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stat.color }} />
                   <div>
                     <div className="text-[10px] text-portal-text-muted font-bold uppercase">{stat.name}</div>
-                    <div className="text-sm font-bold text-white">{stat.value}</div>
+                    <div className="text-sm font-bold text-portal-text">{stat.value}</div>
                   </div>
                 </div>
               ))}
@@ -205,11 +205,11 @@ export const MemberDashboard = () => {
         {/* Upcoming Events - taking 2/3 width */}
         <div className="lg:col-span-2 bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold text-white flex items-center gap-3">
+            <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
               <Calendar className="w-6 h-6 text-portal-accent" />
               Bootcamp Events
             </h3>
-            <button className="text-sm font-bold text-portal-accent hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2 group">
+            <button className="text-sm font-bold text-portal-accent hover:text-portal-text transition-colors uppercase tracking-widest flex items-center gap-2 group">
               See More <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -225,7 +225,7 @@ export const MemberDashboard = () => {
                     {event.attendees} Attending
                   </span>
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2 group-hover:text-portal-accent transition-colors">
+                <h4 className="text-lg font-bold text-portal-text mb-2 group-hover:text-portal-accent transition-colors">
                   {event.title}
                 </h4>
                 <div className="flex flex-col gap-1 text-xs text-portal-text-muted font-medium mb-6">
@@ -251,9 +251,9 @@ export const MemberDashboard = () => {
           {/* Top Summary Banner */}
           <div className="bg-portal-accent p-6 relative overflow-hidden shrink-0">
             <div className="absolute top-1/2 left-6 -translate-y-1/2 opacity-20 transform">
-              <Timer className="w-12 h-12 text-white" />
+              <Timer className="w-12 h-12 text-portal-text" />
             </div>
-            <div className="relative z-10 flex items-center justify-end gap-3 text-white text-right">
+            <div className="relative z-10 flex items-center justify-end gap-3 text-portal-text text-right">
               <div className="flex flex-col">
                 <span className="text-[8px] font-bold uppercase tracking-[0.2em] opacity-80">Overall Attendance</span>
                 <div className="flex items-baseline gap-1 leading-none mt-1">
@@ -266,16 +266,16 @@ export const MemberDashboard = () => {
 
           {/* Month Selector */}
           <div className="p-4 border-b border-portal-border flex items-center justify-between bg-portal-card/30">
-            <h3 className="text-[10px] font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+            <h3 className="text-[10px] font-bold text-portal-text flex items-center gap-2 uppercase tracking-wider">
               <Users className="w-3.5 h-3.5 text-portal-accent" />
               History
             </h3>
             <div className="flex items-center gap-3 bg-portal-input px-2 py-1 rounded-xl border border-portal-border/50">
-              <button className="text-portal-text-muted hover:text-white transition-colors">
+              <button className="text-portal-text-muted hover:text-portal-text transition-colors">
                 <ChevronLeft className="w-3 h-3" />
               </button>
-              <span className="text-[9px] font-extrabold text-white min-w-[50px] text-center tracking-tight">NOV 2026</span>
-              <button className="text-portal-text-muted hover:text-white transition-colors">
+              <span className="text-[9px] font-extrabold text-portal-text min-w-[50px] text-center tracking-tight">NOV 2026</span>
+              <button className="text-portal-text-muted hover:text-portal-text transition-colors">
                 <ChevronRight className="w-3 h-3" />
               </button>
             </div>

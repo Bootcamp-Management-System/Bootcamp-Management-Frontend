@@ -104,7 +104,7 @@ export const ProfilePage = () => {
   return (
     <div className="max-w-5xl mx-auto pb-20">
       <header className="mb-10">
-        <h2 className="text-3xl font-bold mb-2 text-white">My Profile</h2>
+        <h2 className="text-3xl font-bold mb-2 text-portal-text">My Profile</h2>
         <p className="text-portal-text-muted">Manage your personal information and portal settings.</p>
       </header>
 
@@ -135,7 +135,7 @@ export const ProfilePage = () => {
                 <Edit3 className="w-4 h-4" />
               </button>
             </div>
-            <h3 className="text-xl font-bold text-white">{user.name}</h3>
+            <h3 className="text-xl font-bold text-portal-text">{user.name}</h3>
             <p className="text-sm text-portal-accent font-medium mb-4">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
             <div className="w-full h-px bg-portal-border my-6" />
             <div className="grid grid-cols-2 gap-4 w-full">
@@ -144,7 +144,7 @@ export const ProfilePage = () => {
                   <Activity className="w-3 h-3 text-portal-accent" />
                   Attendance
                 </p>
-                <div className="text-xl font-bold text-white">{user.attendance}</div>
+                <div className="text-xl font-bold text-portal-text">{user.attendance}</div>
               </div>
               <div className="bg-portal-input/50 p-4 rounded-2xl border border-portal-border">
                 <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest mb-1 flex items-center gap-1">
@@ -157,14 +157,14 @@ export const ProfilePage = () => {
           </div>
 
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8">
-            <h4 className="text-sm font-bold text-white mb-6 flex items-center gap-2 uppercase tracking-widest">
+            <h4 className="text-sm font-bold text-portal-text mb-6 flex items-center gap-2 uppercase tracking-widest">
               <Terminal className="w-4 h-4 text-portal-accent" />
               Portal Access
             </h4>
             <div className="space-y-4">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-portal-text-muted font-medium">Student ID</span>
-                <span className="text-white font-mono bg-portal-input px-2 py-1 rounded-lg border border-portal-border">{user.idNo}</span>
+                <span className="text-portal-text font-mono bg-portal-input px-2 py-1 rounded-lg border border-portal-border">{user.idNo}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-portal-text-muted font-medium">Division</span>
@@ -172,7 +172,7 @@ export const ProfilePage = () => {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-portal-text-muted font-medium">Student Since</span>
-                <span className="text-white font-medium">Jan 2024</span>
+                <span className="text-portal-text font-medium">Jan 2024</span>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export const ProfilePage = () => {
         <div className="lg:col-span-2 space-y-8">
           {/* Verified Identity (Non-Editable) */}
           <div className="bg-portal-card/50 border border-portal-border rounded-3xl p-8 opacity-90">
-            <h4 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+            <h4 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
               <Shield className="w-6 h-6 text-portal-accent" />
               Verified Identity
               <span className="text-[10px] bg-portal-accent/10 text-portal-accent px-2 py-1 rounded-md uppercase tracking-wider ml-auto">Protected</span>
@@ -191,19 +191,19 @@ export const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1">
                 <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Full Name</p>
-                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-white font-medium cursor-default">
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-portal-text font-medium cursor-default">
                   {user.name}
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Email Address</p>
-                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-white font-medium cursor-default">
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-portal-text font-medium cursor-default">
                   {user.email}
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Student ID No</p>
-                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-white font-mono cursor-default">
+                <div className="bg-portal-input/30 border border-portal-border/50 rounded-xl px-4 py-3 text-portal-text font-mono cursor-default">
                   {user.idNo}
                 </div>
               </div>
@@ -222,7 +222,7 @@ export const ProfilePage = () => {
 
           {/* Division Switcher */}
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-            <h4 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+            <h4 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
               <Layers className="w-6 h-6 text-portal-accent" />
               My Division
             </h4>
@@ -248,7 +248,7 @@ export const ProfilePage = () => {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {activeContent.items.map(item => (
-                    <span key={item} className="text-[10px] bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">
+                    <span key={item} className="text-[10px] bg-white/5 border border-white/10 text-portal-text px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">
                       {item}
                     </span>
                   ))}
@@ -264,7 +264,7 @@ export const ProfilePage = () => {
           {/* Profile Settings (Editable) */}
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
             <div className="flex items-center justify-between mb-8">
-              <h4 className="text-xl font-bold text-white flex items-center gap-3">
+              <h4 className="text-xl font-bold text-portal-text flex items-center gap-3">
                 <Edit3 className="w-6 h-6 text-portal-accent" />
                 Profile Settings
               </h4>
@@ -288,7 +288,7 @@ export const ProfilePage = () => {
                   disabled={!isEditing}
                   value={formData.bio}
                   onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  className={`w-full bg-portal-input border rounded-2xl px-4 py-3 text-white outline-none transition-all resize-none ${
+                  className={`w-full bg-portal-input border rounded-2xl px-4 py-3 text-portal-text outline-none transition-all resize-none ${
                     isEditing ? 'border-portal-accent ring-2 ring-portal-accent/20' : 'border-portal-border opacity-70'
                   }`}
                   placeholder="Tell us about yourself..."
@@ -311,7 +311,7 @@ export const ProfilePage = () => {
 
           {/* Account Security */}
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8">
-            <h4 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
+            <h4 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
               <Lock className="w-6 h-6 text-portal-accent" />
               Security Settings
             </h4>
@@ -324,7 +324,7 @@ export const ProfilePage = () => {
                   placeholder="••••••••"
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white focus:border-portal-accent outline-none transition-colors"
+                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text focus:border-portal-accent outline-none transition-colors"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -335,7 +335,7 @@ export const ProfilePage = () => {
                     placeholder="••••••••"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white focus:border-portal-accent outline-none transition-colors"
+                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text focus:border-portal-accent outline-none transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
@@ -345,14 +345,14 @@ export const ProfilePage = () => {
                     placeholder="••••••••"
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white focus:border-portal-accent outline-none transition-colors"
+                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text focus:border-portal-accent outline-none transition-colors"
                   />
                 </div>
               </div>
               <div className="flex justify-end pt-4">
                 <button 
                   type="submit"
-                  className="bg-white/10 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
+                  className="bg-white/10 text-portal-text px-8 py-3 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
                 >
                   Update Password
                 </button>
