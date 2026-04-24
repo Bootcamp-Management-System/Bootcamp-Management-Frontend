@@ -38,188 +38,189 @@ export default function App() {
         <DivisionProvider>
           <Router>
           <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/otp" element={<OTPPage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/apply/:bootcampId" element={<ApplyPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/otp" element={<OTPPage />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
 
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['student', 'member']}>
-                <Layout>
-                  <StudentDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute allowedRoles={['student', 'member', 'instructor', 'admin', 'super_admin']}>
-                <Layout>
-                  <ProfilePage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            {/* Protected Routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['student', 'member']}>
+                  <Layout>
+                    <StudentDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute allowedRoles={['student', 'member', 'instructor', 'admin', 'super_admin']}>
+                  <Layout>
+                    <ProfilePage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/my-tasks" 
-            element={
-              <ProtectedRoute allowedRoles={['student', 'member']}>
-                <Layout>
-                  <StudentTaskPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/my-tasks" 
+              element={
+                <ProtectedRoute allowedRoles={['student', 'member']}>
+                  <Layout>
+                    <StudentTaskPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/sessions" 
-            element={
-              <ProtectedRoute allowedRoles={['student', 'member', 'instructor']}>
-                <Layout>
-                  <StudentSessionPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/sessions" 
+              element={
+                <ProtectedRoute allowedRoles={['student', 'member', 'instructor']}>
+                  <Layout>
+                    <StudentSessionPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/progress" 
-            element={
-              <ProtectedRoute allowedRoles={['member']}>
-                <Layout>
-                  <WeeklyProgressPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          
-          <Route 
-            path="/instructor" 
-            element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <Layout>
-                  <InstructorPanel />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/progress" 
+              element={
+                <ProtectedRoute allowedRoles={['student', 'member']}>
+                  <Layout>
+                    <WeeklyProgressPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            
+            <Route 
+              path="/instructor" 
+              element={
+                <ProtectedRoute allowedRoles={['instructor']}>
+                  <Layout>
+                    <InstructorPanel />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/instructor/tasks" 
-            element={
-              <ProtectedRoute allowedRoles={['instructor', 'admin', 'super_admin']}>
-                <Layout>
-                  <InstructorTasksPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/instructor/tasks" 
+              element={
+                <ProtectedRoute allowedRoles={['instructor', 'admin', 'super_admin']}>
+                  <Layout>
+                    <InstructorTasksPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin" 
-            element={<Navigate to="/admin/dashboard" replace />} 
-          />
+            <Route 
+              path="/admin" 
+              element={<Navigate to="/admin/dashboard" replace />} 
+            />
 
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-                <Layout>
-                  <AdminDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <Layout>
+                    <AdminDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/members" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-                <Layout>
-                  <AdminMembersPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/members" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <Layout>
+                    <AdminMembersPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/instructors" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-                <Layout>
-                  <AdminInstructorsPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/instructors" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <Layout>
+                    <AdminInstructorsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/sessions" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'instructor', 'super_admin']}>
-                <Layout>
-                  <AdminSessionsPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/sessions" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'instructor', 'super_admin']}>
+                  <Layout>
+                    <AdminSessionsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/groups" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-                <Layout>
-                  <AdminGroupsPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/groups" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <Layout>
+                    <AdminGroupsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/recruitment" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-                <Layout>
-                  <AdminRecruitmentPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/recruitment" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <Layout>
+                    <AdminRecruitmentPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/reports" 
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-                <Layout>
-                  <AdminReportsPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/reports" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <Layout>
+                    <AdminReportsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/admin/admins" 
-            element={
-              <ProtectedRoute allowedRoles={['super_admin']}>
-                <Layout>
-                  <AdminAdminsPage />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/admin/admins" 
+              element={
+                <ProtectedRoute allowedRoles={['super_admin']}>
+                  <Layout>
+                    <AdminAdminsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          {/* Default Redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+            {/* Default Redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
       </Router>
       </DivisionProvider>
       </AuthProvider>

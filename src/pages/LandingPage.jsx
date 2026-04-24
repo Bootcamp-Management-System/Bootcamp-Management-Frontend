@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { 
   ArrowRight, 
   Code2, 
@@ -51,15 +52,18 @@ export const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-20 px-6 relative">
+      <section className="pt-48 pb-32 px-6 relative">
         <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-portal-accent/10 rounded-full blur-[120px] pointer-events-none" />
-        
-        <div className="max-w-4xl mx-auto text-center relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto text-center relative z-10"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-portal-accent/10 border border-portal-accent/20 rounded-full text-portal-accent text-xs font-bold uppercase tracking-widest mb-8">
             <Zap className="w-4 h-4" />
             Now Recruiting for 2026
           </div>
-          <h1 className="text-6xl md:text-7xl font-extrabold mb-8 tracking-tight">
+          <h1 className="text-6xl md:text-7xl font-extrabold mb-8 tracking-tight leading-[1.1]">
             Build the Future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-portal-accent to-blue-400">Technology</span>
           </h1>
           <p className="text-xl text-portal-text-muted mb-12 leading-relaxed max-w-2xl mx-auto">
@@ -74,91 +78,159 @@ export const LandingPage = () => {
               Create Account
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Stats */}
+      {/* Stats Section */}
       <section className="py-20 border-y border-portal-border bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12">
           {[
             { label: 'Active Students', value: '500+', icon: Users },
             { label: 'Graduates', value: '1.2k+', icon: CheckCircle2 },
             { label: 'Global Partners', value: '15+', icon: Globe },
             { label: 'Average Rating', value: '4.9/5', icon: Star },
           ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <stat.icon className="w-8 h-8 text-portal-accent mx-auto mb-4 opacity-50" />
-              <div className="text-3xl font-bold mb-1">{stat.value}</div>
-              <div className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">{stat.label}</div>
-            </div>
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="text-center"
+            >
+              <stat.icon className="w-8 h-8 text-portal-accent mx-auto mb-4 opacity-40" />
+              <div className="text-4xl font-bold mb-1">{stat.value}</div>
+              <div className="text-xs font-bold text-portal-text-muted uppercase tracking-[0.3em]">{stat.label}</div>
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Bootcamps Grid */}
-      <section id="bootcamps" className="py-32 px-6">
+      {/* Available Bootcamps Grid (Moved UP) */}
+      <section id="bootcamps" className="py-40 px-6 relative">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-16">
-            <div>
-              <h2 className="text-4xl font-bold mb-4">Open Enrollments</h2>
-              <p className="text-portal-text-muted">Choose your path and start your application today.</p>
-            </div>
-            <div className="hidden md:flex items-center gap-2 text-portal-accent font-bold text-sm uppercase tracking-widest">
-              View All <ArrowRight className="w-4 h-4" />
-            </div>
+          <div className="text-center mb-24">
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight text-portal-text">Available Bootcamps</h2>
+            <p className="text-portal-text-muted text-xl max-w-2xl mx-auto">Select your path and start your elite training journey today.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {loading ? (
               [1, 2, 3].map(i => (
-                <div key={i} className="h-[400px] bg-portal-card border border-portal-border rounded-[32px] animate-pulse" />
+                <div key={i} className="h-[450px] bg-portal-card border border-portal-border rounded-[40px] animate-pulse" />
               ))
             ) : bootcamps.length > 0 ? (
-              bootcamps.map(bootcamp => (
-                <div key={bootcamp._id} className="group bg-portal-card border border-portal-border rounded-[32px] p-8 shadow-xl hover:border-portal-accent/30 transition-all flex flex-col">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="p-3 bg-portal-accent/10 rounded-2xl text-portal-accent">
-                      <Code2 className="w-6 h-6" />
+              bootcamps.map((bootcamp, i) => {
+                const Icon = bootcamp.name.toLowerCase().includes('cyber') ? ShieldCheck : 
+                             bootcamp.name.toLowerCase().includes('web') ? Globe : 
+                             bootcamp.name.toLowerCase().includes('ai') ? Zap : Code2;
+                
+                return (
+                  <motion.div 
+                    key={bootcamp._id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    whileHover={{ y: -12 }}
+                    className="group relative bg-portal-card border border-portal-border rounded-[40px] p-10 shadow-2xl transition-all duration-500 overflow-hidden"
+                  >
+                    <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-portal-accent group-hover:scale-110 transition-all duration-500">
+                      <Icon className="w-8 h-8 text-portal-accent group-hover:text-portal-bg transition-colors duration-500" />
                     </div>
-                    <span className="px-3 py-1 bg-green-400/10 text-green-400 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                      {bootcamp.status}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 group-hover:text-portal-accent transition-colors">{bootcamp.name}</h3>
-                  <p className="text-portal-text-muted text-sm leading-relaxed mb-8 flex-1">
-                    {bootcamp.description || 'Master the latest technologies and build real-world applications in this intensive program.'}
-                  </p>
-                  <div className="space-y-4 pt-6 border-t border-portal-border/50">
-                    <div className="flex items-center justify-between text-xs font-bold text-portal-text-muted uppercase tracking-widest">
-                      <span>Duration</span>
-                      <span className="text-portal-text">12 Weeks</span>
+                    <h3 className="text-3xl font-bold mb-6 group-hover:text-portal-accent transition-colors">{bootcamp.name}</h3>
+                    <div className="space-y-6">
+                      <p className="text-portal-text-muted leading-relaxed transition-all duration-500 group-hover:text-portal-text">
+                        {bootcamp.description || 'Master industry-standard practices and launch your professional career in technology.'}
+                      </p>
+                      <div className="pt-8 border-t border-portal-border/50 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                        <Link 
+                          to="/login"
+                          className="w-full py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        >
+                          Enroll Now
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      </div>
                     </div>
-                    <Link 
-                      to={`/apply/${bootcamp._id}`} 
-                      className="w-full py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold flex items-center justify-center gap-2 group-hover:bg-portal-accent/90 transition-all"
-                    >
-                      Apply Now
-                      <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </div>
-              ))
+                    <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-portal-accent/5 rounded-full blur-[60px] group-hover:bg-portal-accent/10 transition-all" />
+                  </motion.div>
+                );
+              })
             ) : (
-              <div className="col-span-full py-20 text-center bg-portal-card border border-portal-border rounded-[32px]">
-                <ShieldCheck className="w-16 h-16 text-portal-text-muted mx-auto mb-6 opacity-20" />
-                <h3 className="text-xl font-bold">No active enrollments</h3>
-                <p className="text-portal-text-muted mt-2">Check back later for new bootcamp announcements.</p>
+              <div className="col-span-full py-32 text-center bg-portal-card border border-portal-border rounded-[40px] border-dashed">
+                <CheckCircle2 className="w-12 h-12 text-portal-text-muted mx-auto mb-6 opacity-20" />
+                <h3 className="text-2xl font-bold">No active bootcamps found.</h3>
               </div>
             )}
+          </div>
+
+          <div className="mt-24 flex justify-center">
+            <Link to="/explore" className="group flex items-center gap-3 text-portal-accent font-bold text-sm uppercase tracking-[0.3em] hover:gap-6 transition-all">
+              View All Programs
+              <ArrowRight className="w-6 h-6" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Why CSEC ASTU Section (Moved DOWN) */}
+      <section className="py-48 px-6 relative bg-white/[0.01] border-y border-portal-border/50">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-20">
+          <div className="lg:w-1/3 lg:sticky lg:top-40 h-fit">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mb-8">
+                Why CSEC <br />
+                <span className="text-portal-accent">ASTU</span> Intelligence?
+              </h2>
+              <div className="w-20 h-1.5 bg-portal-accent rounded-full" />
+              <p className="mt-8 text-portal-text-muted text-lg leading-relaxed">
+                We don't just teach code; we build the next generation of technology leaders through specialized focus areas.
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="lg:w-2/3 space-y-16">
+            {[
+              { title: 'Cybersecurity', desc: 'Expert advice on network security, ethical hacking, and digital forensics. Learn to protect and defend in the digital age.', icon: ShieldCheck, tag: 'Defend' },
+              { title: 'Development & AI', desc: 'Guidance on software engineering, data science, and AI lab activities. Build intelligent systems that change the world.', icon: Zap, tag: 'Build' },
+              { title: 'Competetative Programming', desc: 'Resources for competitive programming and algorithm optimization. Sharpen your logic and solve complex problems.', icon: Code2, tag: 'Solve' }
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group flex flex-col md:flex-row gap-8 items-start pb-16 border-b border-portal-border last:border-0"
+              >
+                <div className="w-16 h-16 shrink-0 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-portal-accent transition-all duration-500">
+                  <feature.icon className="w-8 h-8 text-portal-accent group-hover:text-portal-bg transition-colors" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-4 mb-4">
+                    <h3 className="text-3xl font-bold">{feature.title}</h3>
+                    <span className="px-3 py-1 bg-portal-accent/10 text-portal-accent text-[10px] font-bold uppercase tracking-widest rounded-full">
+                      {feature.tag}
+                    </span>
+                  </div>
+                  <p className="text-portal-text-muted text-xl leading-relaxed max-w-2xl">
+                    {feature.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-20 border-t border-portal-border">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-portal-text-muted text-sm">© 2026 CSEC ASTU Bootcamp Management System. All rights reserved.</p>
-        </div>
+      <footer className="py-20 border-t border-portal-border text-center">
+        <p className="text-portal-text-muted text-sm tracking-widest uppercase">© 2026 CSEC ASTU Intelligence • All Rights Reserved</p>
       </footer>
     </div>
   );
