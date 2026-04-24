@@ -22,9 +22,7 @@ export const AuthProvider = ({ children }) => {
     if (storedToken && storedUser) {
       const parsedUser = JSON.parse(storedUser);
       // Migration: Normalize backend roles and ensure divisions exist for old sessions
-      if (parsedUser.role === 'student') {
-        parsedUser.role = 'member';
-      } else if (parsedUser.role === 'super-admin' || parsedUser.role === 'super admin') {
+      if (parsedUser.role === 'super-admin' || parsedUser.role === 'super admin') {
         parsedUser.role = 'super_admin';
       }
 
@@ -65,6 +63,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (user) {
+        // Normalize role for frontend
+        if (user.role === 'super-admin' || user.role === 'super admin') {
+          user.role = 'super_admin';
+        }
         localStorage.setItem('auth_user', JSON.stringify(user));
       }
 

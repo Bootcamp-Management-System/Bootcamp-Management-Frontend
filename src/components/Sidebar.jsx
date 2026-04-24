@@ -36,6 +36,7 @@ export const Sidebar = () => {
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       const adminItems = [
         { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? 'Global Dashboard' : 'Dashboard', path: '/admin/dashboard' },
+        { id: 'admin-recruitment', icon: TrendingUp, label: 'Recruitment Hub', path: '/admin/recruitment' },
         { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
         { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
       ];

@@ -11,6 +11,8 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { OTPPage } from './pages/auth/OTPPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { LandingPage } from './pages/LandingPage';
+import { ApplyPage } from './pages/ApplyPage';
 
 // Dashboard Pages
 import { StudentDashboard } from './pages/auth/dashboard/StudentDashboard';
@@ -22,6 +24,7 @@ import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
 import { AdminGroupsPage } from './pages/admin/AdminGroupsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
+import { AdminRecruitmentPage } from './pages/admin/AdminRecruitmentPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { StudentTaskPage } from './pages/Task/StudentTaskPage';
 import { InstructorTasksPage } from './pages/Task/InstructorTasksPage';
@@ -45,7 +48,7 @@ export default function App() {
           <Route 
             path="/dashboard" 
             element={
-              <ProtectedRoute allowedRoles={['member']}>
+              <ProtectedRoute allowedRoles={['student', 'member']}>
                 <Layout>
                   <StudentDashboard />
                 </Layout>
@@ -56,7 +59,7 @@ export default function App() {
           <Route 
             path="/profile" 
             element={
-              <ProtectedRoute allowedRoles={['member', 'instructor', 'admin', 'super_admin']}>
+              <ProtectedRoute allowedRoles={['student', 'member', 'instructor', 'admin', 'super_admin']}>
                 <Layout>
                   <ProfilePage />
                 </Layout>
@@ -67,7 +70,7 @@ export default function App() {
           <Route 
             path="/my-tasks" 
             element={
-              <ProtectedRoute allowedRoles={['member']}>
+              <ProtectedRoute allowedRoles={['student', 'member']}>
                 <Layout>
                   <StudentTaskPage />
                 </Layout>
@@ -78,7 +81,7 @@ export default function App() {
           <Route 
             path="/sessions" 
             element={
-              <ProtectedRoute allowedRoles={['member', 'instructor']}>
+              <ProtectedRoute allowedRoles={['student', 'member', 'instructor']}>
                 <Layout>
                   <StudentSessionPage />
                 </Layout>
@@ -175,6 +178,17 @@ export default function App() {
               <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                 <Layout>
                   <AdminGroupsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/recruitment" 
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Layout>
+                  <AdminRecruitmentPage />
                 </Layout>
               </ProtectedRoute>
             } 
