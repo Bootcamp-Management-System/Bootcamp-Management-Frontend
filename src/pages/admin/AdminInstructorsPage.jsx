@@ -159,7 +159,7 @@ export const AdminInstructorsPage = () => {
     const selectedDivisionValue = form.get('division');
     const divisionId = admin?.role === 'super_admin'
       ? resolveDivisionId(selectedDivisionValue)
-      : resolveDivisionId(adminDivisionId) || adminDivisionId || null;
+      : adminDivisionId;
 
     try {
       const response = await userService.createUser({
@@ -189,7 +189,7 @@ export const AdminInstructorsPage = () => {
 
     const divisionId = admin?.role === 'super_admin'
       ? resolveDivisionId(selectedDivisionValue)
-      : resolveDivisionId(adminDivisionId) || adminDivisionId || null;
+      : adminDivisionId;
 
     if (!promoteMember?.id) {
       setPromoteError('No member selected.');

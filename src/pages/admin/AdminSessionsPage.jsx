@@ -14,7 +14,6 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-import { ALL_SESSIONS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminSessionsPage = () => {
@@ -22,12 +21,14 @@ export const AdminSessionsPage = () => {
   const adminDivision = admin?.division || 'Data Science';
   const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
 
-  const [sessions, setSessions] = React.useState(ALL_SESSIONS.filter(s => currentDivision === 'All' || s.division === currentDivision));
+  const [sessions, setSessions] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
   React.useEffect(() => {
-    setSessions(ALL_SESSIONS.filter(s => currentDivision === 'All' || s.division === currentDivision));
+    // API Call will go here
+    setSessions([]);
   }, [currentDivision]);
 
   const columns = [

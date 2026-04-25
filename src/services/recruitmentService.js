@@ -1,36 +1,34 @@
+/**
+ * RECRUITMENT & PIPELINE API SERVICE
+ * -------------------------------------------------------------------------
+ * This service controls the admission funnels and candidate state machines.
+ * It handles everything from application submission to final acceptance.
+ */
+
 import api from '../api/api';
 
 export const recruitmentService = {
-  // Template Management (Admin)
-  getTemplate: async (bootcampId) => {
-    const response = await api.get(`/recruitment/template/${bootcampId}`);
+  /**
+   * Submits a new phase 1 application for a student
+   */
+  submitApplication: async (payload) => {
+    const response = await api.post('/recruitment/apply', payload);
     return response.data;
   },
 
-  saveTemplate: async (templateData) => {
-    const response = await api.post('/recruitment/template', templateData);
-    return response.data;
-  },
-
-  // Application Management (Admin)
+  /**
+   * Fetches applications for the Admin Dashboard (filtered by bootcamp/stage)
+   */
   getApplications: async (params) => {
     const response = await api.get('/recruitment/applications', { params });
     return response.data;
   },
 
-  makeDecision: async (applicationId, decision, note) => {
-    const response = await api.patch(`/recruitment/decide/${applicationId}`, { decision, note });
-    return response.data;
-  },
-
-  // Student Actions
-  applyToBootcamp: async (bootcampId, phase1Answers) => {
-    const response = await api.post('/recruitment/apply', { bootcampId, phase1Answers });
-    return response.data;
-  },
-
-  submitPhase2: async (applicationId, phase2Answers) => {
-    const response = await api.patch(`/recruitment/submit-phase2/${applicationId}`, { phase2Answers });
+  /**
+   * Triggers a state transition for a candidate (e.g., PASS, REJECT, ACCEPT)
+   */
+  makeDecision: async (id, decision) => {
+    const response = await api.post(`/recruitment/applications/${id}/decision`, { decision });
     return response.data;
   }
 };

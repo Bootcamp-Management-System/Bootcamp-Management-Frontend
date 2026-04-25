@@ -25,16 +25,18 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { ALL_MEMBERS, ALL_SESSIONS, ALL_TASKS } from '../../lib/mockData';
+import { userService } from '../../services/userService';
+import { bootcampService } from '../../services/bootcampService';
+import { groupService } from '../../services/groupService';
 
 const growthData = [
-  { name: 'Mon', users: 400 },
-  { name: 'Tue', users: 300 },
-  { name: 'Wed', users: 600 },
-  { name: 'Thu', users: 800 },
-  { name: 'Fri', users: 500 },
-  { name: 'Sat', users: 900 },
-  { name: 'Sun', users: 1100 },
+  { name: 'Mon', users: 4 },
+  { name: 'Tue', users: 7 },
+  { name: 'Wed', users: 5 },
+  { name: 'Thu', users: 12 },
+  { name: 'Fri', users: 9 },
+  { name: 'Sat', users: 15 },
+  { name: 'Sun', users: 20 },
 ];
 
 const divisionDistribution = [
@@ -46,29 +48,64 @@ const divisionDistribution = [
 
 export const AdminDashboard = () => {
   const { user, selectedDivision } = useAuth();
+  const [loading, setLoading] = React.useState(true);
+  const [counts, setCounts] = React.useState({
+    members: 0,
+    instructors: 0,
+    bootcamps: 0,
+    groups: 0
+  });
   
-  const currentDivision = user?.role === 'super_admin' ? selectedDivision : (user?.division || 'Development');
+  const currentDivisionId = user?.role === 'super_admin' ? selectedDivision : user?.division;
+  const currentDivisionName = user?.role === 'super_admin' ? 'Global' : (user?.divisionName || 'Division');
 
-  // Division-Scoped Logic
-  const divisionMembers = ALL_MEMBERS.filter(m => currentDivision === 'All' || m.division === currentDivision);
-  const divisionInstructors = ALL_MEMBERS.filter(m => (currentDivision === 'All' || m.division === currentDivision) && m.role === 'instructor');
-  const divisionSessions = ALL_SESSIONS.filter(s => currentDivision === 'All' || s.division === currentDivision);
-  const divisionTasks = ALL_TASKS.filter(t => currentDivision === 'All' || t.division === currentDivision);
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        const [usersRes, bootcampsRes, groupsRes] = await Promise.all([
+          userService.getUsers(),
+          bootcampService.getBootcamps(currentDivisionId),
+          groupService.getGroups(currentDivisionId)
+        ]);
+
+        const allUsers = usersRes.data || [];
+        setCounts({
+          members: allUsers.filter(u => u.role === 'student').length,
+          instructors: allUsers.filter(u => u.role === 'instructor').length,
+          bootcamps: bootcampsRes.data?.length || 0,
+          groups: groupsRes.data?.length || 0
+        });
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [currentDivisionId]);
 
   const stats = [
-    { label: currentDivision === 'All' ? "Total Members" : "Division Members", value: divisionMembers.length, change: "+2", icon: Users, color: "text-blue-400" },
-    { label: currentDivision === 'All' ? "Total Instructors" : "Instructors", value: divisionInstructors.length, change: "+0", icon: UserCheck, color: "text-green-400" },
-    { label: currentDivision === 'All' ? "Total Sessions" : "Sessions", value: divisionSessions.length, change: "+1", icon: BookOpen, color: "text-purple-400" },
-    { label: currentDivision === 'All' ? "Total Tasks" : "Active Tasks", value: divisionTasks.length, change: "+3", icon: ClipboardList, color: "text-orange-400" },
+    { label: "Specialists", value: counts.members, change: "+2", icon: Users, color: "text-blue-400" },
+    { label: "Mentors", value: counts.instructors, change: "+0", icon: UserCheck, color: "text-green-400" },
+    { label: "Operations", value: counts.bootcamps, change: "+1", icon: BookOpen, color: "text-purple-400" },
+    { label: "Clusters", value: counts.groups, change: "+3", icon: ClipboardList, color: "text-orange-400" },
   ];
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header>
+        <div className="flex items-center gap-3 mb-2">
+           <div className="px-3 py-1 bg-portal-accent/10 border border-portal-accent/20 rounded-full text-[10px] font-bold text-portal-accent uppercase tracking-widest">
+              {user?.role === 'super_admin' ? 'Global Oversight' : 'Division Protocol'}
+           </div>
+        </div>
         <h2 className="text-3xl font-bold mb-2 text-portal-text">
-          {currentDivision === 'All' ? 'Global System Metrics' : `${currentDivision} Metrics`}
+          {currentDivisionName === 'Global' ? 'Academy Global Metrics' : `${currentDivisionName} Command`}
         </h2>
-        <p className="text-portal-text-muted italic">Monitoring {currentDivision === 'All' ? 'all divisions' : `the ${currentDivision} node`} in real-time.</p>
+        <p className="text-portal-text-muted italic">Real-time status report for {currentDivisionName === 'Global' ? 'all operational nodes' : `the ${currentDivisionName} division`}.</p>
       </header>
 
       {/* Hero Stats */}
@@ -84,8 +121,10 @@ export const AdminDashboard = () => {
                 {stat.change}
               </div>
             </div>
-            <h3 className="text-portal-text-muted text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</h3>
-            <div className="text-3xl font-bold text-portal-text tracking-tight">{stat.value}</div>
+            <h3 className="text-portal-text-muted text-[10px] font-bold uppercase tracking-widest mb-1">{stat.label}</h3>
+            <div className="text-3xl font-bold text-portal-text tracking-tight">
+              {loading ? '...' : stat.value}
+            </div>
           </div>
         ))}
       </div>
@@ -96,12 +135,9 @@ export const AdminDashboard = () => {
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
               <Activity className="w-6 h-6 text-portal-accent" />
-              Registration Growth
+              Recruitment Velocity
             </h3>
-            <select className="bg-portal-input border border-portal-border rounded-xl px-4 py-2 text-xs font-bold text-portal-text outline-none">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
+            <div className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Temporal Scale: 7D</div>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -113,71 +149,79 @@ export const AdminDashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1a2e3b" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#64748b" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#64748b" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="users" 
-                  stroke="#2dd4bf" 
-                  strokeWidth={3} 
-                  fillOpacity={1} 
-                  fill="url(#colorUsers)" 
-                />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }} />
+                <Area type="monotone" dataKey="users" stroke="#2dd4bf" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Division Split */}
-        <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-          <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
-            <Shield className="w-6 h-6 text-portal-accent" />
-            Division Split
-          </h3>
-          <div className="h-[240px] w-full mb-8">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={divisionDistribution}>
-                <XAxis dataKey="name" hide />
-                <YAxis hide />
-                <Tooltip 
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }}
-                />
-                <Bar dataKey="value" radius={[10, 10, 10, 10]}>
-                  {divisionDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-4">
-            {divisionDistribution.map((item, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-sm font-medium text-portal-text-muted">{item.name} Division</span>
+        {/* Dynamic Contextual Panel */}
+        {user?.role === 'super_admin' ? (
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+            <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
+              <Shield className="w-6 h-6 text-portal-accent" />
+              Division Split
+            </h3>
+            <div className="h-[240px] w-full mb-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={divisionDistribution}>
+                  <XAxis dataKey="name" hide />
+                  <YAxis hide />
+                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }} />
+                  <Bar dataKey="value" radius={[10, 10, 10, 10]}>
+                    {divisionDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-4">
+              {divisionDistribution.map((item, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-sm font-medium text-portal-text-muted">{item.name} Division</span>
+                  </div>
+                  <span className="text-sm font-bold text-portal-text">{item.value}%</span>
                 </div>
-                <span className="text-sm font-bold text-portal-text">{item.value}%</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+            <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
+              <Layers className="w-6 h-6 text-portal-accent" />
+              Focus Groups
+            </h3>
+            <div className="space-y-6">
+               <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-portal-text">Alpha Team</span>
+                    <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
+                  </div>
+                  <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-portal-accent h-full w-[85%]" />
+                  </div>
+               </div>
+               <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-portal-text">Beta Research</span>
+                    <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
+                  </div>
+                  <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-portal-accent h-full w-[40%]" />
+                  </div>
+               </div>
+               <div className="pt-4 border-t border-portal-border">
+                  <Link to="/admin/groups" className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] flex items-center gap-2 hover:gap-4 transition-all">
+                     Configure All Groups <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+               </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recent Activity */}
@@ -185,43 +229,14 @@ export const AdminDashboard = () => {
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
             <Clock className="w-6 h-6 text-portal-accent" />
-            Division Activity
+            Operational Log
           </h3>
-          <button className="text-xs font-bold text-portal-accent uppercase tracking-widest hover:text-portal-text transition-colors">View All Logs</button>
+          <button className="text-[10px] font-bold text-portal-accent uppercase tracking-widest hover:text-portal-text transition-colors">Dossier Access</button>
         </div>
         <div className="space-y-4">
-          {divisionSessions.map((session, i) => (
-            <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-portal-input border border-portal-border/50 hover:border-portal-accent/30 transition-all">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-portal-accent/10 flex items-center justify-center font-bold text-xs text-portal-accent">
-                  {session.instructor.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-portal-text">
-                    <span className="text-portal-accent">{session.instructor}</span> created session "{session.title}"
-                  </p>
-                  <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Instructor • {session.date}</p>
-                </div>
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-portal-text-muted" />
-            </div>
-          ))}
-          {divisionMembers.slice(0, 2).map((member, i) => (
-            <div key={`member-${i}`} className="flex items-center justify-between p-4 rounded-2xl bg-portal-input border border-portal-border/50 hover:border-portal-accent/30 transition-all">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-400/10 flex items-center justify-center font-bold text-xs text-blue-400">
-                  {member.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-portal-text">
-                    <span className="text-portal-accent">{member.name}</span> reached 80% attendance milestone
-                  </p>
-                  <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-wider mt-0.5">Member • Today</p>
-                </div>
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-portal-text-muted" />
-            </div>
-          ))}
+           <div className="text-center py-10 text-portal-text-muted italic text-sm">
+             {loading ? 'Synchronizing logs...' : 'No recent operations logged for this division.'}
+           </div>
         </div>
       </div>
     </div>
