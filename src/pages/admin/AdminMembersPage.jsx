@@ -35,7 +35,7 @@ export const AdminMembersPage = () => {
     divisions.find((division) => division._id === adminDivisionId || division.id === adminDivisionId)?.name ||
     adminDivisionId ||
     'Data Science';
-  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivisionName;
+  const currentDivision = adminDivisionName;
   
   const [members, setMembers] = React.useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -151,9 +151,7 @@ export const AdminMembersPage = () => {
       return;
     }
 
-    const divisionId = admin?.role === 'super_admin'
-      ? resolveDivisionId(selectedDivisionValue)
-      : adminDivisionId;
+    const divisionId = adminDivisionId;
 
     try {
       const response = await userService.createUser({
@@ -181,9 +179,7 @@ export const AdminMembersPage = () => {
     const reason = String(form.get('reason') || '').trim();
     const selectedDivisionValue = form.get('division');
 
-    const divisionId = admin?.role === 'super_admin'
-      ? resolveDivisionId(selectedDivisionValue)
-      : adminDivisionId;
+    const divisionId = adminDivisionId;
 
     if (!infoMember?.id) {
       setPromoteError('No member selected.');
@@ -258,7 +254,6 @@ export const AdminMembersPage = () => {
         <select
           value={row.divisionId || ''}
           onChange={(event) => handleDivisionChange(row, event.target.value)}
-          disabled={admin?.role !== 'super_admin'}
           className="bg-portal-input border border-portal-border rounded-lg px-2 py-1 text-[10px] font-bold text-portal-text uppercase tracking-widest"
         >
           <option value="">Unassigned</option>
@@ -502,21 +497,12 @@ export const AdminMembersPage = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted">Target Division</label>
-                {admin?.role === 'super_admin' ? (
-                  <select name="division" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={resolveDivisionId(selectedMember?.division) || divisions[0]?._id || divisions[0]?.id || ''}>
-                    {divisions.map((division) => (
-                      <option key={division._id || division.id} value={division._id || division.id}>
-                        {division.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-portal-text-muted">Target Division</label>
                   <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
                     {adminDivisionName}
                   </div>
-                )}
-              </div>
+                </div></div>
             </div>
           </div>
 
@@ -555,19 +541,9 @@ export const AdminMembersPage = () => {
             
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Target Division</label>
-              {admin?.role === 'super_admin' ? (
-                <select name="division" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={resolveDivisionId(infoMember?.division) || divisions[0]?._id || divisions[0]?.id || ''}>
-                  {divisions.map((division) => (
-                    <option key={division._id || division.id} value={division._id || division.id}>
-                      {division.name}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
-                  {adminDivisionName}
-                </div>
-              )}
+              <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
+                {adminDivisionName}
+              </div>
             </div>
 
             <div className="space-y-2">

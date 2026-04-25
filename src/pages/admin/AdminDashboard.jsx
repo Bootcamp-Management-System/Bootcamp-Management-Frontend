@@ -47,7 +47,7 @@ const divisionDistribution = [
 ];
 
 export const AdminDashboard = () => {
-  const { user, selectedDivision } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = React.useState(true);
   const [counts, setCounts] = React.useState({
     members: 0,
@@ -56,8 +56,8 @@ export const AdminDashboard = () => {
     groups: 0
   });
   
-  const currentDivisionId = user?.role === 'super_admin' ? selectedDivision : user?.division;
-  const currentDivisionName = user?.role === 'super_admin' ? 'Global' : (user?.divisionName || 'Division');
+  const currentDivisionId = user?.division;
+  const currentDivisionName = user?.divisionName || 'Division';
 
   React.useEffect(() => {
     const fetchStats = async () => {
@@ -70,9 +70,12 @@ export const AdminDashboard = () => {
         ]);
 
         const allUsers = usersRes.data || [];
+        // Filter users by the Admin's division for accurate metrics
+        const divisionUsers = allUsers.filter(u => u.division === currentDivisionId);
+
         setCounts({
-          members: allUsers.filter(u => u.role === 'student').length,
-          instructors: allUsers.filter(u => u.role === 'instructor').length,
+          members: divisionUsers.filter(u => u.role === 'student').length,
+          instructors: divisionUsers.filter(u => u.role === 'instructor').length,
           bootcamps: bootcampsRes.data?.length || 0,
           groups: groupsRes.data?.length || 0
         });
@@ -85,6 +88,7 @@ export const AdminDashboard = () => {
 
     fetchStats();
   }, [currentDivisionId]);
+
 
   const stats = [
     { label: "Specialists", value: counts.members, change: "+2", icon: Users, color: "text-blue-400" },
@@ -99,13 +103,13 @@ export const AdminDashboard = () => {
       <header>
         <div className="flex items-center gap-3 mb-2">
            <div className="px-3 py-1 bg-portal-accent/10 border border-portal-accent/20 rounded-full text-[10px] font-bold text-portal-accent uppercase tracking-widest">
-              {user?.role === 'super_admin' ? 'Global Oversight' : 'Division Protocol'}
+              Division Protocol
            </div>
         </div>
         <h2 className="text-3xl font-bold mb-2 text-portal-text">
-          {currentDivisionName === 'Global' ? 'Academy Global Metrics' : `${currentDivisionName} Command`}
+          {currentDivisionName} Command
         </h2>
-        <p className="text-portal-text-muted italic">Real-time status report for {currentDivisionName === 'Global' ? 'all operational nodes' : `the ${currentDivisionName} division`}.</p>
+        <p className="text-portal-text-muted italic">Real-time status report for the {currentDivisionName} division.</p>
       </header>
 
       {/* Hero Stats */}
@@ -158,70 +162,38 @@ export const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Dynamic Contextual Panel */}
-        {user?.role === 'super_admin' ? (
-          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-            <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
-              <Shield className="w-6 h-6 text-portal-accent" />
-              Division Split
-            </h3>
-            <div className="h-[240px] w-full mb-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={divisionDistribution}>
-                  <XAxis dataKey="name" hide />
-                  <YAxis hide />
-                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }} />
-                  <Bar dataKey="value" radius={[10, 10, 10, 10]}>
-                    {divisionDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-4">
-              {divisionDistribution.map((item, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-sm font-medium text-portal-text-muted">{item.name} Division</span>
-                  </div>
-                  <span className="text-sm font-bold text-portal-text">{item.value}%</span>
+        {/* Dynamic Contextual Panel (Focus Groups Only) */}
+        <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+          <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
+            <Layers className="w-6 h-6 text-portal-accent" />
+            Focus Groups
+          </h3>
+          <div className="space-y-6">
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-bold text-portal-text">Alpha Team</span>
+                  <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
                 </div>
-              ))}
-            </div>
+                <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-portal-accent h-full w-[85%]" />
+                </div>
+              </div>
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-bold text-portal-text">Beta Research</span>
+                  <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
+                </div>
+                <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-portal-accent h-full w-[40%]" />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-portal-border">
+                <Link to="/admin/groups" className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] flex items-center gap-2 hover:gap-4 transition-all">
+                    Configure All Groups <ArrowUpRight className="w-4 h-4" />
+                </Link>
+              </div>
           </div>
-        ) : (
-          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-            <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
-              <Layers className="w-6 h-6 text-portal-accent" />
-              Focus Groups
-            </h3>
-            <div className="space-y-6">
-               <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-portal-text">Alpha Team</span>
-                    <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
-                  </div>
-                  <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-portal-accent h-full w-[85%]" />
-                  </div>
-               </div>
-               <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-portal-text">Beta Research</span>
-                    <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
-                  </div>
-                  <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-portal-accent h-full w-[40%]" />
-                  </div>
-               </div>
-               <div className="pt-4 border-t border-portal-border">
-                  <Link to="/admin/groups" className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] flex items-center gap-2 hover:gap-4 transition-all">
-                     Configure All Groups <ArrowUpRight className="w-4 h-4" />
-                  </Link>
-               </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Recent Activity */}
