@@ -13,6 +13,7 @@ import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { LandingPage } from './pages/LandingPage';
 import { ApplyPage } from './pages/ApplyPage';
+import { SignupPage } from './pages/auth/SignupPage';
 
 // Dashboard Pages
 import { StudentDashboard } from './pages/auth/dashboard/StudentDashboard';
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/apply/:bootcampId" element={<ApplyPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/otp" element={<OTPPage />} />
             <Route path="/change-password" element={<ChangePasswordPage />} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, 
   Code2, 
@@ -11,13 +11,17 @@ import {
   Rocket,
   ShieldCheck,
   Zap,
-  ChevronRight
+  ChevronRight,
+  Send,
+  Shield,
+  MessageSquare
 } from 'lucide-react';
 import { bootcampService } from '../services/bootcampService';
 
 export const LandingPage = () => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const fetchPublicData = async () => {
@@ -32,6 +36,8 @@ export const LandingPage = () => {
     };
     fetchPublicData();
   }, []);
+
+  const displayedBootcamps = showAll ? bootcamps : bootcamps.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-portal-bg text-portal-text overflow-x-hidden">
@@ -106,7 +112,7 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Available Bootcamps Grid (Moved UP) */}
+      {/* Available Bootcamps Grid */}
       <section id="bootcamps" className="py-40 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24">
@@ -120,7 +126,7 @@ export const LandingPage = () => {
                 <div key={i} className="h-[450px] bg-portal-card border border-portal-border rounded-[40px] animate-pulse" />
               ))
             ) : bootcamps.length > 0 ? (
-              bootcamps.map((bootcamp, i) => {
+              displayedBootcamps.map((bootcamp, i) => {
                 const Icon = bootcamp.name.toLowerCase().includes('cyber') ? ShieldCheck : 
                              bootcamp.name.toLowerCase().includes('web') ? Globe : 
                              bootcamp.name.toLowerCase().includes('ai') ? Zap : Code2;
@@ -165,16 +171,21 @@ export const LandingPage = () => {
             )}
           </div>
 
-          <div className="mt-24 flex justify-center">
-            <Link to="/explore" className="group flex items-center gap-3 text-portal-accent font-bold text-sm uppercase tracking-[0.3em] hover:gap-6 transition-all">
-              View All Programs
-              <ArrowRight className="w-6 h-6" />
-            </Link>
-          </div>
+          {bootcamps.length > 3 && (
+            <div className="mt-24 flex justify-center">
+              <button 
+                onClick={() => setShowAll(!showAll)}
+                className="group flex items-center gap-3 text-portal-accent font-bold text-sm uppercase tracking-[0.3em] hover:gap-6 transition-all"
+              >
+                {showAll ? 'Show Less' : 'View All Programs'}
+                <ArrowRight className={`w-6 h-6 transition-transform duration-500 ${showAll ? '-rotate-90' : ''}`} />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Why CSEC ASTU Section (Moved DOWN) */}
+      {/* Why CSEC ASTU Section */}
       <section className="py-48 px-6 relative bg-white/[0.01] border-y border-portal-border/50">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-20">
           <div className="lg:w-1/3 lg:sticky lg:top-40 h-fit">
@@ -229,8 +240,14 @@ export const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 border-t border-portal-border text-center">
-        <p className="text-portal-text-muted text-sm tracking-widest uppercase">© 2026 CSEC ASTU Intelligence • All Rights Reserved</p>
+      <footer className="py-20 border-t border-portal-border text-center space-y-8">
+        <div className="flex justify-center gap-8">
+          <Code2 className="w-6 h-6 text-portal-text-muted hover:text-portal-accent cursor-pointer transition-all hover:scale-110" title="GitHub" />
+          <Globe className="w-6 h-6 text-portal-text-muted hover:text-portal-accent cursor-pointer transition-all hover:scale-110" title="Twitter" />
+          <Users className="w-6 h-6 text-portal-text-muted hover:text-portal-accent cursor-pointer transition-all hover:scale-110" title="LinkedIn" />
+          <Send className="w-6 h-6 text-portal-text-muted hover:text-portal-accent cursor-pointer transition-all hover:scale-110" title="Telegram" />
+        </div>
+        <p className="text-portal-text-muted text-sm tracking-widest uppercase">© 2026 CSEC ASTU • All Rights Reserved</p>
       </footer>
     </div>
   );

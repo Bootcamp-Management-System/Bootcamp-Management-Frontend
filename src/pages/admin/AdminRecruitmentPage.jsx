@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { bootcampService } from '../../services/bootcampService';
 import { TemplateBuilder } from '../../components/admin/TemplateBuilder';
+import { PipelineManager } from '../../components/admin/PipelineManager';
 
 export const AdminRecruitmentPage = () => {
   const [bootcamps, setBootcamps] = useState([]);
@@ -112,14 +113,7 @@ export const AdminRecruitmentPage = () => {
               {view === 'template' ? (
                 <TemplateBuilder bootcampId={selectedBootcamp._id} />
               ) : (
-                <div className="bg-portal-card border border-portal-border rounded-3xl p-12 text-center shadow-2xl">
-                   <ClipboardCheck className="w-16 h-16 text-portal-accent mx-auto mb-6 opacity-40" />
-                   <h3 className="text-xl font-bold text-portal-text mb-2">Pipelines Management</h3>
-                   <p className="text-portal-text-muted text-sm max-w-md mx-auto">
-                     Reviewing candidates for <span className="text-portal-accent font-bold">{selectedBootcamp.name}</span>. 
-                     This section will show Phase 1 applicants, Phase 2 technical tasks, and the final decision queue.
-                   </p>
-                </div>
+                <PipelineManager bootcampId={selectedBootcamp._id} />
               )}
             </>
           ) : (
