@@ -44,13 +44,13 @@ export const ChangePasswordPage = () => {
           <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <KeyRound className="w-8 h-8 text-portal-accent" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Set New Password</h1>
+          <h1 className="text-2xl font-bold text-portal-text">Set New Password</h1>
           <p className="text-portal-text-muted mt-2">Please create a strong password for your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white ml-2">New Password</label>
+            <label className="block text-sm font-medium text-portal-text ml-2">New Password</label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
               <input 
@@ -59,13 +59,13 @@ export const ChangePasswordPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-portal-text text-sm focus:outline-none focus:border-portal-accent transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white ml-2">Confirm Password</label>
+            <label className="block text-sm font-medium text-portal-text ml-2">Confirm Password</label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
               <input 
@@ -74,7 +74,7 @@ export const ChangePasswordPage = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-portal-text text-sm focus:outline-none focus:border-portal-accent transition-all"
               />
             </div>
           </div>

@@ -14,24 +14,29 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-import { ALL_SESSIONS } from '../../lib/mockData';
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminSessionsPage = () => {
-  const { user: admin } = useAuth();
+  const { user: admin, selectedDivision } = useAuth();
   const adminDivision = admin?.division || 'Data Science';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
 
-  const initialSessions = ALL_SESSIONS.filter(s => s.division === adminDivision);
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
+
+  React.useEffect(() => {
+    // API Call will go here
+    setSessions([]);
+  }, [currentDivision]);
 
   const columns = [
     { 
       header: 'Session', 
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-bold text-white mb-0.5">{row.title}</span>
+          <span className="text-sm font-bold text-portal-text mb-0.5">{row.title}</span>
           <div className="flex items-center gap-2 text-[10px] text-portal-text-muted">
             <User className="w-2.5 h-2.5" /> {row.instructor}
           </div>
@@ -42,7 +47,7 @@ export const AdminSessionsPage = () => {
       header: 'Timing', 
       render: (row) => (
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 text-xs text-white">
+          <div className="flex items-center gap-1.5 text-xs text-portal-text">
             <Calendar className="w-3 h-3 text-portal-accent" />
             {row.date}
           </div>
@@ -95,7 +100,7 @@ export const AdminSessionsPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-white">Curriculum Management</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text">Curriculum Management</h2>
           <p className="text-portal-text-muted">Broadcast and schedule learning sessions for various divisions.</p>
         </div>
         <button 
@@ -123,7 +128,7 @@ export const AdminSessionsPage = () => {
           <div className="space-y-4">
              <div className="space-y-2">
               <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Session Title</label>
-              <input type="text" defaultValue={selectedSession?.title} placeholder="e.g. Masterclass: Node Systems" className="w-full bg-portal-input border border-portal-border rounded-2xl px-5 py-4 text-white outline-none focus:border-portal-accent transition-all" />
+              <input type="text" defaultValue={selectedSession?.title} placeholder="e.g. Masterclass: Node Systems" className="w-full bg-portal-input border border-portal-border rounded-2xl px-5 py-4 text-portal-text outline-none focus:border-portal-accent transition-all" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -131,16 +136,25 @@ export const AdminSessionsPage = () => {
                 <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Instructor Node</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent" />
-                  <input type="text" defaultValue={selectedSession?.instructor} placeholder="Search staff..." className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-white outline-none focus:border-portal-accent" />
+                  <input type="text" defaultValue={selectedSession?.instructor} placeholder="Search staff..." className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text outline-none focus:border-portal-accent" />
                 </div>
               </div>
                <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Active Division</label>
                 <div className="relative">
-                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent" />
-                  <div className="w-full bg-portal-input/30 border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text-muted cursor-not-allowed">
-                    {adminDivision}
-                  </div>
+                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent z-10" />
+                  {admin?.role === 'super_admin' ? (
+                    <select className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text outline-none focus:border-portal-accent appearance-none" defaultValue={selectedSession?.division || 'Development'}>
+                      <option>Development</option>
+                      <option>Cyber Security</option>
+                      <option>Data Science</option>
+                      <option>CP (Competitive Programming)</option>
+                    </select>
+                  ) : (
+                    <div className="w-full bg-portal-input/30 border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text-muted cursor-not-allowed">
+                      {adminDivision}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -148,17 +162,17 @@ export const AdminSessionsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Execution Date</label>
-                <input type="date" defaultValue={selectedSession?.date} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent text-sm" />
+                <input type="date" defaultValue={selectedSession?.date} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent text-sm" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Start Time</label>
-                <input type="time" defaultValue={selectedSession?.time} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-white outline-none focus:border-portal-accent text-sm" />
+                <input type="time" defaultValue={selectedSession?.time} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent text-sm" />
               </div>
             </div>
           </div>
 
           <div className="flex justify-end pt-4 gap-4">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 font-bold text-portal-text-muted hover:text-white transition-colors">Abort</button>
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 font-bold text-portal-text-muted hover:text-portal-text transition-colors">Abort</button>
             <button type="submit" className="bg-portal-accent text-white px-12 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center gap-3 group">
               {selectedSession ? 'Commit Changes' : 'Broadcast Node'}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

@@ -19,6 +19,7 @@ import {
   PanelLeftOpen,
   UserCheck,
   FileBarChart,
+  TrendingUp,
   Layers as LayersIcon
 } from 'lucide-react';
 
@@ -35,16 +36,25 @@ export const Sidebar = () => {
         : 'Student Panel';
 
   const getNavItems = () => {
-    const dashboardPath = user?.role === 'admin' ? '/admin' : user?.role === 'instructor' ? '/instructor' : '/dashboard';
+    const dashboardPath = user?.role === 'admin' || user?.role === 'super_admin' ? '/admin' : user?.role === 'instructor' ? '/instructor' : '/dashboard';
     const base = [
       { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: dashboardPath },
     ];
 
-    if (user?.role === 'admin') {
-      return [
-        { id: 'admin-dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+    if (user?.role === 'admin' || user?.role === 'super_admin') {
+      const adminItems = [
+        { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? 'Global Dashboard' : 'Dashboard', path: '/admin/dashboard' },
+        { id: 'admin-recruitment', icon: TrendingUp, label: 'Recruitment Hub', path: '/admin/recruitment' },
         { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
         { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
+      ];
+
+      if (user.role === 'super_admin') {
+        adminItems.push({ id: 'admin-admins', icon: Shield, label: 'Admins', path: '/admin/admins' });
+      }
+
+      return [
+        ...adminItems,
         { id: 'admin-sessions', icon: BookOpen, label: 'Sessions', path: '/admin/sessions' },
         { id: 'admin-groups', icon: LayersIcon, label: 'Groups', path: '/admin/groups' },
         { id: 'admin-reports', icon: FileBarChart, label: 'Reports', path: '/admin/reports' },
@@ -56,8 +66,7 @@ export const Sidebar = () => {
       return [
         ...base,
         { id: 'sessions', icon: BookOpen, label: 'Sessions', path: '/sessions' },
-        { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/tasks' },
-        { id: 'students', icon: Users, label: 'Students', path: '/students' },
+        { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/instructor/tasks' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
     }
@@ -66,6 +75,7 @@ export const Sidebar = () => {
       ...base,
       { id: 'sessions', icon: BookOpen, label: 'My Sessions', path: '/sessions' },
       { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
+      { id: 'progress', icon: TrendingUp, label: 'Weekly Progress', path: '/progress' },
       { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
     ];
   };
@@ -94,6 +104,8 @@ export const Sidebar = () => {
               alt="CSEC logo"
               className="h-full w-full object-cover"
             />
+          <div className="w-10 h-10 bg-portal-accent rounded-xl flex items-center justify-center shadow-lg shadow-portal-accent/20 shrink-0">
+            <GraduationCap className="w-6 h-6 text-portal-text" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -104,14 +116,18 @@ export const Sidebar = () => {
               >
                 <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC BMS</h1>
                 <p className="text-[11px] text-portal-accent mt-1 font-semibold tracking-wide">{panelLabel}</p>
+                <h1 className="font-extrabold text-lg leading-none text-portal-text tracking-tight">CSEC ASTU</h1>
+                <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
+                  Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'member' ? 'Student' : user?.role}
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <nav className="space-y-2 flex-1 overflow-hidden">
+        <nav className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
               <Link
                 key={item.id}
@@ -120,7 +136,7 @@ export const Sidebar = () => {
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group relative
                   ${isActive 
                     ? 'bg-portal-accent/10 text-portal-accent' 
-                    : 'text-portal-text-muted hover:bg-white/5 hover:text-white'
+                    : 'text-portal-text-muted hover:bg-portal-text/5 hover:text-portal-text'
                   }
                   ${isCollapsed ? 'justify-center px-0' : ''}
                 `}
@@ -150,7 +166,7 @@ export const Sidebar = () => {
         </nav>
 
         <div className={`mt-6 pt-6 border-t border-portal-border space-y-2 ${isCollapsed ? 'items-center' : ''}`}>
-          <button className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-portal-text-muted hover:text-white transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
+          <button className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-portal-text-muted hover:text-portal-text transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
             <Settings className="w-5 h-5 shrink-0" />
             {!isCollapsed && <span>Settings</span>}
           </button>

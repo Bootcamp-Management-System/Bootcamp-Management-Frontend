@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(undefined);
 
@@ -9,6 +10,10 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
   });
+  const [selectedDivision, setSelectedDivision] = useState(() => {
+    const saved = localStorage.getItem('global_division');
+    return saved || 'All';
+  });
 
   useEffect(() => {
     const storedToken = localStorage.getItem('auth_token');
@@ -16,7 +21,11 @@ export const AuthProvider = ({ children }) => {
 
     if (storedToken && storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      // Migration: Ensure divisions exist for old sessions
+      // Migration: Normalize backend roles and ensure divisions exist for old sessions
+      if (parsedUser.role === 'super-admin' || parsedUser.role === 'super admin') {
+        parsedUser.role = 'super_admin';
+      }
+
       if (parsedUser.role === 'member' && (!parsedUser.divisions || parsedUser.divisions.length < 4)) {
         parsedUser.divisions = ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"];
         localStorage.setItem('auth_user', JSON.stringify(parsedUser));
@@ -28,24 +37,20 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
       });
+
+      if (parsedUser.role === 'super_admin') {
+        const savedDivision = localStorage.getItem('global_division') || 'All';
+        setSelectedDivision(savedDivision);
+      } else if (parsedUser.division) {
+        setSelectedDivision(parsedUser.division);
+      }
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
 
-  const login = async (email, _password) => {
+  const login = async (identifier, password) => {
     setState(prev => ({ ...prev, isLoading: true }));
-    
-    const isFirstLogin = email.includes('first');
-    const role = email.includes('admin') ? 'admin' : email.includes('instructor') ? 'instructor' : 'member';
-    
-    let userDivision = "Development";
-    if (role === 'admin') {
-      if (email.includes('cyber')) userDivision = "Cyber Security";
-      else if (email.includes('data')) userDivision = "Data Science";
-      else if (email.includes('cp')) userDivision = "CP (Competitive Programming)";
-      else userDivision = "Development";
-    }
 
     const mockUser = {
       id: '1',
@@ -79,10 +84,32 @@ export const AuthProvider = ({ children }) => {
         requiresPasswordChange: false,
       };
     } else {
+    try {
+      const result = await authService.login({ email: identifier, password });
+      const { user, token, requiresPasswordChange, requiresApproval, requiresOtp } = result || {};
+
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      } else {
+        localStorage.removeItem('auth_token');
+      }
+
+      if (user) {
+        // Normalize role for frontend
+        if (user.role === 'super-admin' || user.role === 'super admin') {
+          user.role = 'super_admin';
+        }
+        localStorage.setItem('auth_user', JSON.stringify(user));
+      }
+
+      if (requiresOtp && user?.email) {
+        localStorage.setItem('pending_otp_email', user.email);
+      }
+
       setState({
-        user: mockUser,
-        token: null,
-        isAuthenticated: false,
+        user: user || null,
+        token: token || null,
+        isAuthenticated: Boolean(token) && !requiresPasswordChange && !requiresApproval,
         isLoading: false,
       });
       return {
@@ -91,6 +118,18 @@ export const AuthProvider = ({ children }) => {
         requiresApproval: false,
         requiresPasswordChange: true,
       };
+
+      if (user?.role === 'super_admin') {
+        const savedDivision = localStorage.getItem('global_division') || 'All';
+        setSelectedDivision(savedDivision);
+      } else if (user?.division) {
+        setSelectedDivision(user.division);
+      }
+
+      return result;
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
     }
   };
 
@@ -101,18 +140,35 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('global_division');
     setState({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
     });
+    setSelectedDivision('All');
   };
 
-  const verifyOTP = async (_otp) => {
-    if (state.user) {
-      // Logic for OTP verification
+  const setGlobalDivision = (division) => {
+    setSelectedDivision(division);
+    localStorage.setItem('global_division', division);
+  };
+
+  const verifyOTP = async ({ email, otp, newPassword }) => {
+    const targetEmail = email || state.user?.email || localStorage.getItem('pending_otp_email');
+    if (!targetEmail) {
+      throw new Error('Email is required for OTP verification.');
     }
+
+    const response = await authService.verifyOtpBackend({
+      email: targetEmail,
+      otp,
+      newPassword,
+    });
+
+    localStorage.removeItem('pending_otp_email');
+    return response;
   };
 
   const changePassword = async (_password) => {
@@ -164,6 +220,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ 
       ...state, 
+      selectedDivision,
+      setGlobalDivision,
       login, 
       googleLogin, 
       logout, 

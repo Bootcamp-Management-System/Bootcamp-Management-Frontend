@@ -1,4 +1,4 @@
-import httpClient from '../lib/httpClient';
+import api from '../api/api';
 
 const USERS_KEY = 'mock_auth_users_v1';
 const OTP_SESSIONS_KEY = 'mock_otp_sessions_v1';
@@ -8,30 +8,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CAMPUS_ID_REGEX = /^UGR\/\d{3,8}\/\d{2}$/i;
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,100}$/;
 
-const wait = (ms = 350) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-
-const makeResponse = (data, status = 200, delay = 350) =>
-  httpClient.request({
-    url: '/auth/mock',
-    method: 'post',
-    data,
-    adapter: async (config) => {
-      await wait(delay);
-      return {
-        data,
-        status,
-        statusText: 'OK',
-        headers: {},
-        config,
-      };
-    },
-  });
-
-const fail = async (message, status = 400) => {
-  await wait(300);
+const fail = (message, status = 400) => {
   const error = new Error(message);
   error.status = status;
   throw error;
@@ -48,6 +25,19 @@ const ensureValidIdentifier = async (identifier) => {
 
   if (!EMAIL_REGEX.test(trimmed) && !CAMPUS_ID_REGEX.test(trimmed)) {
     return fail('Enter a valid email or campus ID (ex: UGR/12345/15).', 422);
+  }
+
+  return null;
+};
+
+const ensureValidEmail = async (email) => {
+  const trimmed = String(email || '').trim();
+  if (!trimmed) {
+    return fail('Email is required.', 422);
+  }
+
+  if (!EMAIL_REGEX.test(trimmed)) {
+    return fail('Enter a valid email address.', 422);
   }
 
   return null;
@@ -78,129 +68,19 @@ const ensureStrongPassword = async (password) => {
   return null;
 };
 
-const tokenFor = () => `mock_jwt_${Math.random().toString(36).slice(2, 12)}`;
-
-const seedUsers = () => [
-  {
-    id: '1',
-    campusId: 'UGR/90001/26',
-    name: 'admin',
-    email: 'admin.demo@astu.edu.et',
-    role: 'admin',
-    division: 'CPD',
-    password: DEFAULT_PASSWORD,
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: false,
-  },
-  {
-    id: '2',
-    campusId: 'UGR/90002/26',
-    name: 'instructor',
-    email: 'instructor.demo@astu.edu.et',
-    role: 'instructor',
-    division: 'Data Science',
-    password: DEFAULT_PASSWORD,
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: false,
-  },
-  {
-    id: '3',
-    campusId: 'UGR/90003/26',
-    name: 'member',
-    email: 'member.demo@astu.edu.et',
-    role: 'member',
-    division: 'Cybersecurity',
-    password: DEFAULT_PASSWORD,
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: false,
-  },
-  {
-    id: '4',
-    campusId: 'UGR/44444/16',
-    name: 'tempmember',
-    email: 'temp.member@bms.com',
-    role: 'member',
-    division: 'Development',
-    password: 'TempPass123',
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: true,
-  },
-];
-
-const DEMO_USERS = [
-  {
-    id: 'demo_admin',
-    campusId: 'UGR/90001/26',
-    name: 'admin',
-    email: 'admin.demo@astu.edu.et',
-    role: 'admin',
-    division: 'CPD',
-    password: DEFAULT_PASSWORD,
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: false,
-  },
-  {
-    id: 'demo_instructor',
-    campusId: 'UGR/90002/26',
-    name: 'instructor',
-    email: 'instructor.demo@astu.edu.et',
-    role: 'instructor',
-    division: 'Data Science',
-    password: DEFAULT_PASSWORD,
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: false,
-  },
-  {
-    id: 'demo_member',
-    campusId: 'UGR/90003/26',
-    name: 'member',
-    email: 'member.demo@astu.edu.et',
-    role: 'member',
-    division: 'Cybersecurity',
-    password: DEFAULT_PASSWORD,
-    isVerified: true,
-    approvalStatus: 'approved',
-    requiresPasswordChange: false,
-  },
-];
-
-const findDemoUser = (identifier) => {
-  const trimmed = String(identifier || '').trim();
-  if (!trimmed) {
-    return null;
+const ensureDivisions = (user) => {
+  if (!user || user.role !== 'member') {
+    return user;
   }
 
-  const normalizedEmail = EMAIL_REGEX.test(trimmed) ? normalizeEmail(trimmed) : null;
-  const normalizedId = CAMPUS_ID_REGEX.test(trimmed) ? normalizeId(trimmed) : null;
-
-  return (
-    DEMO_USERS.find((user) => normalizedEmail && user.email.toLowerCase() === normalizedEmail) ||
-    DEMO_USERS.find((user) => normalizedId && user.campusId.toUpperCase() === normalizedId) ||
-    null
-  );
-};
-
-const getUsers = () => {
-  const raw = localStorage.getItem(USERS_KEY);
-  if (!raw) {
-    const initialUsers = seedUsers();
-    localStorage.setItem(USERS_KEY, JSON.stringify(initialUsers));
-    return initialUsers;
+  if (!Array.isArray(user.divisions) || user.divisions.length === 0) {
+    return {
+      ...user,
+      divisions: ['Development', 'Cyber Security', 'Data Science', 'CP (Competitive Programming)'],
+    };
   }
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    const initialUsers = seedUsers();
-    localStorage.setItem(USERS_KEY, JSON.stringify(initialUsers));
-    return initialUsers;
-  }
+  return user;
 };
 
 
@@ -263,21 +143,56 @@ const clearOtpSession = ({ email, purpose }) => {
   saveOtpSessions(next);
 };
 
-const publicUser = (user) => ({
-  id: user.id,
-  email: user.email,
-  role: user.role,
-  division: user.division,
-  approvalStatus: user.approvalStatus,
-  isVerified: user.isVerified,
-  requiresPasswordChange: Boolean(user.requiresPasswordChange),
-  name: user.name,
-  campusId: user.campusId,
-});
+const normalizeRole = (role) => {
+  if (!role) return role;
+  if (role === 'student') return 'member';
+  if (role === 'super-admin' || role === 'super admin') return 'super_admin';
+  return role;
+};
+
+const publicUser = (user) => {
+  if (!user) return null;
+  const role = normalizeRole(user.role);
+  return {
+    id: user.id,
+    email: user.email,
+    role,
+    division: user.division,
+    approvalStatus: user.approvalStatus,
+    isVerified: user.isVerified,
+    requiresPasswordChange: Boolean(user.requiresPasswordChange),
+    name: user.name,
+    campusId: user.campusId || user.idNo,
+    divisions: user.divisions,
+  };
+};
+
+const normalizeAuthResponse = (response) => {
+  const payload = response?.data?.data || response?.data || response || {};
+  const rawUser = payload.user || payload.data?.user || payload.account || null;
+  const token =
+    payload.token ||
+    payload.accessToken ||
+    payload.data?.token ||
+    payload.data?.accessToken ||
+    null;
+  const normalizedUser = ensureDivisions(publicUser(rawUser));
+
+  return {
+    user: normalizedUser,
+    token,
+    requiresPasswordChange: Boolean(
+      payload.requiresPasswordChange || payload.data?.requiresPasswordChange || normalizedUser?.requiresPasswordChange
+    ),
+    requiresApproval: Boolean(
+      payload.requiresApproval || payload.data?.requiresApproval || (normalizedUser?.approvalStatus && normalizedUser.approvalStatus !== 'approved')
+    ),
+  };
+};
 
 export const authService = {
-  async login({ identifier, password }) {
-    await ensureValidIdentifier(identifier);
+  async login({ email, password }) {
+    await ensureValidEmail(email);
 
     if (!String(password || '').trim()) {
       return fail('Password is required.', 422);
@@ -287,37 +202,56 @@ export const authService = {
       return fail('Password must be at least 8 characters.', 422);
     }
 
-    const demoUser = findDemoUser(identifier);
-    const resolvedUser = demoUser || resolveUserByIdentifier(identifier);
-    const user = resolvedUser || {
-      id: `guest_${Date.now()}`,
-      campusId: EMAIL_REGEX.test(String(identifier || '').trim()) ? 'UGR/00000/00' : String(identifier || '').trim(),
-      name: 'guest',
-      email: EMAIL_REGEX.test(String(identifier || '').trim()) ? normalizeEmail(identifier) : 'guest@bms.local',
-      role: 'member',
-      division: 'General',
-      password,
-      isVerified: true,
-      approvalStatus: 'approved',
-      requiresPasswordChange: false,
-    };
+    try {
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+      });
 
-    if (!user.isVerified) {
-      return fail('Please verify your email first.', 403);
+      if (response?.data?.message && !response?.data?.token && !response?.data?.user) {
+        return {
+          user: { email },
+          token: null,
+          requiresOtp: true,
+          requiresPasswordChange: false,
+          requiresApproval: false,
+          message: response.data.message,
+        };
+      }
+
+      const normalized = normalizeAuthResponse(response);
+
+      if (!normalized.user && !normalized.token && response?.data?.message) {
+        return {
+          user: { email },
+          token: null,
+          requiresPasswordChange: true,
+          requiresApproval: false,
+        };
+      }
+
+      return normalized;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Login failed.';
+      return fail(message, error?.response?.status || 400);
+    }
+  },
+
+  async verifyOtpBackend({ email, otp, newPassword }) {
+    await ensureValidEmail(email);
+
+    if (!String(otp || '').trim()) {
+      return fail('OTP is required.', 422);
     }
 
-    if (user.approvalStatus !== 'approved') {
-      return fail('Your application is still pending admin approval.', 403);
+    if (!String(newPassword || '').trim()) {
+      return fail('New password is required.', 422);
     }
 
-    if (user.password !== password) {
-      return fail('Invalid email or password.', 401);
-    }
-
-    const response = await makeResponse({
-      user: publicUser(user),
-      token: user.requiresPasswordChange ? null : tokenFor(),
-      requiresPasswordChange: Boolean(user.requiresPasswordChange),
+    const response = await api.post('/auth/verify-otp', {
+      email,
+      otp,
+      newPassword,
     });
 
     return response.data;

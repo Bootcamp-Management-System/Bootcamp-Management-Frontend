@@ -1,62 +1,68 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
-import { BadgeCheck, Mail, Lock, IdCard, UserPlus, ArrowLeft, Layers, MessageSquareText } from 'lucide-react';
-import { AuthCardLayout } from '../../components/auth/AuthCardLayout';
+import { 
+  BadgeCheck, 
+  Mail, 
+  Lock, 
+  User, 
+  UserPlus, 
+  ArrowLeft, 
+  ShieldCheck,
+  CheckCircle2,
+  Sparkles
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { signupSchema, zodToFormikErrors } from '../../validation/authSchemas';
+import { z } from 'zod';
 
-const getAuthTheme = () => localStorage.getItem('auth_theme') || localStorage.getItem('login_theme') || 'dark';
-
-const persistAuthTheme = (theme) => {
-  localStorage.setItem('auth_theme', theme);
-  localStorage.setItem('login_theme', theme);
-};
+// Define the schema using Zod (already in your project)
+const signupSchema = z.object({
+  name: z.string().min(2, 'Name is too short').max(50, 'Name is too long'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 export const SignupPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [theme, setTheme] = useState(getAuthTheme);
-  const isDark = theme === 'dark';
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const navigate = useNavigate();
   const { signup } = useAuth();
 
   const formik = useFormik({
     initialValues: {
-      campusId: '',
-      division: '',
+      name: '',
       email: '',
       password: '',
       confirmPassword: '',
-      motivation: '',
-      dedication: '',
-      whyDivision: '',
     },
     validate: (values) => {
-      const parsed = signupSchema.safeParse(values);
-      if (parsed.success) {
-        return {};
-      }
-
-      return zodToFormikErrors(parsed.error);
+      const result = signupSchema.safeParse(values);
+      if (result.success) return {};
+      
+      // Convert Zod errors to Formik format
+      const errors = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) errors[err.path[0]] = err.message;
+      });
+      return errors;
     },
     onSubmit: async (values, { setSubmitting }) => {
       setError('');
       setSuccess('');
-
       try {
         await signup({
-          campusId: values.campusId.trim(),
-          division: values.division,
+          name: values.name.trim(),
           email: values.email.trim().toLowerCase(),
           password: values.password,
-          motivation: values.motivation.trim(),
-          dedication: values.dedication.trim(),
-          whyDivision: values.whyDivision.trim(),
+          role: 'student'
         });
-        setSuccess('Registration complete. Verify OTP to continue.');
-        setTimeout(() => navigate('/verify-otp', { state: { email: values.email.trim().toLowerCase(), purpose: 'register' } }), 1000);
+        setSuccess('Account created successfully! Redirecting to verification...');
+        setTimeout(() => navigate('/otp', { state: { email: values.email.trim().toLowerCase(), purpose: 'register' } }), 2000);
       } catch (err) {
         setError(err.message || 'Unable to create account.');
       } finally {
@@ -65,211 +71,141 @@ export const SignupPage = () => {
     },
   });
 
-  useEffect(() => {
-    persistAuthTheme(theme);
-  }, [theme]);
-
-  const inputClass = `w-full rounded-[18px] border px-12 py-3.5 text-base font-medium transition focus:outline-none ${
-    isDark
-      ? 'border-[#1f3158] bg-[#031037] text-[#edf3ff] placeholder:text-[#7b8cae] focus:border-[#37b6c9]'
-      : 'border-[#bcc2cc] bg-[#f4f5f7] text-[#1b2540] placeholder:text-[#7e8798] focus:border-[#37b6c9]'
-  }`;
-
-  const labelClass = `mb-2 block text-sm font-semibold ${isDark ? 'text-[#e7eeff]' : 'text-[#1c2742]'}`;
+  const inputClass = "w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-white/10 transition-all placeholder:text-portal-text-muted/40";
+  const labelClass = "block text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] mb-2 ml-1";
 
   return (
-    <AuthCardLayout
-      title="Create Account"
-      subtitle="Set up your BMS account with your campus details"
-      theme={theme}
-      showThemeToggle
-      onThemeToggle={toggleTheme}
-    >
-      <Link
-        to="/login"
-        className={`mb-6 inline-flex items-center gap-2 text-sm font-semibold transition ${isDark ? 'text-[#a3b0cb] hover:text-[#e6efff]' : 'text-[#5f6f8f] hover:text-[#1c2844]'}`}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Login
-      </Link>
+    <div className="min-h-screen bg-[#020617] flex font-outfit relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-portal-accent/10 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" />
 
-      <form onSubmit={formik.handleSubmit} className="space-y-4">
-        <div>
-          <label className={labelClass}>Astu Campus ID</label>
-          <div className="relative">
-            <IdCard className={`pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#6e7681]' : 'text-[#8c959f]'}`} />
-            <input
-              name="campusId"
-              type="text"
-              required
-              value={formik.values.campusId}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="ugr/12345/15"
-              className={inputClass}
-            />
+      {/* Left Column: Visual Branding */}
+      <div className="hidden lg:flex w-2/5 relative items-center justify-center p-12 border-r border-white/5">
+        <div className="max-w-sm space-y-8 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-20 h-20 bg-portal-accent/10 rounded-3xl flex items-center justify-center border border-portal-accent/20 shadow-2xl shadow-portal-accent/5"
+          >
+            <ShieldCheck className="w-10 h-10 text-portal-accent" />
+          </motion.div>
+          <div className="space-y-4">
+            <h1 className="text-5xl font-bold text-white leading-tight">Join the <br /> <span className="text-portal-accent">Next Gen</span>.</h1>
+            <p className="text-portal-text-muted text-lg leading-relaxed">Create your specialized profile in seconds and start applying for the top bootcamps at ASTU.</p>
           </div>
-          {formik.touched.campusId && formik.errors.campusId && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.campusId}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Bootcamp Division</label>
-          <div className="relative">
-            <Layers className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <select
-              name="division"
-              required
-              value={formik.values.division}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className={inputClass}
-            >
-              <option value="">Select division</option>
-              <option value="CPD">CPD</option>
-              <option value="Data Science">Data Science</option>
-              <option value="Cybersecurity">Cybersecurity</option>
-              <option value="Development">Development</option>
-            </select>
+          <div className="space-y-4 pt-8">
+            {['Global Developer Network', 'Accelerated Learning', 'Secure Certification'].map((item, i) => (
+              <div key={item} className="flex items-center gap-3 text-white/60 font-medium">
+                <CheckCircle2 className="w-5 h-5 text-portal-accent" />
+                {item}
+              </div>
+            ))}
           </div>
-          {formik.touched.division && formik.errors.division && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.division}</p>
-          )}
         </div>
+      </div>
 
-        <div>
-          <label className={labelClass}>Email Address</label>
-          <div className="relative">
-            <Mail className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <input
-              name="email"
-              type="email"
-              required
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="name@example.com"
-              className={inputClass}
-            />
-          </div>
-          {formik.touched.email && formik.errors.email && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.email}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Password</label>
-          <div className="relative">
-            <Lock className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <input
-              name="password"
-              type="password"
-              required
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="••••••••"
-              className={inputClass}
-            />
-          </div>
-          {formik.touched.password && formik.errors.password && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.password}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Confirm Password</label>
-          <div className="relative">
-            <BadgeCheck className={`pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <input
-              name="confirmPassword"
-              type="password"
-              required
-              value={formik.values.confirmPassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="••••••••"
-              className={inputClass}
-            />
-          </div>
-          {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.confirmPassword}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Motivation</label>
-          <div className="relative">
-            <MessageSquareText className={`pointer-events-none absolute left-5 top-5 h-5 w-5 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <textarea
-              name="motivation"
-              required
-              rows={3}
-              value={formik.values.motivation}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="Why are you applying for this bootcamp?"
-              className={inputClass.replace('px-12 py-3.5', 'py-3 pl-12 pr-4')}
-            />
-          </div>
-          {formik.touched.motivation && formik.errors.motivation && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.motivation}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Dedication Plan</label>
-          <div className="relative">
-            <MessageSquareText className={`pointer-events-none absolute left-5 top-5 h-5 w-5 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <textarea
-              name="dedication"
-              required
-              rows={3}
-              value={formik.values.dedication}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="How will you stay committed to your learning plan?"
-              className={inputClass.replace('px-12 py-3.5', 'py-3 pl-12 pr-4')}
-            />
-          </div>
-          {formik.touched.dedication && formik.errors.dedication && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.dedication}</p>
-          )}
-        </div>
-
-        <div>
-          <label className={labelClass}>Why This Division</label>
-          <div className="relative">
-            <MessageSquareText className={`pointer-events-none absolute left-5 top-5 h-5 w-5 ${isDark ? 'text-[#7b8cae]' : 'text-[#8c97ab]'}`} />
-            <textarea
-              name="whyDivision"
-              required
-              rows={3}
-              value={formik.values.whyDivision}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="What makes this division the best fit for you?"
-              className={inputClass.replace('px-12 py-3.5', 'py-3 pl-12 pr-4')}
-            />
-          </div>
-          {formik.touched.whyDivision && formik.errors.whyDivision && (
-            <p className="mt-2 text-sm font-medium text-[#f85149]">{formik.errors.whyDivision}</p>
-          )}
-        </div>
-
-        {error && <p className="text-sm font-medium text-[#f85149]">{error}</p>}
-        {success && <p className="text-sm font-medium text-[#3fb950]">{success}</p>}
-
-        <button
-          type="submit"
-          disabled={formik.isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
+      {/* Right Column: Signup Form */}
+      <div className="flex-1 relative z-10 flex items-center justify-center p-6 md:p-12 lg:p-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full"
         >
-          <UserPlus className="h-5 w-5" />
-          {formik.isSubmitting ? 'Submitting Application...' : 'Register'}
-        </button>
-      </form>
-    </AuthCardLayout>
+          <div className="mb-10 text-center lg:text-left">
+            <div className="flex items-center gap-3 mb-2 justify-center lg:justify-start">
+              <Sparkles className="w-5 h-5 text-portal-accent animate-pulse" />
+              <span className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.3em]">Quick Onboarding</span>
+            </div>
+            <h2 className="text-4xl font-bold text-white mb-2">Create Account</h2>
+            <p className="text-portal-text-muted">Fill in your basic details to get started.</p>
+          </div>
+
+          <form onSubmit={formik.handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className={labelClass}>Full Name</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
+                <input
+                  name="name"
+                  type="text"
+                  {...formik.getFieldProps('name')}
+                  placeholder="John Doe"
+                  className={inputClass}
+                />
+                {formik.touched.name && formik.errors.name && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.name}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className={labelClass}>Email Address</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
+                <input
+                  name="email"
+                  type="email"
+                  {...formik.getFieldProps('email')}
+                  placeholder="name@example.com"
+                  className={inputClass}
+                />
+                {formik.touched.email && formik.errors.email && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.email}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className={labelClass}>Password</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
+                  <input
+                    name="password"
+                    type="password"
+                    {...formik.getFieldProps('password')}
+                    placeholder="••••••••"
+                    className={inputClass}
+                  />
+                  {formik.touched.password && formik.errors.password && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.password}</p>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className={labelClass}>Confirm</label>
+                <div className="relative group">
+                  <BadgeCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
+                  <input
+                    name="confirmPassword"
+                    type="password"
+                    {...formik.getFieldProps('confirmPassword')}
+                    placeholder="••••••••"
+                    className={inputClass}
+                  />
+                  {formik.touched.confirmPassword && formik.errors.confirmPassword && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.confirmPassword}</p>}
+                </div>
+              </div>
+            </div>
+
+            {error && <p className="text-red-400 text-xs font-medium text-center bg-red-400/10 py-3 rounded-xl border border-red-400/20">{error}</p>}
+            {success && <p className="text-green-400 text-xs font-medium text-center bg-green-400/10 py-3 rounded-xl border border-green-400/20">{success}</p>}
+
+            <button
+              type="submit"
+              disabled={formik.isSubmitting}
+              className="w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-bold text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <UserPlus className="w-5 h-5" />
+              {formik.isSubmitting ? 'Creating Profile...' : 'Complete Signup'}
+            </button>
+
+            <div className="mt-8 text-center">
+              <p className="text-sm text-portal-text-muted">
+                Already have an account? {' '}
+                <Link to="/login" className="text-portal-accent font-bold hover:underline underline-offset-4">
+                  Log in here
+                </Link>
+              </p>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </div>
   );
 };

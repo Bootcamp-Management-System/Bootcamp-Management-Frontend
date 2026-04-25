@@ -36,12 +36,62 @@ html.light {
   --color-portal-input: #f8fafc;
   --color-portal-text-muted: #64748b;
   --color-portal-text: #0f172a;
+  
+  --color-portal-bg: var(--theme-bg);
+  --color-portal-card: var(--theme-card);
+  --color-portal-accent: var(--theme-accent);
+  --color-portal-accent-hover: var(--theme-accent-hover);
+  --color-portal-border: var(--theme-border);
+  --color-portal-input: var(--theme-input);
+  --color-portal-text-muted: var(--theme-text-muted);
+  --color-portal-text: var(--theme-text);
 }
 
 @layer base {
+  :root {
+     --theme-bg: #020617;
+     --theme-card: #0b1120;
+     --theme-accent: #2ab1c2;
+     --theme-accent-hover: #2299a8;
+     --theme-border: #1e293b;
+     --theme-input: #0f172a;
+     --theme-text-muted: #94a3b8;
+     --theme-text: #ffffff;
+  }
+  
+  :root[data-theme="light"] {
+     --theme-bg: #ffffff;
+     --theme-card: #cccccc;
+     --theme-accent: #2ab1c2;
+     --theme-accent-hover: #2299a8;
+     --theme-border: #a1a1aa;
+     --theme-input: #ffffff;
+     --theme-text-muted: #52525b;
+     --theme-text: #111827;
+  }
+
   body {
     @apply bg-portal-bg text-portal-text font-sans antialiased;
+    @apply bg-portal-bg text-portal-text font-sans antialiased transition-colors duration-300;
   }
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
 }
 
 html.dark .super-admin-theme {

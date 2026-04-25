@@ -22,11 +22,11 @@ export const AdminModal = ({ isOpen, onClose, title, children }) => {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-3xl bg-portal-card border border-portal-border rounded-3xl shadow-2xl">
         <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-portal-border">
-          <h3 className="text-lg font-bold text-white">{title}</h3>
+          <h3 className="text-lg font-bold text-portal-text">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-portal-text-muted hover:text-white hover:bg-portal-border/40 transition-colors"
+            className="p-2 rounded-xl text-portal-text-muted hover:text-portal-text hover:bg-portal-border/40 transition-colors"
             aria-label="Close"
           >
             <X className="w-4 h-4" />

@@ -16,7 +16,7 @@ export const DataTable = ({ columns, data, actions = [], searchPlaceholder = 'Se
     <div className="bg-portal-card border border-portal-border rounded-3xl overflow-hidden shadow-xl">
       <div className="p-6 border-b border-portal-border flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-white">Records</h3>
+          <h3 className="text-lg font-bold text-portal-text">Records</h3>
           <p className="text-xs text-portal-text-muted">{filteredData.length} result(s)</p>
         </div>
         <div className="relative w-full md:w-80">
@@ -26,7 +26,7 @@ export const DataTable = ({ columns, data, actions = [], searchPlaceholder = 'Se
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full bg-portal-input border border-portal-border rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-portal-text-muted outline-none focus:border-portal-accent transition-colors"
+            className="w-full bg-portal-input border border-portal-border rounded-2xl pl-11 pr-4 py-3 text-sm text-portal-text placeholder:text-portal-text-muted outline-none focus:border-portal-accent transition-colors"
           />
         </div>
       </div>
@@ -74,7 +74,7 @@ export const DataTable = ({ columns, data, actions = [], searchPlaceholder = 'Se
                             <button
                               key={actionIndex}
                               onClick={() => action.onClick(row)}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold text-portal-text-muted hover:text-white hover:bg-portal-border/40 transition-colors ${action.className || ''}`}
+                              className={`px-3 py-2 rounded-xl text-xs font-bold text-portal-text-muted hover:text-portal-text hover:bg-portal-border/40 transition-colors ${action.className || ''}`}
                               type="button"
                             >
                               <span className="inline-flex items-center gap-2">
