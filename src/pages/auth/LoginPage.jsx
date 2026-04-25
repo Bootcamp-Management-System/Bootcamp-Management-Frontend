@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from "framer-motion";
+import { Crown, IdCard, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { IdCard, Lock, LogIn, Sun, Moon, ChevronRight, Terminal, ShieldCheck } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -9,6 +11,9 @@ export const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const [showDemo, setShowDemo] = useState(false);
   const { login, isAuthenticated, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -42,6 +47,17 @@ export const LoginPage = () => {
       navigate(role === 'admin' || role === 'super_admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
     } catch (err) {
       setError('Invalid email, ID, or password');
+    }
+  };
+
+  const handleSuperAdminDemo = async () => {
+    setError('');
+
+    try {
+      await login('admin.demo@astu.edu.et', 'DemoPass123');
+      navigate('/super-admin/dashboard');
+    } catch (err) {
+      setError('Unable to open the Super Admin demo right now.');
     }
   };
 
@@ -123,6 +139,56 @@ export const LoginPage = () => {
           </button>
         </form>
 
+        <div className="mt-8 text-center">
+          <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
+            Forgot password?
+          </Link>
+        </div>
+
+        {/* Quick Access for Demo */}
+        <div className="mt-10 pt-8 border-t border-portal-border/50">
+          <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-[0.2em] mb-2 text-center">Demo Access</p>
+          <p className="text-[11px] text-portal-text-muted text-center">Password: DemoPass123</p>
+          <button
+            type="button"
+            onClick={handleSuperAdminDemo}
+            className="w-full mt-4 mb-4 py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:opacity-95 transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+          >
+            <Crown className="w-4 h-4" />
+            Super Admin Demo
+          </button>
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'Admin', email: 'admin.demo@astu.edu.et', campusId: 'UGR/90001/26' },
+                { id: 'Instructor', email: 'instructor.demo@astu.edu.et', campusId: 'UGR/90002/26' },
+                { id: 'Member', email: 'member.demo@astu.edu.et', campusId: 'UGR/90003/26' }
+              ].map(role => (
+                <button 
+                  key={role.id}
+                  onClick={() => { setIdentifier(role.email); setPassword('DemoPass123'); }}
+                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
+                >
+                  {role.id} Email
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'Admin', campusId: 'UGR/90001/26' },
+                { id: 'Instructor', campusId: 'UGR/90002/26' },
+                { id: 'Member', campusId: 'UGR/90003/26' }
+              ].map(role => (
+                <button 
+                  key={role.id}
+                  onClick={() => { setIdentifier(role.campusId); setPassword('DemoPass123'); }}
+                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
+                >
+                  {role.id} ID
+                </button>
+              ))}
+            </div>
+          </div>
         <div className="mt-8 pt-8 border-t border-white/5 text-center">
           <p className="text-sm text-portal-text-muted">
             New applicant? {' '}

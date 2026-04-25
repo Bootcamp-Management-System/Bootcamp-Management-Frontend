@@ -27,6 +27,26 @@ import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
 import { AdminRecruitmentPage } from './pages/admin/AdminRecruitmentPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { MemberTaskPage } from './pages/Task/MemberTaskPage';
+import { MemberSessionPage } from './pages/Session/MemberSessionPage';
+import { SuperAdminRoot } from './pages/super-admin/SuperAdminRoot';
+import { Dashboard as SuperAdminDashboard } from './pages/super-admin/app/pages/Dashboard';
+import { Divisions as SuperAdminDivisions } from './pages/super-admin/app/pages/Divisions';
+import { DivisionDetails as SuperAdminDivisionDetails } from './pages/super-admin/app/pages/DivisionDetails';
+import { Users as SuperAdminUsers } from './pages/super-admin/app/pages/Users';
+import { UserDetails as SuperAdminUserDetails } from './pages/super-admin/app/pages/UserDetails';
+import { Students as SuperAdminStudents } from './pages/super-admin/app/pages/Students';
+import { Applications as SuperAdminApplications } from './pages/super-admin/app/pages/Applications';
+import { Sessions as SuperAdminSessions } from './pages/super-admin/app/pages/Sessions';
+import { Announcements as SuperAdminAnnouncements } from './pages/super-admin/app/pages/Announcements';
+import { Notifications as SuperAdminNotifications } from './pages/super-admin/app/pages/Notifications';
+import { Attendance as SuperAdminAttendance } from './pages/super-admin/app/pages/Attendance';
+import { Resources as SuperAdminResources } from './pages/super-admin/app/pages/Resources';
+import { Groups as SuperAdminGroups } from './pages/super-admin/app/pages/Groups';
+import { Progress as SuperAdminProgress } from './pages/super-admin/app/pages/Progress';
+import { Reports as SuperAdminReports } from './pages/super-admin/app/pages/Reports';
+import { Settings as SuperAdminSettings } from './pages/super-admin/app/pages/Settings';
+import { NotFound as SuperAdminNotFound } from './pages/super-admin/app/pages/NotFound';
 import { StudentTaskPage } from './pages/Task/StudentTaskPage';
 import { InstructorTasksPage } from './pages/Task/InstructorTasksPage';
 import { StudentSessionPage } from './pages/Session/StudentSessionPage';
@@ -39,6 +59,171 @@ export default function App() {
         <DivisionProvider>
           <Router>
           <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/otp" element={<OTPPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+
+          {/* Protected Routes */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['member']}>
+                <Layout>
+                  <MemberDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['member', 'instructor', 'admin']}>
+                <Layout>
+                  <ProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/my-tasks" 
+            element={
+              <ProtectedRoute allowedRoles={['member']}>
+                <Layout>
+                  <MemberTaskPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/sessions" 
+            element={
+              <ProtectedRoute allowedRoles={['member', 'instructor']}>
+                <Layout>
+                  <MemberSessionPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/instructor" 
+            element={
+              <ProtectedRoute allowedRoles={['instructor']}>
+                <Layout>
+                  <InstructorPanel />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin" 
+            element={<Navigate to="/admin/dashboard" replace />} 
+          />
+
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/members" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminMembersPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/instructors" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminInstructorsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/sessions" 
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'instructor']}>
+                <Layout>
+                  <AdminSessionsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/groups" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminGroupsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/reports" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AdminReportsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <SuperAdminRoot />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<SuperAdminDashboard />} />
+            <Route path="divisions" element={<SuperAdminDivisions />} />
+            <Route path="divisions/:id" element={<SuperAdminDivisionDetails />} />
+            <Route path="users" element={<SuperAdminUsers />} />
+            <Route path="users/:id" element={<SuperAdminUserDetails />} />
+            <Route path="students" element={<SuperAdminStudents />} />
+            <Route path="applications" element={<SuperAdminApplications />} />
+            <Route path="sessions" element={<SuperAdminSessions />} />
+            <Route path="announcements" element={<SuperAdminAnnouncements />} />
+            <Route path="notifications" element={<SuperAdminNotifications />} />
+            <Route path="attendance" element={<SuperAdminAttendance />} />
+            <Route path="resources" element={<SuperAdminResources />} />
+            <Route path="groups" element={<SuperAdminGroups />} />
+            <Route path="progress" element={<SuperAdminProgress />} />
+            <Route path="reports" element={<SuperAdminReports />} />
+            <Route path="settings" element={<SuperAdminSettings />} />
+            <Route path="*" element={<SuperAdminNotFound />} />
+          </Route>
+
+          {/* Default Redirect */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/apply/:bootcampId" element={<ApplyPage />} />

@@ -52,6 +52,38 @@ export const AuthProvider = ({ children }) => {
   const login = async (identifier, password) => {
     setState(prev => ({ ...prev, isLoading: true }));
 
+    const mockUser = {
+      id: '1',
+      idNo: 'CSEC/ASTU/' + Math.floor(1000 + Math.random() * 9000),
+      email,
+      role,
+      isFirstLogin,
+      name: email.split('@')[0].split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      bio: role === 'admin' ? "System Administrator" : "CSEC Member since 2024. Passionate about building impactful software.",
+      status: "Active Member",
+      attendance: "92%",
+      division: role === 'member' ? "Development" : userDivision,
+      divisions: role === 'member' ? ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"] : [userDivision]
+    };
+
+    const mockToken = 'mock_jwt_token_' + Math.random().toString(36).substring(7);
+
+    if (!isFirstLogin) {
+      localStorage.setItem('auth_token', mockToken);
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      setState({
+        user: mockUser,
+        token: mockToken,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return {
+        user: mockUser,
+        token: mockToken,
+        requiresApproval: false,
+        requiresPasswordChange: false,
+      };
+    } else {
     try {
       const result = await authService.login({ email: identifier, password });
       const { user, token, requiresPasswordChange, requiresApproval, requiresOtp } = result || {};
@@ -80,6 +112,12 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: Boolean(token) && !requiresPasswordChange && !requiresApproval,
         isLoading: false,
       });
+      return {
+        user: mockUser,
+        token: null,
+        requiresApproval: false,
+        requiresPasswordChange: true,
+      };
 
       if (user?.role === 'super_admin') {
         const savedDivision = localStorage.getItem('global_division') || 'All';
