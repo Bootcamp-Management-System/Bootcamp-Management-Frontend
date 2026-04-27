@@ -20,7 +20,8 @@ import {
   Cpu,
   Loader2,
   AlertCircle,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Rocket
 } from 'lucide-react';
 import { 
   PieChart, 
@@ -66,6 +67,27 @@ export const StudentDashboard = () => {
 
   const theme = divisionThemes[activeDivision] || divisionThemes['Development'];
   const ThemeIcon = theme.icon;
+
+  const [application, setApplication] = useState(null);
+  const [loadingApp, setLoadingApp] = useState(true);
+
+  const fetchApplicationStatus = useCallback(async () => {
+    try {
+      const { recruitmentService } = await import('../../../services/recruitmentService');
+      const data = await recruitmentService.getMyApplications();
+      if (data.data && data.data.length > 0) {
+        setApplication(data.data[0]); // Take the most recent
+      }
+    } catch (err) {
+      console.error('Failed to fetch app status');
+    } finally {
+      setLoadingApp(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchApplicationStatus();
+  }, [fetchApplicationStatus]);
 
   // ── Fetch tasks + submissions ───────────────────────────────────────────────
   const fetchTaskData = useCallback(async () => {
@@ -137,6 +159,81 @@ export const StudentDashboard = () => {
           </div>
         </div>
       </header>
+
+      {/* No Application CTA */}
+      {!application && !loadingApp && (
+        <div className="relative p-10 rounded-[40px] bg-gradient-to-br from-portal-accent/20 via-portal-bg to-portal-accent/5 border border-portal-accent/20 shadow-2xl overflow-hidden group">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-portal-accent/10 rounded-full blur-[100px] -mr-48 -mt-48 animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] -ml-32 -mb-32" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            <div className="w-20 h-20 rounded-[24px] bg-portal-accent flex items-center justify-center shadow-2xl shadow-portal-accent/30 group-hover:scale-110 transition-transform duration-500">
+              <Rocket className="w-10 h-10 text-portal-bg" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-3xl font-black text-portal-text mb-2 tracking-tight">Ready to launch your career?</h3>
+              <p className="text-portal-text-muted text-lg max-w-xl">
+                You haven't joined any active programs yet. Explore our elite bootcamps across Web, Cyber, AI, and more.
+              </p>
+            </div>
+            <button 
+              onClick={() => navigate('/bootcamps')} 
+              className="px-10 py-5 bg-portal-accent text-portal-bg rounded-2xl font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-portal-accent/20 flex items-center gap-3 whitespace-nowrap"
+            >
+              Explore Bootcamps
+              <ArrowRight className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Application Status Alerts */}
+      {application && application.status !== 'ACCEPTED' && (
+        <div className={`p-8 rounded-[32px] border ${application.status === 'REJECTED' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-portal-accent/10 border-portal-accent/20 text-portal-accent'} shadow-2xl animate-in fade-in slide-in-from-top-4 duration-700`}>
+          <div className="flex items-center gap-6">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${application.status === 'REJECTED' ? 'bg-red-500/20' : 'bg-portal-accent/20'}`}>
+              {application.status === 'REJECTED' ? <AlertCircle className="w-8 h-8" /> : <Clock className="w-8 h-8 animate-pulse" />}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-1">
+                {application.status === 'PENDING' && "Application Under Review"}
+                {application.status === 'SCREENED_ROUND_1' && "Technical Task Assigned"}
+                {application.status === 'WAITLISTED' && "Waitlisted: Additional Task Required"}
+                {application.status === 'REJECTED' && "Application Update"}
+              </h3>
+              <p className="text-sm opacity-80">
+                {application.status === 'PENDING' && `Your request to join the ${application.bootcampApplied} bootcamp is being processed by the admins.`}
+                {application.status === 'SCREENED_ROUND_1' && "Great news! You've passed the initial screening. Please complete the technical task below."}
+                {application.status === 'WAITLISTED' && "You are currently on the waitlist. Please complete the additional task to improve your chances."}
+                {application.status === 'REJECTED' && "Sorry for this time... We've reviewed your application and cannot move forward at this moment."}
+              </p>
+            </div>
+            { (application.status === 'SCREENED_ROUND_1' || application.status === 'WAITLISTED') && (
+              <button 
+                onClick={() => navigate(`/recruitment/submit/${application._id}`)} 
+                className="px-6 py-3 bg-portal-accent text-portal-bg rounded-xl font-bold hover:scale-105 transition-all"
+              >
+                Complete Recruitment Task
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {application?.status === 'ACCEPTED' && !user?.division && (
+        <div className="p-8 rounded-[32px] bg-green-500/10 border border-green-500/20 text-green-400 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-1">Congragulatio! 🎉</h3>
+              <p className="text-sm opacity-80">You have been officially selected for the bootcamp. Welcome to the student dashboard!</p>
+            </div>
+            <button onClick={() => window.location.reload()} className="px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:scale-105 transition-all">Unlock Dashboard</button>
+          </div>
+        </div>
+      )}
 
       {/* Stats and Chart Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -141,14 +141,24 @@ export const PipelineManager = ({ bootcampId }) => {
 
               <div className="space-y-3">
                 {activeStage === 'PENDING' && (
-                  <button 
-                    onClick={() => handleDecision(selectedApp._id, 'PASS')}
-                    disabled={processingId === selectedApp._id}
-                    className="w-full py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all disabled:opacity-50"
-                  >
-                    {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                    Move to Technical Phase
-                  </button>
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => handleDecision(selectedApp._id, 'ACCEPT')}
+                      disabled={processingId === selectedApp._id}
+                      className="w-full py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all disabled:opacity-50"
+                    >
+                      {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
+                      Select & Notify (Congragulatio)
+                    </button>
+                    <button 
+                      onClick={() => handleDecision(selectedApp._id, 'PASS')}
+                      disabled={processingId === selectedApp._id}
+                      className="w-full py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all disabled:opacity-50"
+                    >
+                      {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                      Waitlist & Assign Task
+                    </button>
+                  </div>
                 )}
                 
                 {(activeStage === 'TASK_EVALUATION') && (

@@ -41,7 +41,13 @@ export const OTPPage = () => {
     }
     try {
       await verifyOTP({ email, otp: otp.join(''), newPassword });
-      navigate('/login');
+      
+      const targetBootcamp = location.state?.bootcampId;
+      if (targetBootcamp) {
+        navigate(`/apply/${targetBootcamp}`);
+      } else {
+        navigate('/login');
+      }
     } catch (err) {
       setError(err?.message || 'Invalid OTP');
     }

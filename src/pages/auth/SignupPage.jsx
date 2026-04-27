@@ -16,7 +16,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { z } from 'zod';
 
-// Define the schema using Zod (already in your project)
+// Define the schema using Zod
 const signupSchema = z.object({
   name: z.string().min(2, 'Name is too short').max(50, 'Name is too long'),
   email: z.string().email('Invalid email address'),
@@ -30,6 +30,7 @@ const signupSchema = z.object({
 export const SignupPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [bootcampId] = useState(() => new URLSearchParams(window.location.search).get('bootcampId'));
   const navigate = useNavigate();
   const { signup } = useAuth();
 
@@ -42,13 +43,15 @@ export const SignupPage = () => {
     },
     validate: (values) => {
       const result = signupSchema.safeParse(values);
-      if (result.success) return {};
-      
-      // Convert Zod errors to Formik format
       const errors = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0]) errors[err.path[0]] = err.message;
-      });
+      
+      if (!result.success && result.error && result.error.errors) {
+        result.error.errors.forEach((err) => {
+          if (err.path && err.path[0]) {
+            errors[err.path[0]] = err.message;
+          }
+        });
+      }
       return errors;
     },
     onSubmit: async (values, { setSubmitting }) => {
@@ -62,7 +65,13 @@ export const SignupPage = () => {
           role: 'student'
         });
         setSuccess('Account created successfully! Redirecting to verification...');
-        setTimeout(() => navigate('/otp', { state: { email: values.email.trim().toLowerCase(), purpose: 'register' } }), 2000);
+        setTimeout(() => navigate('/otp', { 
+          state: { 
+            email: values.email.trim().toLowerCase(), 
+            purpose: 'register',
+            bootcampId: bootcampId
+          } 
+        }), 2000);
       } catch (err) {
         setError(err.message || 'Unable to create account.');
       } finally {

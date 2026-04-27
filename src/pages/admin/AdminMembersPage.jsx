@@ -30,11 +30,11 @@ export const AdminMembersPage = () => {
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState(null);
-  const adminDivisionId = admin?.division || '';
+  const adminDivisionId = admin?.division?._id || admin?.division || '';
   const adminDivisionName =
     divisions.find((division) => division._id === adminDivisionId || division.id === adminDivisionId)?.name ||
-    adminDivisionId ||
-    'Data Science';
+    (typeof admin?.division === 'object' ? admin.division.name : null) ||
+    'All';
   const currentDivision = adminDivisionName;
   
   const [members, setMembers] = React.useState([]);
@@ -44,6 +44,7 @@ export const AdminMembersPage = () => {
   const [infoMember, setInfoMember] = useState(null);
 
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [promoteToRole, setPromoteToRole] = useState('instructor');
   const [isPromoting, setIsPromoting] = useState(false);
   const [promoteError, setPromoteError] = useState('');
   const [promoteSuccess, setPromoteSuccess] = useState(null);
@@ -134,6 +135,8 @@ export const AdminMembersPage = () => {
     return matchByName ? matchByName._id || matchByName.id : null;
   };
 
+  const isSuperAdmin = admin?.role === 'super_admin' || admin?.role === 'super-admin';
+
   const handleCreateUser = async (event) => {
     event.preventDefault();
     setFormError('');
@@ -189,8 +192,8 @@ export const AdminMembersPage = () => {
 
     try {
       const response = await userService.promoteUser(infoMember.id, {
-        newRole: 'instructor',
-        divisionId: divisionId || undefined,
+        newRole: promoteToRole,
+        divisionId: promoteToRole === 'admin' ? selectedDivisionValue : divisionId,
         reason,
       });
 
@@ -251,18 +254,24 @@ export const AdminMembersPage = () => {
     { 
       header: 'Division', 
       render: (row) => (
-        <select
-          value={row.divisionId || ''}
-          onChange={(event) => handleDivisionChange(row, event.target.value)}
-          className="bg-portal-input border border-portal-border rounded-lg px-2 py-1 text-[10px] font-bold text-portal-text uppercase tracking-widest"
-        >
-          <option value="">Unassigned</option>
-          {divisions.map((division) => (
-            <option key={division._id || division.id} value={division._id || division.id}>
-              {division.name}
-            </option>
-          ))}
-        </select>
+        isSuperAdmin ? (
+          <select
+            value={row.divisionId || ''}
+            onChange={(event) => handleDivisionChange(row, event.target.value)}
+            className="bg-portal-input border border-portal-border rounded-lg px-2 py-1 text-[10px] font-bold text-portal-text uppercase tracking-widest"
+          >
+            <option value="">Unassigned</option>
+            {divisions.map((division) => (
+              <option key={division._id || division.id} value={division._id || division.id}>
+                {division.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">
+            {row.division}
+          </span>
+        )
       )
     },
     { 
@@ -431,21 +440,36 @@ export const AdminMembersPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 gap-4">
+            <div className="flex justify-end pt-4 gap-3 flex-wrap">
+              {(admin?.role === 'super-admin' || admin?.role === 'super_admin') && (
+                <button 
+                  onClick={() => {
+                    setPromoteToRole('admin');
+                    setPromoteSuccess(null);
+                    setPromoteError('');
+                    setIsPromoteModalOpen(true);
+                  }}
+                  className="bg-red-500/10 text-red-400 px-6 py-3 rounded-xl font-bold hover:bg-red-500/20 transition-colors border border-red-500/20 flex items-center gap-2 text-sm"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Promote to Admin
+                </button>
+              )}
               <button 
                 onClick={() => {
+                  setPromoteToRole('instructor');
                   setPromoteSuccess(null);
                   setPromoteError('');
                   setIsPromoteModalOpen(true);
                 }}
-                className="bg-portal-accent/10 text-portal-accent px-8 py-3 rounded-xl font-bold hover:bg-portal-accent/20 transition-colors border border-portal-accent/20 flex items-center gap-2"
+                className="bg-portal-accent/10 text-portal-accent px-6 py-3 rounded-xl font-bold hover:bg-portal-accent/20 transition-colors border border-portal-accent/20 flex items-center gap-2 text-sm"
               >
-                <ArrowUpRight className="w-5 h-5" />
+                <ArrowUpRight className="w-4 h-4" />
                 Promote to Instructor
               </button>
               <button 
                 onClick={() => setIsInfoModalOpen(false)}
-                className="bg-portal-accent text-white px-8 py-3 rounded-xl font-bold hover:bg-portal-accent-hover transition-colors shadow-lg shadow-portal-accent/20"
+                className="bg-portal-input text-portal-text-muted px-6 py-3 rounded-xl font-bold hover:bg-portal-border transition-colors border border-portal-border"
               >
                 Close Dossier
               </button>
@@ -531,7 +555,7 @@ export const AdminMembersPage = () => {
       <AdminModal 
         isOpen={isPromoteModalOpen} 
         onClose={() => setIsPromoteModalOpen(false)}
-        title="Promote to Instructor"
+        title={promoteToRole === 'admin' ? 'Promote to Division Admin' : 'Promote to Instructor'}
       >
         <form className="space-y-6" onSubmit={handlePromoteUser}>
           <div className="space-y-4">
@@ -541,9 +565,21 @@ export const AdminMembersPage = () => {
             
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Target Division</label>
-              <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
-                {adminDivisionName}
-              </div>
+              {(admin?.role === 'super-admin' || admin?.role === 'super_admin') ? (
+                <select 
+                  name="division"
+                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none"
+                  defaultValue={adminDivisionId}
+                >
+                  {divisions.map(div => (
+                    <option key={div._id} value={div._id}>{div.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
+                  {adminDivisionName}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

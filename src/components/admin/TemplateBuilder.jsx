@@ -43,11 +43,21 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
     try {
       setLoading(true);
       const data = await recruitmentService.getTemplate(bootcampId);
-      if (data.data) {
+      if (data && data.data) {
         setTemplate(data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch template:', error);
+      if (error.response?.status === 404) {
+        // Fallback default
+        setTemplate({
+            phase1Fields: [],
+            phase2Fields: [],
+            waitlistFields: [],
+            isPublished: false
+        });
+      } else {
+        console.error('Failed to fetch template:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -90,9 +100,29 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
     try {
       setSaving(true);
       await recruitmentService.saveTemplate({ ...template, bootcamp: bootcampId });
+      alert('Template saved successfully!');
       if (onSave) onSave();
     } catch (error) {
-      alert('Error saving template: ' + error.message);
+      alert('Error saving template: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTogglePublish = async () => {
+    try {
+      setSaving(true);
+      if (template.isPublished) {
+        await recruitmentService.unpublishTemplate(bootcampId);
+        setTemplate(prev => ({ ...prev, isPublished: false }));
+        alert('Template unpublished successfully!');
+      } else {
+        await recruitmentService.publishTemplate(bootcampId);
+        setTemplate(prev => ({ ...prev, isPublished: true }));
+        alert('Template published successfully!');
+      }
+    } catch (error) {
+      alert('Error changing publish state: ' + (error.response?.data?.error || error.message));
     } finally {
       setSaving(false);
     }
@@ -112,10 +142,22 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:scale-105 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-portal-bg border border-portal-border text-portal-text rounded-xl font-bold text-sm hover:border-portal-accent/50 transition-all disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Publish Template'}
+            {saving ? 'Processing...' : 'Save Draft'}
+          </button>
+          <button 
+            onClick={handleTogglePublish}
+            disabled={saving}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 ${
+              template.isPublished 
+                ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
+                : 'bg-portal-accent text-portal-bg'
+            }`}
+          >
+            <Eye className="w-4 h-4" />
+            {template.isPublished ? 'Unpublish' : 'Publish Template'}
           </button>
         </div>
       </div>

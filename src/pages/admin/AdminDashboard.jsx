@@ -57,7 +57,7 @@ export const AdminDashboard = () => {
   });
   
   const currentDivisionId = user?.division;
-  const currentDivisionName = user?.divisionName || 'Division';
+  const currentDivisionName = user?.division?.name || user?.divisionName || 'Division';
 
   React.useEffect(() => {
     const fetchStats = async () => {
@@ -71,7 +71,11 @@ export const AdminDashboard = () => {
 
         const allUsers = usersRes.data || [];
         // Filter users by the Admin's division for accurate metrics
-        const divisionUsers = allUsers.filter(u => u.division === currentDivisionId);
+        const divisionUsers = allUsers.filter(u => {
+          const uDivId = u.division?._id || u.division;
+          const adminDivId = currentDivisionId?._id || currentDivisionId;
+          return uDivId === adminDivId;
+        });
 
         setCounts({
           members: divisionUsers.filter(u => u.role === 'student').length,

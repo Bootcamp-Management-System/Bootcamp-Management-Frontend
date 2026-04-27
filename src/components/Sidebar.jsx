@@ -20,7 +20,8 @@ import {
   UserCheck,
   FileBarChart,
   TrendingUp,
-  Layers as LayersIcon
+  Layers as LayersIcon,
+  Rocket
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -51,6 +52,7 @@ export const Sidebar = () => {
 
       if (user.role === 'super_admin') {
         adminItems.push({ id: 'admin-admins', icon: Shield, label: 'Admins', path: '/admin/admins' });
+        adminItems.push({ id: 'super-admin-workspace', icon: GraduationCap, label: 'Super Admin Workspace', path: '/super-admin/dashboard' });
       }
 
       return [
@@ -73,6 +75,7 @@ export const Sidebar = () => {
 
     return [
       ...base,
+      { id: 'bootcamps', icon: Rocket, label: 'Explore Bootcamps', path: '/bootcamps' },
       { id: 'sessions', icon: BookOpen, label: 'My Sessions', path: '/sessions' },
       { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
       { id: 'progress', icon: TrendingUp, label: 'Weekly Progress', path: '/progress' },
@@ -104,8 +107,6 @@ export const Sidebar = () => {
               alt="CSEC logo"
               className="h-full w-full object-cover"
             />
-          <div className="w-10 h-10 bg-portal-accent rounded-xl flex items-center justify-center shadow-lg shadow-portal-accent/20 shrink-0">
-            <GraduationCap className="w-6 h-6 text-portal-text" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -114,8 +115,6 @@ export const Sidebar = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
               >
-                <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC BMS</h1>
-                <p className="text-[11px] text-portal-accent mt-1 font-semibold tracking-wide">{panelLabel}</p>
                 <h1 className="font-extrabold text-lg leading-none text-portal-text tracking-tight">CSEC ASTU</h1>
                 <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
                   Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'member' ? 'Student' : user?.role}

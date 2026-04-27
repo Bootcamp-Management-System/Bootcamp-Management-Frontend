@@ -24,8 +24,33 @@ export const bootcampService = {
    * Fetches only published bootcamps for the Landing Page (Public)
    */
   getPublicBootcamps: async () => {
-    const response = await api.get('/bootcamps/public');
-    return response.data;
+    try {
+      const response = await api.get('/bootcamps/public');
+      return response.data;
+    } catch (error) {
+      // Backend may be offline in demo/dev environments. Provide safe fallback data.
+      return {
+        data: [
+          {
+            _id: 'demo-web',
+            name: 'Web Development Bootcamp',
+            description: 'Learn modern frontend + backend fundamentals and build real projects.',
+          },
+          {
+            _id: 'demo-cyber',
+            name: 'Cyber Security Bootcamp',
+            description: 'Practice defensive security, networking, and core blue-team skills.',
+          },
+          {
+            _id: 'demo-ai',
+            name: 'AI & Data Science Bootcamp',
+            description: 'Build data-driven applications and learn ML foundations.',
+          },
+        ],
+        demoFallback: true,
+        error: error?.message || 'Network Error',
+      };
+    }
   },
 
   /**

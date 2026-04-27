@@ -7,9 +7,13 @@ import {
   Filter,
   Layers,
   ClipboardCheck,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
 import { bootcampService } from '../../services/bootcampService';
+import { divisionService } from '../../services/divisionService';
+import { useAuth } from '../../context/AuthContext';
+import { AdminModal } from '../../components/admin/AdminModal';
 import { TemplateBuilder } from '../../components/admin/TemplateBuilder';
 import { PipelineManager } from '../../components/admin/PipelineManager';
 
@@ -18,10 +22,24 @@ export const AdminRecruitmentPage = () => {
   const [selectedBootcamp, setSelectedBootcamp] = useState(null);
   const [view, setView] = useState('template'); // 'template' or 'applications'
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [divisions, setDivisions] = useState([]);
+  const { user: admin } = useAuth();
 
   useEffect(() => {
     fetchBootcamps();
+    fetchDivisions();
   }, []);
+
+  const fetchDivisions = async () => {
+    try {
+      const data = await divisionService.getDivisions();
+      setDivisions(data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch divisions:', error);
+    }
+  };
 
   const fetchBootcamps = async () => {
     try {
@@ -38,6 +56,41 @@ export const AdminRecruitmentPage = () => {
     }
   };
 
+  const handleCreateBootcamp = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    const formData = new FormData(event.currentTarget);
+    const divisionId = formData.get('division') || admin?.division?._id || admin?.division || admin?.divisionId;
+
+    if (!divisionId && (admin?.role === 'super_admin' || admin?.role === 'super-admin')) {
+      alert('Please select a division for the bootcamp.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const payload = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      division: divisionId,
+    };
+    
+    const startDate = formData.get('startDate');
+    const endDate = formData.get('endDate');
+    if (startDate) payload.startDate = startDate;
+    if (endDate) payload.endDate = endDate;
+
+    try {
+      await bootcampService.createBootcamp(payload);
+      setIsCreateModalOpen(false);
+      fetchBootcamps();
+    } catch (error) {
+      console.error('Failed to create bootcamp:', error);
+      alert(error.response?.data?.message || 'Creation failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) return <div className="p-20 text-portal-text text-center">Synchronising with recruitment server...</div>;
 
   return (
@@ -50,6 +103,13 @@ export const AdminRecruitmentPage = () => {
           </h2>
           <p className="text-portal-text-muted mt-1 italic">Manage your admission funnels and candidate pipelines.</p>
         </div>
+        <button 
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-portal-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          Create Bootcamp
+        </button>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -125,6 +185,87 @@ export const AdminRecruitmentPage = () => {
           )}
         </div>
       </div>
+
+      {/* Create Bootcamp Modal */}
+      <AdminModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Forge New Bootcamp"
+      >
+        <form onSubmit={handleCreateBootcamp} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Bootcamp Name</label>
+            <input 
+              name="name" 
+              required 
+              placeholder="e.g. Offensive Security Phase 1"
+              className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Description</label>
+            <textarea 
+              name="description" 
+              rows={3}
+              placeholder="What will students learn?"
+              className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
+            />
+          </div>
+
+          {(admin?.role === 'super-admin' || admin?.role === 'super_admin') && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Target Division</label>
+              <select 
+                name="division" 
+                required 
+                className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none"
+              >
+                <option value="">Select Division</option>
+                {divisions.map(div => (
+                  <option key={div._id} value={div._id}>{div.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Start Date</label>
+              <input 
+                name="startDate" 
+                type="date"
+                className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">End Date</label>
+              <input 
+                name="endDate" 
+                type="date"
+                className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 gap-4">
+            <button 
+              type="button" 
+              onClick={() => setIsCreateModalOpen(false)}
+              className="px-6 py-2.5 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="bg-portal-accent text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Bootcamp'}
+            </button>
+          </div>
+        </form>
+      </AdminModal>
     </div>
   );
 };

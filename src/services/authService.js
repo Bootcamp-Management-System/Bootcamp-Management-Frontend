@@ -164,6 +164,7 @@ const publicUser = (user) => {
     name: user.name,
     campusId: user.campusId || user.idNo,
     divisions: user.divisions,
+    firstLogin: user.firstLogin,
   };
 };
 
@@ -270,46 +271,13 @@ export const authService = {
   },
 
   async signup(payload) {
-    await ensureValidEmail(payload.email);
-    await ensureStrongPassword(payload.password);
-
-    const users = getUsers();
-    const normalizedEmail = normalizeEmail(payload.email);
-
-    if (users.some((u) => u.email.toLowerCase() === normalizedEmail)) {
-      return fail('An account with this email already exists.', 409);
+    try {
+      const response = await api.post('/auth/signup', payload);
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Signup failed.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    if (users.some((u) => u.campusId.toLowerCase() === payload.campusId.toLowerCase())) {
-      return fail('This campus ID is already registered.', 409);
-    }
-
-    const newUser = {
-      id: String(Date.now()),
-      campusId: payload.campusId,
-      name: normalizedEmail.split('@')[0],
-      email: normalizedEmail,
-      role: 'member',
-      division: payload.division,
-      password: payload.password,
-      motivation: payload.motivation,
-      dedication: payload.dedication,
-      whyDivision: payload.whyDivision,
-      isVerified: false,
-      approvalStatus: 'pending',
-      requiresPasswordChange: false,
-    };
-
-    const updatedUsers = [...users, newUser];
-    saveUsers(updatedUsers);
-    upsertOtpSession({ email: normalizedEmail, purpose: 'register' });
-
-    const response = await makeResponse({
-      message: 'Account created. Verify OTP to continue.',
-      user: publicUser(newUser),
-    }, 201);
-
-    return response.data;
   },
 
   async forgotPassword({ email }) {
@@ -517,5 +485,15 @@ export const authService = {
       user: publicUser(users[userIndex]),
     });
     return response.data;
+  },
+  
+  async completeOnboarding(onboardingData) {
+    try {
+      const response = await api.post('/users/onboarding', onboardingData);
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Onboarding failed.';
+      return fail(message, error?.response?.status || 400);
+    }
   },
 };

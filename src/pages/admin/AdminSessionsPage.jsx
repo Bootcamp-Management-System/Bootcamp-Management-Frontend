@@ -18,8 +18,8 @@ import { useAuth } from '../../context/AuthContext';
 
 export const AdminSessionsPage = () => {
   const { user: admin, selectedDivision } = useAuth();
-  const adminDivision = admin?.division || 'Data Science';
-  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : adminDivision;
+  const currentDivisionName = admin?.division?.name || admin?.divisionName || 'Division';
+  const currentDivision = admin?.role === 'super_admin' ? selectedDivision : (admin?.division?._id || admin?.division);
 
   const [sessions, setSessions] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
@@ -152,7 +152,7 @@ export const AdminSessionsPage = () => {
                     </select>
                   ) : (
                     <div className="w-full bg-portal-input/30 border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text-muted cursor-not-allowed">
-                      {adminDivision}
+                      {currentDivisionName}
                     </div>
                   )}
                 </div>

@@ -49,41 +49,73 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (identifier, password) => {
-    setState(prev => ({ ...prev, isLoading: true }));
+  const setSession = ({ user, token }) => {
+    if (token) {
+      localStorage.setItem('auth_token', token);
+    } else {
+      localStorage.removeItem('auth_token');
+    }
+    if (user) {
+      localStorage.setItem('auth_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('auth_user');
+    }
 
-    const mockUser = {
-      id: '1',
-      idNo: 'CSEC/ASTU/' + Math.floor(1000 + Math.random() * 9000),
-      email,
-      role,
-      isFirstLogin,
-      name: email.split('@')[0].split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      bio: role === 'admin' ? "System Administrator" : "CSEC Member since 2024. Passionate about building impactful software.",
-      status: "Active Member",
-      attendance: "92%",
-      division: role === 'member' ? "Development" : userDivision,
-      divisions: role === 'member' ? ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"] : [userDivision]
+    setState({
+      user: user || null,
+      token: token || null,
+      isAuthenticated: Boolean(user) && Boolean(token),
+      isLoading: false,
+    });
+  };
+
+  const demoLogin = (role) => {
+    const normalizedRole = role === 'super-admin' || role === 'super admin' ? 'super_admin' : role;
+
+    const demoUser = {
+      id: `demo_${normalizedRole}`,
+      idNo: 'UGR/90001/26',
+      campusId: 'UGR/90001/26',
+      email:
+        normalizedRole === 'super_admin'
+          ? 'admin.demo@astu.edu.et'
+          : normalizedRole === 'admin'
+            ? 'admin.demo@astu.edu.et'
+            : normalizedRole === 'instructor'
+              ? 'instructor.demo@astu.edu.et'
+              : 'member.demo@astu.edu.et',
+      role: normalizedRole,
+      name:
+        normalizedRole === 'super_admin'
+          ? 'Super Admin Demo'
+          : normalizedRole === 'admin'
+            ? 'Admin Demo'
+            : normalizedRole === 'instructor'
+              ? 'Instructor Demo'
+              : 'Student Demo',
+      status: 'Demo Session',
+      firstLogin: false,
+      division: normalizedRole === 'member' ? 'Development' : 'All',
+      divisions:
+        normalizedRole === 'member'
+          ? ['Development', 'Cyber Security', 'Data Science', 'CP (Competitive Programming)']
+          : ['All'],
     };
 
-    const mockToken = 'mock_jwt_token_' + Math.random().toString(36).substring(7);
+    const demoToken = `demo_token_${normalizedRole}_${Math.random().toString(36).slice(2)}`;
+    setSession({ user: demoUser, token: demoToken });
 
-    if (!isFirstLogin) {
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-      setState({
-        user: mockUser,
-        token: mockToken,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return {
-        user: mockUser,
-        token: mockToken,
-        requiresApproval: false,
-        requiresPasswordChange: false,
-      };
-    } else {
+    if (normalizedRole === 'super_admin') {
+      setSelectedDivision(localStorage.getItem('global_division') || 'All');
+    } else if (demoUser.division) {
+      setSelectedDivision(demoUser.division);
+    }
+
+    return { user: demoUser, token: demoToken };
+  };
+
+  const login = async (identifier, password) => {
+    setState(prev => ({ ...prev, isLoading: true }));
     try {
       const result = await authService.login({ email: identifier, password });
       const { user, token, requiresPasswordChange, requiresApproval, requiresOtp } = result || {};
@@ -112,12 +144,6 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: Boolean(token) && !requiresPasswordChange && !requiresApproval,
         isLoading: false,
       });
-      return {
-        user: mockUser,
-        token: null,
-        requiresApproval: false,
-        requiresPasswordChange: true,
-      };
 
       if (user?.role === 'super_admin') {
         const savedDivision = localStorage.getItem('global_division') || 'All';
@@ -126,6 +152,18 @@ export const AuthProvider = ({ children }) => {
         setSelectedDivision(user.division);
       }
 
+      return result;
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  };
+
+  const signup = async (userData) => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      const result = await authService.signup(userData);
+      setState(prev => ({ ...prev, isLoading: false }));
       return result;
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
@@ -167,13 +205,17 @@ export const AuthProvider = ({ children }) => {
       newPassword,
     });
 
+    if (response?.token && response?.user) {
+      setSession({ user: response.user, token: response.token });
+    }
+
     localStorage.removeItem('pending_otp_email');
     return response;
   };
 
   const changePassword = async (_password) => {
     if (state.user) {
-      const updatedUser = { ...state.user, isFirstLogin: false };
+      const updatedUser = { ...state.user, firstLogin: false };
       const mockToken = 'mock_jwt_token_after_first_login';
       
       localStorage.setItem('auth_token', mockToken);
@@ -207,7 +249,7 @@ export const AuthProvider = ({ children }) => {
         attendance, 
         division, 
         status, 
-        isFirstLogin,
+        firstLogin,
         ...allowedUpdates 
       } = updates;
       
@@ -217,19 +259,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const completeOnboarding = async (onboardingData) => {
+    try {
+      const result = await authService.completeOnboarding(onboardingData);
+      const updatedUser = { ...state.user, ...onboardingData, firstLogin: false };
+      localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      setState(prev => ({ ...prev, user: updatedUser }));
+      return result;
+    } catch (error) {
+      console.error('Onboarding failed:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       ...state, 
       selectedDivision,
       setGlobalDivision,
+      demoLogin,
       login, 
+      signup,
       googleLogin, 
       logout, 
       verifyOTP, 
       changePassword, 
       forgotPassword, 
       resetPassword,
-      updateProfile
+      updateProfile,
+      completeOnboarding
     }}>
       {children}
     </AuthContext.Provider>

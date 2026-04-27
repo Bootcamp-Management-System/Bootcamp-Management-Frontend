@@ -28,11 +28,11 @@ export const AdminInstructorsPage = () => {
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState(null);
-  const adminDivisionId = admin?.division || '';
+  const adminDivisionId = admin?.division?._id || admin?.division || '';
   const adminDivisionName =
     divisions.find((division) => division._id === adminDivisionId || division.id === adminDivisionId)?.name ||
-    adminDivisionId ||
-    'Data Science';
+    (typeof admin?.division === 'object' ? admin.division.name : null) ||
+    'All';
   const currentDivision = adminDivisionName;
   
   const [instructors, setInstructors] = React.useState([]);
@@ -43,6 +43,7 @@ export const AdminInstructorsPage = () => {
   const [isCandidateInfoModalOpen, setIsCandidateInfoModalOpen] = useState(false);
   const [candidateInfo, setCandidateInfo] = useState(null);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [promoteToRole, setPromoteToRole] = useState('instructor');
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [infoInstructor, setInfoInstructor] = useState(null);
   const [promoteMember, setPromoteMember] = useState(null);
@@ -195,8 +196,8 @@ export const AdminInstructorsPage = () => {
 
     try {
       const response = await userService.promoteUser(promoteMember.id, {
-        newRole: 'instructor',
-        divisionId: divisionId || undefined,
+        newRole: promoteToRole,
+        divisionId: promoteToRole === 'admin' ? selectedDivisionValue : divisionId,
         reason,
       });
 
@@ -624,9 +625,27 @@ export const AdminInstructorsPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 gap-4 border-t border-portal-border">
+            <div className="flex justify-end pt-4 gap-4 border-t border-portal-border flex-wrap">
+              {(admin?.role === 'super-admin' || admin?.role === 'super_admin') && (
+                <button 
+                  onClick={() => {
+                    setPromoteToRole('admin');
+                    setPromoteMember(candidateInfo);
+                    setPromoteSuccess(null);
+                    setPromoteError('');
+                    setIsCandidateInfoModalOpen(false);
+                    setIsSelectMemberModalOpen(false);
+                    setIsPromoteModalOpen(true);
+                  }}
+                  className="bg-red-500/10 text-red-400 px-8 py-3 rounded-xl font-bold hover:bg-red-500/20 transition-all duration-300 shadow-sm flex items-center gap-2 border border-red-500/20"
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                  Promote to Admin
+                </button>
+              )}
               <button 
                 onClick={() => {
+                  setPromoteToRole('instructor');
                   setPromoteMember(candidateInfo);
                   setPromoteSuccess(null);
                   setPromoteError('');
@@ -654,7 +673,7 @@ export const AdminInstructorsPage = () => {
       <AdminModal 
         isOpen={isPromoteModalOpen} 
         onClose={() => setIsPromoteModalOpen(false)}
-        title="Promote to Instructor"
+        title={promoteToRole === 'admin' ? 'Promote to Division Admin' : 'Promote to Instructor'}
       >
         <form className="space-y-6" onSubmit={handlePromoteUser}>
           <div className="space-y-4">
@@ -664,9 +683,21 @@ export const AdminInstructorsPage = () => {
             
             <div className="space-y-2">
               <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Target Division</label>
-              <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
-                {adminDivisionName}
-              </div>
+              {(admin?.role === 'super-admin' || admin?.role === 'super_admin') ? (
+                <select 
+                  name="division"
+                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none"
+                  defaultValue={adminDivisionId}
+                >
+                  {divisions.map(div => (
+                    <option key={div._id} value={div._id}>{div.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
+                  {adminDivisionName}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

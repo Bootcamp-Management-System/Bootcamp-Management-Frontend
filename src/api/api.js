@@ -23,6 +23,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      const token = localStorage.getItem('auth_token');
+      // Keep demo sessions stable even if backend rejects the token.
+      if (token && token.startsWith('demo_token_')) {
+        return Promise.reject(error);
+      }
       console.warn('🔑 Session invalid or expired. Redirecting to login...');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, 
@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Send,
   Shield,
-  MessageSquare
+  MessageSquare,
+  BarChart3
 } from 'lucide-react';
 import { bootcampService } from '../services/bootcampService';
 
@@ -22,6 +23,7 @@ export const LandingPage = () => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPublicData = async () => {
@@ -51,7 +53,12 @@ export const LandingPage = () => {
             <span className="text-xl font-bold tracking-tight">CSEC ASTU</span>
           </div>
           <div className="flex items-center gap-6">
-            <Link to="/login" className="text-sm font-bold text-portal-text-muted hover:text-portal-accent transition-colors">Login</Link>
+            <Link
+              to="/login"
+              className="text-sm font-bold text-portal-text-muted hover:text-portal-accent transition-colors"
+            >
+              Login
+            </Link>
             <Link to="/signup" className="px-6 py-2.5 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:scale-105 transition-all">Join Academy</Link>
           </div>
         </div>
@@ -151,7 +158,7 @@ export const LandingPage = () => {
                       </p>
                       <div className="pt-8 border-t border-portal-border/50 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                         <Link 
-                          to="/login"
+                          to={`/apply/${bootcamp._id}`}
                           className="w-full py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
                         >
                           Enroll Now
@@ -207,9 +214,10 @@ export const LandingPage = () => {
 
           <div className="lg:w-2/3 space-y-16">
             {[
-              { title: 'Cybersecurity', desc: 'Expert advice on network security, ethical hacking, and digital forensics. Learn to protect and defend in the digital age.', icon: ShieldCheck, tag: 'Defend' },
-              { title: 'Development & AI', desc: 'Guidance on software engineering, data science, and AI lab activities. Build intelligent systems that change the world.', icon: Zap, tag: 'Build' },
-              { title: 'Competetative Programming', desc: 'Resources for competitive programming and algorithm optimization. Sharpen your logic and solve complex problems.', icon: Code2, tag: 'Solve' }
+              { title: 'Development', desc: 'Master modern full-stack development, mobile engineering, and software architecture. Build industry-grade applications that scale.', icon: Rocket, tag: 'Build' },
+              { title: 'CPD (Competitive Programming)', desc: 'Sharpen your algorithmic thinking and problem-solving skills for global competitions like ICPC. Master data structures and logic.', icon: Code2, tag: 'Solve' },
+              { title: 'Cyber Security', desc: 'Dive into offensive security, digital forensics, and network defense. Learn to protect architectures and hunt vulnerabilities.', icon: ShieldCheck, tag: 'Defend' },
+              { title: 'Data Science', desc: 'Uncover insights from complex data and build intelligent models using machine learning and artificial intelligence.', icon: BarChart3, tag: 'Analyze' }
             ].map((feature, i) => (
               <motion.div
                 key={i}

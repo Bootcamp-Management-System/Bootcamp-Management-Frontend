@@ -1,13 +1,10 @@
-/**
- * USER & IDENTITY API SERVICE
- * -------------------------------------------------------------------------
- * This service handles all user-related data, including creation,
- * role promotion, and identity verification.
- */
-
 import api from '../api/api';
 
 export const userService = {
+  async getMemberPool() {
+    const response = await api.get('/users/pool');
+    return response.data;
+  },
   /**
    * Registers a new user manually (Admin only)
    */
@@ -25,10 +22,26 @@ export const userService = {
   },
 
   /**
+   * Fetches a specific user by ID
+   */
+  getUserById: async (userId) => {
+    const response = await api.get(`/users/${userId}`);
+    return response.data;
+  },
+
+  /**
    * Updates core user profile information
    */
   updateUser: async (userId, payload) => {
     const response = await api.put(`/users/${userId}`, payload);
+    return response.data;
+  },
+
+  /**
+   * Deletes a user from the system
+   */
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/users/${userId}`);
     return response.data;
   },
 
@@ -38,5 +51,5 @@ export const userService = {
   promoteUser: async (userId, payload) => {
     const response = await api.patch(`/users/${userId}/promote`, payload);
     return response.data;
-  }
+  },
 };
