@@ -11,13 +11,6 @@ import { Label } from '../components/ui/label';
 import { userService } from '../../../../services/userService';
 import { divisionService } from '../../../../services/divisionService';
 
-const statusData = [
-  { name: 'Active', value: 850, color: '#238636' },
-  { name: 'Graduated', value: 420, color: '#0969da' },
-  { name: 'Suspended', value: 14, color: '#cf222e' },
-];
-
-const statusOptions = ['All Statuses', 'Active', 'Suspended', 'Graduated'];
 
 export function Users() {
   const navigate = useNavigate();
@@ -46,7 +39,7 @@ export function Users() {
   const [newMember, setNewMember] = useState({
     name: '',
     email: '',
-    divisions: '',
+    divisions: [],
     year: '2026',
     department: '',
     campusId: '',
@@ -71,7 +64,7 @@ export function Users() {
       
       if (divisionsRes.data?.length > 0) {
         setTargetDivisionId(divisionsRes.data[0]._id);
-        setNewMember(prev => ({ ...prev, divisions: divisionsRes.data[0]._id }));
+        setNewMember(prev => ({ ...prev, divisions: [divisionsRes.data[0]._id] }));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -101,6 +94,11 @@ export function Users() {
     },
     { Member: 0, Student: 0, Instructor: 0, Admin: 0 }
   );
+
+  const statusData = [
+    { name: 'Verified', value: users.filter(u => u.verified).length, color: '#238636' },
+    { name: 'Pending', value: users.filter(u => !u.verified).length, color: '#0969da' },
+  ];
 
   const filteredUsers = users.filter(u => {
     const roleMatch = belongsToTab(u, activeTab);
@@ -208,7 +206,7 @@ export function Users() {
       await userService.createUser({
         name: newMember.name,
         email: newMember.email,
-        division: newMember.divisions,
+        divisions: newMember.divisions,
         role: 'student',
         is_Member: true
       });
@@ -509,7 +507,7 @@ export function Users() {
               </select>
             </div>
             
-            {promoteToRole === 'admin' && (
+            { (promoteToRole === 'admin' || promoteToRole === 'instructor') && (
               <div className="space-y-2">
                 <Label>Assign to Division</Label>
                 <select 
@@ -517,6 +515,7 @@ export function Users() {
                   onChange={(e) => setTargetDivisionId(e.target.value)}
                   className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] px-3 py-2 text-sm"
                 >
+                  <option value="" disabled>Select a division...</option>
                   {divisions.map(div => (
                     <option key={div._id} value={div._id}>{div.name}</option>
                   ))}
@@ -587,18 +586,37 @@ export function Users() {
               <Label htmlFor="member-email">Email</Label>
               <Input id="member-email" type="email" value={newMember.email} onChange={(e) => setNewMember({ ...newMember, email: e.target.value })} placeholder="member@astu.edu.et" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="member-division">Initial Division</Label>
-              <select 
-                id="member-division" 
-                value={newMember.divisions} 
-                onChange={(e) => setNewMember({ ...newMember, divisions: e.target.value })} 
-                className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] px-3 py-2 text-sm"
-              >
+            <div className="space-y-3 sm:col-span-2">
+              <Label className="text-[#24292f] dark:text-[#c9d1d9]">Assign to Divisions</Label>
+              <div className="max-h-48 overflow-y-auto border border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] rounded-md divide-y divide-[#d0d7de] dark:divide-[#30363d] shadow-sm custom-scrollbar">
                 {divisions.map((division) => (
-                  <option key={division._id} value={division._id}>{division.name}</option>
+                  <label 
+                    key={division._id} 
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#f6f8fa] dark:hover:bg-[#161b22] cursor-pointer transition-colors group"
+                  >
+                    <input 
+                      type="checkbox"
+                      checked={newMember.divisions.includes(division._id)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setNewMember(prev => ({
+                          ...prev,
+                          divisions: checked 
+                            ? [...prev.divisions, division._id]
+                            : prev.divisions.filter(id => id !== division._id)
+                        }));
+                      }}
+                      className="w-4 h-4 rounded border-[#d0d7de] dark:border-[#30363d] text-[#0969da] focus:ring-[#0969da] bg-transparent"
+                    />
+                    <span className="text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] group-hover:text-[#0969da] dark:group-hover:text-[#58a6ff]">
+                      {division.name}
+                    </span>
+                  </label>
                 ))}
-              </select>
+              </div>
+              <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] italic">
+                Selected: {newMember.divisions.length} division(s)
+              </p>
             </div>
           </div>
           <DialogFooter>

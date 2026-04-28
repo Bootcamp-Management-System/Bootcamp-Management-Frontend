@@ -6,31 +6,6 @@ import { cn } from '../../lib/utils';
 import { divisionService } from '../../../../services/divisionService';
 import { userService } from '../../../../services/userService';
 
-export const mockDivisions = [
-  { id: 1, name: 'CPD', headAdmin: 'John Doe', year: '2024', students: 120, capacity: 150, sessions: 45, status: 'Active' },
-  { id: 2, name: 'Data Science', headAdmin: 'Sarah Smith', year: '2024', students: 85, capacity: 100, sessions: 32, status: 'Active' },
-  { id: 3, name: 'Cybersecurity', headAdmin: 'Mike Johnson', year: '2025', students: 60, capacity: 100, sessions: 28, status: 'Active' },
-  { id: 4, name: 'Development', headAdmin: 'Emily Davis', year: '2025', students: 150, capacity: 200, sessions: 54, status: 'Active' },
-  { id: 5, name: 'Data Science', headAdmin: 'Sarah Smith', year: '2026', students: 110, capacity: 120, sessions: 15, status: 'Active' },
-  { id: 6, name: 'Cloud Computing', headAdmin: 'Alex Turner', year: '2026', students: 0, capacity: 80, sessions: 0, status: 'Upcoming' },
-];
-
-const analyticsData = [
-  { name: 'CPD', students: 120, target: 150 },
-  { name: 'Data Science', students: 195, target: 220 },
-  { name: 'Cybersec', students: 60, target: 100 },
-  { name: 'Dev', students: 150, target: 200 },
-  { name: 'Cloud', students: 0, target: 80 },
-];
-
-const growthData = [
-  { month: 'Jan', enrollments: 45 },
-  { month: 'Feb', enrollments: 80 },
-  { month: 'Mar', enrollments: 120 },
-  { month: 'Apr', enrollments: 210 },
-  { month: 'May', enrollments: 350 },
-  { month: 'Jun', enrollments: 525 },
-];
 
 export function Divisions() {
   const navigate = useNavigate();
@@ -40,6 +15,18 @@ export function Divisions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Dynamic Analytics Data
+  const analyticsData = divisions.map(d => ({
+    name: d.name,
+    students: d.students || 0,
+    target: d.capacity || 100
+  }));
+
+  // Simple dynamic growth data (shows current month only if no history)
+  const growthData = [
+    { month: new Date().toLocaleString('default', { month: 'short' }), enrollments: divisions.reduce((acc, d) => acc + (d.students || 0), 0) }
+  ];
+  
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createDescription, setCreateDescription] = useState('');

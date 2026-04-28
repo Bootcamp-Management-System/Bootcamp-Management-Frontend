@@ -8,27 +8,11 @@ import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
 
-export const mockStudents = [
-  { id: 1, name: 'Alice Smith', email: 'alice@example.com', role: 'Student', divisions: ['Data Science', 'Development'], year: '2024', status: 'Active' },
-  { id: 2, name: 'Bob Jones', email: 'bob@example.com', role: 'Student', divisions: ['Cybersecurity'], year: '2025', status: 'Active' },
-  { id: 3, name: 'Eve Adams', email: 'eve@example.com', role: 'Student', divisions: ['Development', 'CPD'], year: '2026', status: 'Graduated' },
-  { id: 4, name: 'Frank White', email: 'frank@example.com', role: 'Student', divisions: ['Cybersecurity'], year: '2025', status: 'Suspended' },
-  { id: 5, name: 'Grace Lee', email: 'grace@example.com', role: 'Student', divisions: ['Data Science'], year: '2024', status: 'Graduated' },
-  { id: 6, name: 'Henry Brown', email: 'henry@example.com', role: 'Student', divisions: ['CPD'], year: '2026', status: 'Active' },
-  { id: 7, name: 'Ivy Chen', email: 'ivy@example.com', role: 'Instructor', divisions: ['Development', 'Data Science'], year: 'All', status: 'Active' },
-  { id: 8, name: 'Jack Wilson', email: 'jack@example.com', role: 'Instructor', divisions: ['Cybersecurity', 'CPD'], year: 'All', status: 'Active' },
-];
-
-const statusData = [
-  { name: 'Active', value: 850, color: '#238636' },
-  { name: 'Graduated', value: 420, color: '#0969da' },
-  { name: 'Suspended', value: 14, color: '#cf222e' },
-];
-
-const divisions = ['All Divisions', 'Data Science', 'Development', 'Cybersecurity', 'CPD'];
-
 export function Students() {
   const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [divisionsList, setDivisionsList] = useState(['All Divisions']);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All Students');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('All');
@@ -37,27 +21,68 @@ export function Students() {
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [promoteToRole, setPromoteToRole] = useState('Instructor');
 
-  const filteredStudents = mockStudents.filter(u => {
+  React.useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [usersRes, divsRes] = await Promise.all([
+        userService.getUsers(),
+        divisionService.getDivisions()
+      ]);
+      setUsers(usersRes.data || []);
+      if (divsRes.data) {
+        setDivisionsList(['All Divisions', ...divsRes.data.map((d: any) => d.name)]);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast.error('Failed to load student data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const students = users.filter(u => u.role === 'student' || u.role === 'instructor');
+
+  const filteredStudents = students.filter(u => {
     // Filter by tab
     let tabMatch = true;
-    if (activeTab === 'All Students') tabMatch = true;
-    else if (activeTab === 'Active') tabMatch = u.status === 'Active' && u.role === 'Student';
-    else if (activeTab === 'Graduated') tabMatch = u.status === 'Graduated' && u.role === 'Student';
-    else if (activeTab === 'Suspended') tabMatch = u.status === 'Suspended' && u.role === 'Student';
-    else if (activeTab === 'Instructors') tabMatch = u.role === 'Instructor';
+    const isStudent = u.role === 'student';
+    if (activeTab === 'All Students') tabMatch = isStudent;
+    else if (activeTab === 'Active') tabMatch = u.verified && isStudent;
+    else if (activeTab === 'Graduated') tabMatch = u.status === 'Graduated' && isStudent;
+    else if (activeTab === 'Suspended') tabMatch = u.status === 'Suspended' && isStudent;
+    else if (activeTab === 'Instructors') tabMatch = u.role === 'instructor';
 
     // Filter by division
-    const divisionMatch = selectedDivision === 'All Divisions' || u.divisions.includes(selectedDivision);
+    const uDivs = u.memberships?.map((m: any) => m.division?.name || m.division) || [];
+    const divisionMatch = selectedDivision === 'All Divisions' || uDivs.includes(selectedDivision) || u.division?.name === selectedDivision;
 
     // Filter by year
-    const yearMatch = selectedYear === 'All' || u.year === selectedYear || u.year === 'All';
+    const yearMatch = selectedYear === 'All' || u.year === selectedYear;
 
     // Filter by search
-    const searchMatch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                       u.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchMatch = (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                       (u.email || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     return tabMatch && divisionMatch && yearMatch && searchMatch;
   });
+
+  const roleCounts = {
+    Total: students.filter(u => u.role === 'student').length,
+    Active: students.filter(u => u.role === 'student' && u.verified).length,
+    Graduated: students.filter(u => u.role === 'student' && u.status === 'Graduated').length,
+    Suspended: students.filter(u => u.role === 'student' && u.status === 'Suspended').length,
+    Instructors: students.filter(u => u.role === 'instructor').length
+  };
+
+  const statusData = [
+    { name: 'Active', value: roleCounts.Active, color: '#238636' },
+    { name: 'Graduated', value: roleCounts.Graduated, color: '#0969da' },
+    { name: 'Suspended', value: roleCounts.Suspended, color: '#cf222e' },
+  ];
 
   const handlePromoteClick = (student: any) => {
     setSelectedStudent(student);
@@ -78,7 +103,10 @@ export function Students() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Students Management</h1>
+          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9] flex items-center gap-2">
+            Students Management
+            <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">Live Data</span>
+          </h1>
           <p className="text-[#57606a] dark:text-[#8b949e]">Manage all students and instructors across the system.</p>
         </div>
         <div className="flex gap-2">
@@ -92,11 +120,11 @@ export function Students() {
       {/* Filter Tabs */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
-          { id: 'All Students', label: 'All Students', count: 1284, icon: BookOpen, color: 'border-[#0969da]', bg: 'bg-[#ddf4ff]', text: 'text-[#0969da]' },
-          { id: 'Active', label: 'Active', count: 850, icon: UserCheck, color: 'border-[#1a7f37]', bg: 'bg-[#dafbe1]', text: 'text-[#1a7f37]' },
-          { id: 'Graduated', label: 'Graduated', count: 420, icon: GraduationCap, color: 'border-[#8250df]', bg: 'bg-[#f4ecff]', text: 'text-[#8250df]' },
-          { id: 'Suspended', label: 'Suspended', count: 14, icon: UsersIcon, color: 'border-[#cf222e]', bg: 'bg-[#ffebe9]', text: 'text-[#cf222e]' },
-          { id: 'Instructors', label: 'Instructors', count: 42, icon: GraduationCap, color: 'border-[#d29922]', bg: 'bg-[#fff8c5]', text: 'text-[#9a6700]' }
+          { id: 'All Students', label: 'All Students', count: roleCounts.Total, icon: BookOpen, color: 'border-[#0969da]', bg: 'bg-[#ddf4ff]', text: 'text-[#0969da]' },
+          { id: 'Active', label: 'Active', count: roleCounts.Active, icon: UserCheck, color: 'border-[#1a7f37]', bg: 'bg-[#dafbe1]', text: 'text-[#1a7f37]' },
+          { id: 'Graduated', label: 'Graduated', count: roleCounts.Graduated, icon: GraduationCap, color: 'border-[#8250df]', bg: 'bg-[#f4ecff]', text: 'text-[#8250df]' },
+          { id: 'Suspended', label: 'Suspended', count: roleCounts.Suspended, icon: UsersIcon, color: 'border-[#cf222e]', bg: 'bg-[#ffebe9]', text: 'text-[#cf222e]' },
+          { id: 'Instructors', label: 'Instructors', count: roleCounts.Instructors, icon: GraduationCap, color: 'border-[#d29922]', bg: 'bg-[#fff8c5]', text: 'text-[#9a6700]' }
         ].map((stat) => (
           <div 
             key={stat.id}
@@ -144,7 +172,7 @@ export function Students() {
                 onChange={(e) => setSelectedDivision(e.target.value)}
                 className="bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] appearance-none"
               >
-                {divisions.map(div => (
+                {divisionsList.map(div => (
                   <option key={div} value={div}>{div}</option>
                 ))}
               </select>
@@ -177,11 +205,11 @@ export function Students() {
               <tbody className="divide-y divide-[#d0d7de] dark:divide-[#30363d]">
                 {filteredStudents.map((user) => (
                   <tr 
-                    key={user.id} 
+                    key={user._id} 
                     className="hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors cursor-pointer"
                     onClick={(e) => {
                       if ((e.target as HTMLElement).closest('.actions-cell')) return;
-                      navigate(`/super-admin/users/${user.id}`);
+                      navigate(`/super-admin/users/${user._id}`);
                     }}
                   >
                     <td className="px-6 py-4">
@@ -207,9 +235,9 @@ export function Students() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                        {user.divisions.map(div => (
-                          <span key={div} className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#f6f8fa] dark:bg-[#30363d] text-[#57606a] dark:text-[#c9d1d9] border border-[#d0d7de] dark:border-[#4b5563]">
-                            {div}
+                        {(u.memberships || []).map((m: any) => (
+                          <span key={m.division?._id || m.division} className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#f6f8fa] dark:bg-[#30363d] text-[#57606a] dark:text-[#c9d1d9] border border-[#d0d7de] dark:border-[#4b5563]">
+                            {m.division?.name || 'Unassigned'}
                           </span>
                         ))}
                       </div>
@@ -299,7 +327,7 @@ export function Students() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-bold text-[#24292f] dark:text-[#c9d1d9]">1,284</span>
+                <span className="text-2xl font-bold text-[#24292f] dark:text-[#c9d1d9]">{roleCounts.Total}</span>
                 <span className="text-[10px] text-[#57606a] dark:text-[#8b949e] uppercase tracking-wider font-semibold">Total</span>
               </div>
             </div>

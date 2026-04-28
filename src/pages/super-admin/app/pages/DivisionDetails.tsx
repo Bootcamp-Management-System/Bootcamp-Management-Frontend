@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, BarChart3, Settings, TrendingUp, CheckCircle2, ShieldAlert, Trash2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { mockDivisions } from './Divisions';
 import { cn } from '../../lib/utils';
 import { divisionService } from '../../../../services/divisionService';
 
@@ -21,9 +20,24 @@ export function DivisionDetails() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
-  // Find division from mock data
-  const division = mockDivisions.find(d => d.id === Number(id)) || mockDivisions[0];
+  const [division, setDivision] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchDivision = async () => {
+      try {
+        setLoading(true);
+        const res = await divisionService.getDivisions(); // We will filter locally or add getDivisionById if needed
+        const found = res.data?.find(d => d._id === id);
+        setDivision(found);
+      } catch (error) {
+        console.error('Failed to fetch division:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDivision();
+  }, [id]);
 
   const handleDeleteDivision = async () => {
     setIsDeleting(true);
@@ -38,6 +52,9 @@ export function DivisionDetails() {
       setShowDeleteConfirm(false);
     }
   };
+
+  if (loading) return <div className="p-20 text-center">Loading division intelligence...</div>;
+  if (!division) return <div className="p-20 text-center">Division not found in archives.</div>;
 
   return (
     <div className="space-y-6">
@@ -57,7 +74,7 @@ export function DivisionDetails() {
                 {division.status}
               </span>
             </div>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">Batch {division.year} • Head Admin: {division.headAdmin}</p>
+            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">Batch {division.year || '2026'} • Head Admin: {division.headAdmin?.name || 'Unassigned'}</p>
           </div>
         </div>
         
@@ -189,10 +206,10 @@ export function DivisionDetails() {
                 <h3 className="text-base font-semibold text-[#24292f] dark:text-[#c9d1d9] mb-4">Leadership</h3>
                 <div className="flex items-center gap-4 p-4 rounded-lg bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] mb-6">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#0969da] to-[#8250df] flex items-center justify-center text-white text-lg font-bold shadow-sm">
-                    {division.headAdmin.charAt(0)}
+                    {(division.headAdmin?.name || 'U').charAt(0)}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-[#24292f] dark:text-[#c9d1d9]">{division.headAdmin}</h4>
+                    <h4 className="font-semibold text-[#24292f] dark:text-[#c9d1d9]">{division.headAdmin?.name || 'Unassigned'}</h4>
                     <p className="text-xs text-[#57606a] dark:text-[#8b949e]">Division Head Admin</p>
                   </div>
                 </div>

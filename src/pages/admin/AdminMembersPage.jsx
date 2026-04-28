@@ -135,7 +135,6 @@ export const AdminMembersPage = () => {
 
   React.useEffect(() => {
     const filtered = users
-      .filter((user) => user?.role === 'student' || user?.is_Member)
       .map(buildDisplayUser)
       .filter((user) => 
         currentDivision === 'All' || 
@@ -346,7 +345,10 @@ export const AdminMembersPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-portal-text">Member Directory</h2>
+          <h2 className="text-3xl font-bold mb-2 text-portal-text flex items-center gap-3">
+            Member Directory
+            <span className="text-[10px] bg-portal-accent/10 text-portal-accent px-2 py-0.5 rounded-full uppercase tracking-tighter border border-portal-accent/20">Live Data</span>
+          </h2>
           <p className="text-portal-text-muted">Manage user roles, division assignments, and access control.</p>
         </div>
         <button 
