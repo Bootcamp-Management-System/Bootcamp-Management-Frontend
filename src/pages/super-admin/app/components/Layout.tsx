@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+// @ts-ignore
 import csecLogo from '../../../../assets/csec logo.jpg';
 import {
   LayoutDashboard,
@@ -27,7 +28,6 @@ const navItems = [
   { path: `${SUPER_ADMIN_BASE}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
   { path: `${SUPER_ADMIN_BASE}/divisions`, label: 'Divisions', icon: Building2 },
   { path: `${SUPER_ADMIN_BASE}/users`, label: 'Users', icon: Users },
-  { path: `${SUPER_ADMIN_BASE}/sessions`, label: 'Sessions', icon: CalendarDays },
   { path: `${SUPER_ADMIN_BASE}/announcements`, label: 'Announcements', icon: Megaphone },
 ];
 

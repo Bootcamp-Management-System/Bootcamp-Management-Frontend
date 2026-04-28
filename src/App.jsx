@@ -22,7 +22,6 @@ import { InstructorPanel } from './pages/auth/dashboard/InstructorPanel';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminMembersPage } from './pages/admin/AdminMembersPage';
 import { AdminInstructorsPage } from './pages/admin/AdminInstructorsPage';
-import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
 import { AdminGroupsPage } from './pages/admin/AdminGroupsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
@@ -36,7 +35,6 @@ import { Users as SuperAdminUsers } from './pages/super-admin/app/pages/Users';
 import { UserDetails as SuperAdminUserDetails } from './pages/super-admin/app/pages/UserDetails';
 import { Students as SuperAdminStudents } from './pages/super-admin/app/pages/Students';
 import { Applications as SuperAdminApplications } from './pages/super-admin/app/pages/Applications';
-import { Sessions as SuperAdminSessions } from './pages/super-admin/app/pages/Sessions';
 import { Announcements as SuperAdminAnnouncements } from './pages/super-admin/app/pages/Announcements';
 import { Notifications as SuperAdminNotifications } from './pages/super-admin/app/pages/Notifications';
 import { Attendance as SuperAdminAttendance } from './pages/super-admin/app/pages/Attendance';
@@ -48,7 +46,6 @@ import { Settings as SuperAdminSettings } from './pages/super-admin/app/pages/Se
 import { NotFound as SuperAdminNotFound } from './pages/super-admin/app/pages/NotFound';
 import { StudentTaskPage } from './pages/Task/StudentTaskPage';
 import { InstructorTasksPage } from './pages/Task/InstructorTasksPage';
-import { StudentSessionPage } from './pages/Session/StudentSessionPage';
 import { WeeklyProgressPage } from './pages/WeeklyProgressPage';
 import { StudentBootcampsPage } from './pages/bootcamp/StudentBootcampsPage';
 
@@ -103,16 +100,7 @@ export default function App() {
               } 
             />
 
-            <Route 
-              path="/sessions" 
-              element={
-                <ProtectedRoute allowedRoles={['student', 'member', 'instructor']}>
-                  <Layout>
-                    <StudentSessionPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
+
 
             <Route 
               path="/progress" 
@@ -197,16 +185,7 @@ export default function App() {
               } 
             />
 
-            <Route 
-              path="/admin/sessions" 
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'instructor', 'super_admin']}>
-                  <Layout>
-                    <AdminSessionsPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
+
 
             <Route 
               path="/admin/groups" 
@@ -268,7 +247,6 @@ export default function App() {
               <Route path="users/:id" element={<SuperAdminUserDetails />} />
               <Route path="students" element={<SuperAdminStudents />} />
               <Route path="applications" element={<SuperAdminApplications />} />
-              <Route path="sessions" element={<SuperAdminSessions />} />
               <Route path="announcements" element={<SuperAdminAnnouncements />} />
               <Route path="notifications" element={<SuperAdminNotifications />} />
               <Route path="attendance" element={<SuperAdminAttendance />} />

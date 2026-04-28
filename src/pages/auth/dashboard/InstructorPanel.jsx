@@ -56,8 +56,8 @@ export const InstructorPanel = () => {
       {/* Header */}
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-portal-text">Instructor Panel</h2>
-          <p className="text-portal-text-muted">Manage your tasks, sessions, and review student submissions.</p>
+          <h1 className="text-3xl font-extrabold text-portal-text">Instructor Dashboard</h1>
+          <p className="text-portal-text-muted mt-1">Manage your division's tasks and review student submissions.</p>
         </div>
         <button
           onClick={() => navigate('/instructor/tasks')}

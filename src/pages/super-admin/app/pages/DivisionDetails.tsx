@@ -20,7 +20,7 @@ export function DivisionDetails() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [division, setDivision] = useState(null);
+  const [division, setDivision] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
@@ -28,7 +28,7 @@ export function DivisionDetails() {
       try {
         setLoading(true);
         const res = await divisionService.getDivisions(); // We will filter locally or add getDivisionById if needed
-        const found = res.data?.find(d => d._id === id);
+        const found = res.data?.find((d: any) => d._id === id);
         setDivision(found);
       } catch (error) {
         console.error('Failed to fetch division:', error);
@@ -95,7 +95,7 @@ export function DivisionDetails() {
 
       {/* Tabs */}
       <div className="flex space-x-1 border-b border-[#d0d7de] dark:border-[#30363d] overflow-x-auto no-scrollbar">
-        {['overview', 'students', 'instructors', 'sessions'].map((tab) => (
+        {['overview', 'students', 'instructors'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -130,18 +130,7 @@ export function DivisionDetails() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 shadow-sm">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-sm font-medium text-[#57606a] dark:text-[#8b949e]">Total Sessions</span>
-                  <div className="p-1.5 rounded-md bg-[#dafbe1] dark:bg-[#04260f] text-[#1a7f37] dark:text-[#3fb950]">
-                    <Calendar className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-[#24292f] dark:text-[#c9d1d9]">{division.sessions}</span>
-                  <span className="text-xs text-[#1a7f37] dark:text-[#3fb950] font-medium">+4 this week</span>
-                </div>
-              </div>
+
 
               <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
@@ -217,7 +206,6 @@ export function DivisionDetails() {
                 <h3 className="text-base font-semibold text-[#24292f] dark:text-[#c9d1d9] mb-4">Recent Activity</h3>
                 <div className="space-y-4">
                   {[
-                    { title: 'New session created', time: '2 hours ago', icon: Calendar },
                     { title: 'Attendance submitted', time: '1 day ago', icon: CheckCircle2 },
                     { title: 'Student promoted to instructor', time: '2 days ago', icon: Users },
                   ].map((act, i) => (

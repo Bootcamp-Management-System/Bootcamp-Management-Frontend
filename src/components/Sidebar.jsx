@@ -57,7 +57,6 @@ export const Sidebar = () => {
 
       return [
         ...adminItems,
-        { id: 'admin-sessions', icon: BookOpen, label: 'Sessions', path: '/admin/sessions' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
     }
@@ -65,7 +64,6 @@ export const Sidebar = () => {
     if (user?.role === 'instructor') {
       return [
         ...base,
-        { id: 'sessions', icon: BookOpen, label: 'Sessions', path: '/sessions' },
         { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/instructor/tasks' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
@@ -74,7 +72,6 @@ export const Sidebar = () => {
     return [
       ...base,
       { id: 'bootcamps', icon: Rocket, label: 'Explore Bootcamps', path: '/bootcamps' },
-      { id: 'sessions', icon: BookOpen, label: 'My Sessions', path: '/sessions' },
       { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
       { id: 'progress', icon: TrendingUp, label: 'Weekly Progress', path: '/progress' },
       { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },

@@ -270,13 +270,7 @@ export function Divisions() {
                   </div>
                   <p className="text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9]">{division.students || 0} <span className="text-[#57606a] dark:text-[#8b949e] font-normal text-xs">/ {division.capacity || 100}</span></p>
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5 text-[#57606a] dark:text-[#8b949e] mb-1">
-                    <CalendarDays className="w-3.5 h-3.5" />
-                    <span className="text-xs">Sessions</span>
-                  </div>
-                  <p className="text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9]">{division.sessions || 0}</p>
-                </div>
+
               </div>
             </div>
             

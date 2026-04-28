@@ -7,7 +7,6 @@ import autoTable from 'jspdf-autotable';
 import { Button } from '../components/ui/button';
 import { userService } from '../../../../services/userService';
 import { divisionService } from '../../../../services/divisionService';
-import sessionService from '../../../../services/sessionService';
 import { recruitmentService } from '../../../../services/recruitmentService';
 
 export function Dashboard() {
@@ -15,11 +14,10 @@ export function Dashboard() {
   const [selectedYear, setSelectedYear] = useState('2026');
   const [stats, setStats] = useState({
     totalStudents: 0,
-    activeSessions: 0,
     totalDivisions: 0,
     applications: 0
   });
-  const [divisionBreakdown, setDivisionBreakdown] = useState([]);
+  const [divisionBreakdown, setDivisionBreakdown] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,36 +27,33 @@ export function Dashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [usersRes, divisionsRes, sessionsRes, appsRes] = await Promise.all([
+      const [usersRes, divisionsRes, appsRes] = await Promise.all([
         userService.getUsers(),
         divisionService.getDivisions(),
-        sessionService.getSessions(), // Note: this might fail if no bootcampId is provided, check backend
         recruitmentService.getApplications()
       ]);
 
-      const students = usersRes.data?.filter(u => u.role === 'student' || u.is_Member) || [];
+      const students = usersRes.data?.filter((u: any) => u.role === 'student' || u.is_Member) || [];
       const divs = divisionsRes.data || [];
       
       setStats({
         totalStudents: students.length,
-        activeSessions: sessionsRes.data?.length || 0,
         totalDivisions: divs.length,
         applications: appsRes.data?.length || 0
       });
 
       // Calculate breakdown by division
-      const breakdown = divs.map(d => {
-        const studentCount = students.filter(s => {
+      const breakdown = divs.map((d: any) => {
+        const studentCount = students.filter((s: any) => {
           const sDivId = s.division?._id || s.division;
-          const mDivIds = s.memberships?.map(m => m.division?._id || m.division) || [];
+          const mDivIds = s.memberships?.map((m: any) => m.division?._id || m.division) || [];
           return sDivId === d._id || mDivIds.includes(d._id);
         }).length;
         
         return {
           name: d.name,
           students: studentCount,
-          sessions: sessionsRes.data?.filter(s => (s.division?._id || s.division) === d._id).length || 0,
-          applications: appsRes.data?.filter(a => (a.division?._id || a.division) === d._id).length || 0
+          applications: appsRes.data?.filter((a: any) => (a.division?._id || a.division) === d._id).length || 0
         };
       });
 
@@ -85,7 +80,6 @@ export function Dashboard() {
       head: [['Metric', 'Count']],
       body: [
         ['Total Students', stats.totalStudents],
-        ['Active Sessions', stats.activeSessions],
         ['Total Divisions', stats.totalDivisions],
         ['Pending Applications', stats.applications],
       ],
@@ -95,8 +89,8 @@ export function Dashboard() {
     
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 10,
-      head: [['Division', 'Students', 'Sessions', 'Applications']],
-      body: divisionBreakdown.map(d => [d.name, d.students, d.sessions, d.applications]),
+      head: [['Division', 'Students', 'Applications']],
+      body: divisionBreakdown.map(d => [d.name, d.students, d.applications]),
       theme: 'grid',
       headStyles: { fillColor: [9, 105, 218] },
     });
@@ -106,7 +100,6 @@ export function Dashboard() {
 
   const metrics = [
     { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'bg-[#ddf4ff]', textColor: 'text-[#0969da]' },
-    { label: 'Active Sessions', value: stats.activeSessions, icon: Calendar, color: 'bg-[#dafbe1]', textColor: 'text-[#1a7f37]' },
     { label: 'Total Divisions', value: stats.totalDivisions, icon: BookOpen, color: 'bg-[#f4ecff]', textColor: 'text-[#8250df]' },
     { label: 'Applications', value: stats.applications, icon: FileText, color: 'bg-[#fff8c5]', textColor: 'text-[#9a6700]' }
   ];
