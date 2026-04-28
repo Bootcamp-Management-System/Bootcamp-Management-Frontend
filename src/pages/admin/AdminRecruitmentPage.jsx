@@ -8,7 +8,9 @@ import {
   Layers,
   ClipboardCheck,
   Zap,
-  Plus
+  Plus,
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import { bootcampService } from '../../services/bootcampService';
 import { divisionService } from '../../services/divisionService';
@@ -23,6 +25,8 @@ export const AdminRecruitmentPage = () => {
   const [view, setView] = useState('template'); // 'template' or 'applications'
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editBootcamp, setEditBootcamp] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [divisions, setDivisions] = useState([]);
   const { user: admin } = useAuth();
@@ -45,9 +49,13 @@ export const AdminRecruitmentPage = () => {
     try {
       setLoading(true);
       const data = await bootcampService.getBootcamps();
-      setBootcamps(data.data || []);
-      if (data.data && data.data.length > 0) {
-        setSelectedBootcamp(data.data[0]);
+      const bootcampList = data.data || [];
+      setBootcamps(bootcampList);
+      if (bootcampList.length > 0) {
+        const active = bootcampList.find((bootcamp) => bootcamp._id === selectedBootcamp?._id) || bootcampList[0];
+        setSelectedBootcamp(active);
+      } else {
+        setSelectedBootcamp(null);
       }
     } catch (error) {
       console.error('Failed to fetch bootcamps:', error);
@@ -56,7 +64,7 @@ export const AdminRecruitmentPage = () => {
     }
   };
 
-  const handleCreateBootcamp = async (event) => {
+  const handleSaveBootcamp = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     const formData = new FormData(event.currentTarget);
@@ -80,15 +88,52 @@ export const AdminRecruitmentPage = () => {
     if (endDate) payload.endDate = endDate;
 
     try {
-      await bootcampService.createBootcamp(payload);
-      setIsCreateModalOpen(false);
+      if (editBootcamp) {
+        await bootcampService.updateBootcamp(editBootcamp._id, payload);
+        setEditBootcamp(null);
+        setIsEditModalOpen(false);
+      } else {
+        await bootcampService.createBootcamp(payload);
+        setIsCreateModalOpen(false);
+      }
       fetchBootcamps();
     } catch (error) {
-      console.error('Failed to create bootcamp:', error);
-      alert(error.response?.data?.message || 'Creation failed');
+      console.error('Failed to save bootcamp:', error);
+      alert(error.response?.data?.message || 'Save failed');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditBootcamp = (event, bootcamp) => {
+    event.stopPropagation();
+    setEditBootcamp(bootcamp);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteBootcamp = async (event, bootcampId) => {
+    event.stopPropagation();
+    if (!window.confirm('Delete this bootcamp and all its recruitment settings?')) return;
+
+    try {
+      await bootcampService.deleteBootcamp(bootcampId);
+      if (selectedBootcamp?._id === bootcampId) {
+        setSelectedBootcamp(null);
+      }
+      fetchBootcamps();
+    } catch (error) {
+      console.error('Failed to delete bootcamp:', error);
+      alert(error.response?.data?.message || 'Deletion failed');
+    }
+  };
+
+  const closeEditModal = () => {
+    setEditBootcamp(null);
+    setIsEditModalOpen(false);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
   };
 
   if (loading) return <div className="p-20 text-portal-text text-center">Synchronising with recruitment server...</div>;
@@ -118,23 +163,49 @@ export const AdminRecruitmentPage = () => {
           <div className="bg-portal-card border border-portal-border rounded-3xl p-6 shadow-xl">
             <h3 className="text-xs font-bold text-portal-text-muted uppercase tracking-widest mb-6">Select Bootcamp</h3>
             <div className="space-y-2">
-              {bootcamps.map(bootcamp => (
-                <button
-                  key={bootcamp._id}
-                  onClick={() => setSelectedBootcamp(bootcamp)}
-                  className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
-                    selectedBootcamp?._id === bootcamp._id 
-                      ? 'bg-portal-accent/10 border-portal-accent text-portal-text' 
-                      : 'bg-portal-bg border-portal-border text-portal-text-muted hover:border-portal-accent/30 hover:text-portal-text'
-                  }`}
-                >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold truncate">{bootcamp.name}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-tighter opacity-50">{bootcamp.division?.name || 'Division'}</span>
+              {bootcamps.map(bootcamp => {
+                const isActive = selectedBootcamp?._id === bootcamp._id;
+                return (
+                  <div
+                    key={bootcamp._id}
+                    className={`rounded-2xl border transition-all overflow-hidden ${
+                      isActive ? 'bg-portal-accent/10 border-portal-accent text-portal-text' : 'bg-portal-bg border-portal-border'
+                    }`}
+                  >
+                    <button
+                      onClick={() => setSelectedBootcamp(bootcamp)}
+                      className={`w-full text-left p-4 flex items-center justify-between ${
+                        isActive ? 'text-portal-text' : 'text-portal-text-muted hover:text-portal-text'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold truncate">{bootcamp.name}</span>
+                        <span className="text-[10px] uppercase font-bold tracking-tighter opacity-50">{bootcamp.division?.name || 'Division'}</span>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`} />
+                    </button>
+
+                    <div className="border-t border-portal-border/70 bg-portal-bg px-3 py-2 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={(event) => handleEditBootcamp(event, bootcamp)}
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-portal-border hover:border-portal-accent hover:bg-portal-accent/10 transition-colors"
+                        title="Edit Bootcamp"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => handleDeleteBootcamp(event, bootcamp._id)}
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-portal-border hover:border-red-400 hover:bg-red-500/10 transition-colors"
+                        title="Delete Bootcamp"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
                   </div>
-                  <ChevronRight className={`w-4 h-4 transition-transform ${selectedBootcamp?._id === bootcamp._id ? 'translate-x-1' : 'group-hover:translate-x-1'}`} />
-                </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -186,18 +257,19 @@ export const AdminRecruitmentPage = () => {
         </div>
       </div>
 
-      {/* Create Bootcamp Modal */}
+      {/* Create/Edit Bootcamp Modal */}
       <AdminModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Forge New Bootcamp"
+        isOpen={isCreateModalOpen || isEditModalOpen}
+        onClose={editBootcamp ? closeEditModal : closeCreateModal}
+        title={editBootcamp ? 'Edit Bootcamp' : 'Forge New Bootcamp'}
       >
-        <form onSubmit={handleCreateBootcamp} className="space-y-6">
+        <form onSubmit={handleSaveBootcamp} className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Bootcamp Name</label>
             <input 
               name="name" 
               required 
+              defaultValue={editBootcamp?.name || ''}
               placeholder="e.g. Offensive Security Phase 1"
               className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
             />
@@ -208,6 +280,7 @@ export const AdminRecruitmentPage = () => {
             <textarea 
               name="description" 
               rows={3}
+              defaultValue={editBootcamp?.description || ''}
               placeholder="What will students learn?"
               className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
             />
@@ -219,6 +292,7 @@ export const AdminRecruitmentPage = () => {
               <select 
                 name="division" 
                 required 
+                defaultValue={editBootcamp?.division?._id || editBootcamp?.division || ''}
                 className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none"
               >
                 <option value="">Select Division</option>
@@ -235,6 +309,7 @@ export const AdminRecruitmentPage = () => {
               <input 
                 name="startDate" 
                 type="date"
+                defaultValue={editBootcamp?.startDate ? new Date(editBootcamp.startDate).toISOString().slice(0, 10) : ''}
                 className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
               />
             </div>
@@ -243,6 +318,7 @@ export const AdminRecruitmentPage = () => {
               <input 
                 name="endDate" 
                 type="date"
+                defaultValue={editBootcamp?.endDate ? new Date(editBootcamp.endDate).toISOString().slice(0, 10) : ''}
                 className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
               />
             </div>
@@ -251,7 +327,7 @@ export const AdminRecruitmentPage = () => {
           <div className="flex justify-end pt-4 gap-4">
             <button 
               type="button" 
-              onClick={() => setIsCreateModalOpen(false)}
+              onClick={editBootcamp ? closeEditModal : closeCreateModal}
               className="px-6 py-2.5 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors"
             >
               Cancel
@@ -261,7 +337,7 @@ export const AdminRecruitmentPage = () => {
               disabled={isSubmitting}
               className="bg-portal-accent text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Creating...' : 'Create Bootcamp'}
+              {isSubmitting ? (editBootcamp ? 'Saving...' : 'Creating...') : (editBootcamp ? 'Save Changes' : 'Create Bootcamp')}
             </button>
           </div>
         </form>

@@ -58,8 +58,6 @@ export const Sidebar = () => {
       return [
         ...adminItems,
         { id: 'admin-sessions', icon: BookOpen, label: 'Sessions', path: '/admin/sessions' },
-        { id: 'admin-groups', icon: LayersIcon, label: 'Groups', path: '/admin/groups' },
-        { id: 'admin-reports', icon: FileBarChart, label: 'Reports', path: '/admin/reports' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
     }

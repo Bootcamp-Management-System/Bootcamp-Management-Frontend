@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, BarChart3, Settings, TrendingUp, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, BarChart3, Settings, TrendingUp, CheckCircle2, ShieldAlert, Trash2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { mockDivisions } from './Divisions';
 import { cn } from '../../lib/utils';
+import { divisionService } from '../../../../services/divisionService';
 
 const attendanceData = [
   { week: 'W1', present: 95 },
@@ -18,9 +19,25 @@ export function DivisionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Find division from mock data
   const division = mockDivisions.find(d => d.id === Number(id)) || mockDivisions[0];
+
+  const handleDeleteDivision = async () => {
+    setIsDeleting(true);
+    try {
+      await divisionService.deleteDivision(id);
+      navigate('/super-admin/divisions');
+    } catch (error) {
+      console.error('Failed to delete division:', error);
+      alert('Failed to delete division. Please try again.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -45,6 +62,13 @@ export function DivisionDetails() {
         </div>
         
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Division
+          </button>
           <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] hover:bg-[#f6f8fa] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md text-sm font-medium transition-colors">
             <Settings className="w-4 h-4" />
             Manage Division
@@ -208,6 +232,46 @@ export function DivisionDetails() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="relative w-full max-w-md rounded-xl border border-red-500/30 bg-white dark:bg-[#161b22] p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9]">Delete Division</h2>
+                <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
+                  Are you sure you want to delete the "{division.name}" division? This action cannot be undone and will remove all associated data.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-sm font-bold text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                disabled={isDeleting}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={handleDeleteDivision}
+                className="px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-semibold"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Division'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

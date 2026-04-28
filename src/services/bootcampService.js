@@ -67,5 +67,15 @@ export const bootcampService = {
   createBootcamp: async (data) => {
     const response = await api.post('/bootcamps', data);
     return response.data;
+  },
+
+  updateBootcamp: async (id, data) => {
+    const response = await api.put(`/bootcamps/${id}`, data);
+    return response.data;
+  },
+
+  deleteBootcamp: async (id) => {
+    const response = await api.delete(`/bootcamps/${id}`);
+    return response.data;
   }
 };

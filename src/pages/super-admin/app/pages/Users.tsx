@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Mail, ShieldAlert, GraduationCap, ArrowUpCircle, UserPlus, BookOpen, BarChart3, MoreVertical, Users as MembersIcon } from 'lucide-react';
+import { Search, Filter, Mail, ShieldAlert, GraduationCap, ArrowUpCircle, ArrowDownCircle, UserPlus, BookOpen, BarChart3, MoreVertical, Users as MembersIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
@@ -37,6 +37,11 @@ export function Users() {
   const [promotionTarget, setPromotionTarget] = useState(null);
   const [promoteToRole, setPromoteToRole] = useState('admin');
   const [targetDivisionId, setTargetDivisionId] = useState('');
+
+  // Demotion Dialog State
+  const [isDemoteOpen, setIsDemoteOpen] = useState(false);
+  const [demotionTarget, setDemotionTarget] = useState(null);
+  const [demoteToRole, setDemoteToRole] = useState('instructor');
 
   const [newMember, setNewMember] = useState({
     name: '',
@@ -155,6 +160,41 @@ export function Users() {
       fetchData(); // Refresh list
     } catch (error) {
       toast.error(error.response?.data?.message || 'Promotion failed');
+    }
+  };
+
+  const handleDemoteAction = (event, user, role = null) => {
+    event.stopPropagation();
+    setDemotionTarget(user);
+    if (role) {
+      setDemoteToRole(role);
+    } else {
+      // Default demotion logic
+      if (user.role === 'admin') {
+        setDemoteToRole('instructor');
+      } else if (user.role === 'instructor') {
+        setDemoteToRole('student');
+      }
+    }
+    setIsDemoteOpen(true);
+  };
+
+  const confirmDemotion = async () => {
+    if (!demotionTarget) return;
+
+    try {
+      const payload = {
+        newRole: demoteToRole,
+        reason: `Demoted via Super Admin Dashboard`
+      };
+
+      const result = await userService.demoteUser(demotionTarget._id, payload);
+      toast.success(result.message || `User demoted to ${demoteToRole} successfully!`);
+
+      setIsDemoteOpen(false);
+      fetchData(); // Refresh list
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Demotion failed');
     }
   };
 
@@ -347,6 +387,24 @@ export function Users() {
                             <ShieldAlert className="w-3 h-3" /> Promote to Admin
                           </button>
                         )}
+                        {user.role === 'admin' && (
+                          <button 
+                            onClick={(event) => handleDemoteAction(event, user, 'instructor')}
+                            className="flex items-center gap-1 text-[#da3633] dark:text-[#f85149] hover:bg-[#ffebe9] dark:hover:bg-[#490202] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#da3633]/20" 
+                            title="Demote to Instructor"
+                          >
+                            <ArrowDownCircle className="w-3 h-3" /> Demote
+                          </button>
+                        )}
+                        {user.role === 'instructor' && (
+                          <button 
+                            onClick={(event) => handleDemoteAction(event, user, 'student')}
+                            className="flex items-center gap-1 text-[#d29922] dark:text-[#d29922] hover:bg-[#fff3cd] dark:hover:bg-[#2d231a] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#d29922]/20" 
+                            title="Demote to Student"
+                          >
+                            <ArrowDownCircle className="w-3 h-3" /> Demote
+                          </button>
+                        )}
                         <button className="p-1.5 text-[#57606a] hover:text-[#24292f] dark:text-[#8b949e] dark:hover:text-[#c9d1d9] rounded hover:bg-[#f6f8fa] dark:hover:bg-[#30363d] transition-colors">
                           <MoreVertical className="w-4 h-4" />
                         </button>
@@ -469,6 +527,44 @@ export function Users() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPromoteOpen(false)}>Cancel</Button>
             <Button onClick={confirmPromotion} className="bg-portal-accent text-white">Confirm Promotion</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Demotion Dialog */}
+      <Dialog open={isDemoteOpen} onOpenChange={setIsDemoteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Demote User</DialogTitle>
+            <DialogDescription>
+              Reduce {demotionTarget?.name}'s role in the system. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Select New Role</Label>
+              <select
+                value={demoteToRole}
+                onChange={(e) => setDemoteToRole(e.target.value)}
+                className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] px-3 py-2 text-sm"
+              >
+                {demotionTarget?.role === 'admin' && <option value="instructor">Instructor</option>}
+                {demotionTarget?.role === 'instructor' && <option value="student">Student</option>}
+                {demotionTarget?.role === 'admin' && <option value="student">Student (Direct)</option>}
+              </select>
+            </div>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <strong>Warning:</strong> Demoting this user will remove their elevated privileges.
+                {demotionTarget?.role === 'admin' && demoteToRole === 'instructor' && ' They will retain instructor privileges in their assigned division.'}
+                {demotionTarget?.role === 'instructor' && ' They will lose all instructor privileges and become a regular student.'}
+                {demotionTarget?.role === 'admin' && demoteToRole === 'student' && ' They will lose all admin and instructor privileges.'}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDemoteOpen(false)}>Cancel</Button>
+            <Button onClick={confirmDemotion} className="bg-red-600 hover:bg-red-700 text-white">Confirm Demotion</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

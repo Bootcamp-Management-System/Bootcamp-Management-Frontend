@@ -27,7 +27,6 @@ const navItems = [
   { path: `${SUPER_ADMIN_BASE}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
   { path: `${SUPER_ADMIN_BASE}/divisions`, label: 'Divisions', icon: Building2 },
   { path: `${SUPER_ADMIN_BASE}/users`, label: 'Users', icon: Users },
-  { path: `${SUPER_ADMIN_BASE}/applications`, label: 'Applications', icon: FileText },
   { path: `${SUPER_ADMIN_BASE}/sessions`, label: 'Sessions', icon: CalendarDays },
   { path: `${SUPER_ADMIN_BASE}/announcements`, label: 'Announcements', icon: Megaphone },
 ];

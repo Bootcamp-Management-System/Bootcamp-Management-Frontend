@@ -41,26 +41,11 @@ export function Divisions() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createDescription, setCreateDescription] = useState('');
-  const [createdDivisionId, setCreatedDivisionId] = useState(null);
-  const [memberPool, setMemberPool] = useState([]);
-  const [memberQuery, setMemberQuery] = useState('');
-  const [selectedMemberId, setSelectedMemberId] = useState('');
   const [actionError, setActionError] = useState('');
   const [isWorking, setIsWorking] = useState(false);
 
-  const filteredMemberPool = useMemo(() => {
-    const q = memberQuery.trim().toLowerCase();
-    if (!q) return memberPool;
-    return memberPool.filter((u) => {
-      const email = String(u?.email || '').toLowerCase();
-      const name = String(u?.name || '').toLowerCase();
-      return email.includes(q) || name.includes(q);
-    });
-  }, [memberPool, memberQuery]);
-  
   const filteredDivisions = divisions.filter(d => {
     const name = String(d?.name || '').toLowerCase();
     const adminName = String(d?.headAdmin?.name || '').toLowerCase();
@@ -93,65 +78,20 @@ export function Divisions() {
     fetchDivisions();
   }, []);
 
-  useEffect(() => {
-    if (!isAssignOpen) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await userService.getMemberPool();
-        if (!cancelled) setMemberPool(res?.data || []);
-      } catch (e) {
-        if (!cancelled) setActionError(e?.message || 'Failed to load member pool.');
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isAssignOpen]);
-
   const handleCreateDivision = async () => {
     setActionError('');
     setIsWorking(true);
     try {
-      const res = await divisionService.createDivision({
+      await divisionService.createDivision({
         name: createName.trim(),
         description: createDescription.trim(),
       });
-      const divisionId = res?.data?._id || res?.data?.id;
-      if (!divisionId) {
-        throw new Error('Division created but no id returned.');
-      }
-      setCreatedDivisionId(String(divisionId));
       setIsCreateOpen(false);
-      setIsAssignOpen(true);
+      setCreateName('');
+      setCreateDescription('');
       fetchDivisions(); // Refresh list
     } catch (e) {
       setActionError(e?.response?.data?.message || e?.message || 'Failed to create division.');
-    } finally {
-      setIsWorking(false);
-    }
-  };
-
-  const handleAssignAdmin = async () => {
-    if (!createdDivisionId) {
-      setActionError('No division selected.');
-      return;
-    }
-    if (!selectedMemberId) {
-      setActionError('Please select a member to assign as Admin.');
-      return;
-    }
-    setActionError('');
-    setIsWorking(true);
-    try {
-      await divisionService.assignDivisionAdmin({
-        divisionId: createdDivisionId,
-        userId: selectedMemberId,
-      });
-      // After admin assignment, go to admin dashboard
-      navigate('/admin');
-    } catch (e) {
-      setActionError(e?.response?.data?.message || e?.message || 'Failed to assign division admin.');
     } finally {
       setIsWorking(false);
     }
@@ -170,8 +110,6 @@ export function Divisions() {
             setActionError('');
             setCreateName('');
             setCreateDescription('');
-            setCreatedDivisionId(null);
-            setSelectedMemberId('');
             setIsCreateOpen(true);
           }}
           className="flex items-center gap-2 px-3 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
@@ -181,33 +119,29 @@ export function Divisions() {
         </button>
       </div>
 
-      {(isCreateOpen || isAssignOpen) && (
+      {isCreateOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => {
               if (isWorking) return;
               setIsCreateOpen(false);
-              setIsAssignOpen(false);
             }}
           />
           <div className="relative w-full max-w-xl rounded-xl border border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9]">
-                  {isCreateOpen ? 'Create Division' : 'Assign Division Admin'}
+                  Create Division
                 </h2>
                 <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
-                  {isCreateOpen
-                    ? 'Create the division first. Next you will assign an existing member as the Division Admin.'
-                    : 'Pick an existing member from your seeded MongoDB users and assign them as Admin.'}
+                  Create a new division for organizing bootcamps and members.
                 </p>
               </div>
               <button
                 disabled={isWorking}
                 onClick={() => {
                   setIsCreateOpen(false);
-                  setIsAssignOpen(false);
                 }}
                 className="text-sm font-bold text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]"
               >
@@ -221,123 +155,42 @@ export function Divisions() {
               </div>
             )}
 
-            {isCreateOpen && (
-              <div className="mt-5 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Division name</label>
-                  <input
-                    value={createName}
-                    onChange={(e) => setCreateName(e.target.value)}
-                    className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
-                    placeholder="e.g. Development"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Description (optional)</label>
-                  <textarea
-                    value={createDescription}
-                    onChange={(e) => setCreateDescription(e.target.value)}
-                    className="w-full min-h-24 rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
-                    placeholder="Short description..."
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    disabled={isWorking}
-                    onClick={() => setIsCreateOpen(false)}
-                    className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    disabled={isWorking || !createName.trim()}
-                    onClick={handleCreateDivision}
-                    className="px-3 py-2 rounded-md bg-[#238636] hover:bg-[#2ea043] disabled:opacity-60 text-white text-sm font-semibold"
-                  >
-                    {isWorking ? 'Creating...' : 'Create & Continue'}
-                  </button>
-                </div>
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Division name</label>
+                <input
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
+                  placeholder="e.g. Development"
+                />
               </div>
-            )}
-
-            {isAssignOpen && (
-              <div className="mt-5 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Search members</label>
-                  <input
-                    value={memberQuery}
-                    onChange={(e) => setMemberQuery(e.target.value)}
-                    className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
-                    placeholder="Search by email or name..."
-                  />
-                </div>
-
-                <div className="max-h-72 overflow-auto rounded-lg border border-[#d0d7de] dark:border-[#30363d]">
-                  {filteredMemberPool.length === 0 ? (
-                    <div className="p-4 text-sm text-[#57606a] dark:text-[#8b949e]">
-                      No members found.
-                    </div>
-                  ) : (
-                    <ul className="divide-y divide-[#d0d7de] dark:divide-[#30363d]">
-                      {filteredMemberPool.slice(0, 100).map((u) => (
-                        <li key={u._id} className="p-3 flex items-center justify-between gap-4">
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] truncate">
-                              {u.name || 'Member'} <span className="text-xs font-normal text-[#57606a] dark:text-[#8b949e]">({u.email})</span>
-                            </p>
-                            <p className="text-xs text-[#57606a] dark:text-[#8b949e] truncate">
-                              role: {u.role} • member: {String(Boolean(u.is_Member))}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedMemberId(u._id)}
-                            className={cn(
-                              'px-3 py-1.5 rounded-md text-sm font-bold border transition-colors',
-                              selectedMemberId === u._id
-                                ? 'bg-[#0969da] text-white border-[#0969da]'
-                                : 'bg-white dark:bg-[#161b22] text-[#24292f] dark:text-[#c9d1d9] border-[#d0d7de] dark:border-[#30363d] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]'
-                            )}
-                          >
-                            {selectedMemberId === u._id ? 'Selected' : 'Select'}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    disabled={isWorking}
-                    onClick={() => {
-                      setIsAssignOpen(false);
-                      setIsCreateOpen(true);
-                    }}
-                    className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
-                  >
-                    Back
-                  </button>
-                  <button
-                    disabled={isWorking}
-                    onClick={() => {
-                      setIsAssignOpen(false);
-                      fetchDivisions();
-                    }}
-                    className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
-                  >
-                    Skip for now
-                  </button>
-                  <button
-                    disabled={isWorking || !selectedMemberId}
-                    onClick={handleAssignAdmin}
-                    className="px-3 py-2 rounded-md bg-[#238636] hover:bg-[#2ea043] disabled:opacity-60 text-white text-sm font-semibold"
-                  >
-                    {isWorking ? 'Assigning...' : 'Assign Admin & Go to Admin'}
-                  </button>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Description (optional)</label>
+                <textarea
+                  value={createDescription}
+                  onChange={(e) => setCreateDescription(e.target.value)}
+                  className="w-full min-h-24 rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
+                  placeholder="Short description..."
+                />
               </div>
-            )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  disabled={isWorking}
+                  onClick={() => setIsCreateOpen(false)}
+                  className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isWorking || !createName.trim()}
+                  onClick={handleCreateDivision}
+                  className="px-3 py-2 rounded-md bg-[#238636] hover:bg-[#2ea043] disabled:opacity-60 text-white text-sm font-semibold"
+                >
+                  {isWorking ? 'Creating...' : 'Create Division'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

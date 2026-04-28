@@ -8,8 +8,8 @@ export const OTPPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const { verifyOTP, user } = useAuth();
+  const [error, setError] = useState('');  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');  const { verifyOTP, resendOtp, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email || user?.email || localStorage.getItem('pending_otp_email') || '';
@@ -42,6 +42,9 @@ export const OTPPage = () => {
     try {
       await verifyOTP({ email, otp: otp.join(''), newPassword });
       
+      // Clear dev OTP
+      localStorage.removeItem('dev_otp');
+      
       const targetBootcamp = location.state?.bootcampId;
       if (targetBootcamp) {
         navigate(`/apply/${targetBootcamp}`);
@@ -50,6 +53,26 @@ export const OTPPage = () => {
       }
     } catch (err) {
       setError(err?.message || 'Invalid OTP');
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) {
+      setError('Email is required to resend OTP.');
+      return;
+    }
+
+    setResendLoading(true);
+    setError('');
+    setResendMessage('');
+
+    try {
+      await resendOtp({ email });
+      setResendMessage('OTP sent successfully! Check your email.');
+    } catch (err) {
+      setError(err?.message || 'Failed to resend OTP');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -67,10 +90,17 @@ export const OTPPage = () => {
         </div>
         
         <h1 className="text-2xl font-bold text-portal-text">Verify Identity</h1>
-        <p className="text-portal-text-muted mt-2 mb-8">
+        <p className="text-portal-text-muted mt-2 mb-4">
           We've sent a 6-digit code to <br />
           <span className="font-bold text-portal-text">{email || 'your email'}</span>
         </p>
+
+        {localStorage.getItem('dev_otp') && (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6">
+            <p className="text-yellow-400 text-sm font-bold">Development Mode: Use OTP</p>
+            <p className="text-yellow-400 text-2xl font-mono font-bold tracking-widest">{localStorage.getItem('dev_otp')}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="flex justify-center gap-2 mb-8">
@@ -119,8 +149,18 @@ export const OTPPage = () => {
 
         <p className="text-sm text-portal-text-muted mt-8">
           Didn't receive the code? <br />
-          <button className="text-portal-accent font-bold hover:underline mt-1">Resend OTP</button>
+          <button 
+            onClick={handleResendOtp}
+            disabled={resendLoading}
+            className="text-portal-accent font-bold hover:underline mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {resendLoading ? 'Sending...' : 'Resend OTP'}
+          </button>
         </p>
+
+        {resendMessage && (
+          <p className="text-sm text-green-400 mt-2">{resendMessage}</p>
+        )}
       </motion.div>
     </div>
   );

@@ -33,6 +33,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import taskService from '../../../services/taskService';
 import submissionService from '../../../services/submissionService';
+import enrollmentService from '../../../services/enrollmentService';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 const fmtDeadline = (date) => {
@@ -71,6 +72,13 @@ export const StudentDashboard = () => {
   const [application, setApplication] = useState(null);
   const [loadingApp, setLoadingApp] = useState(true);
 
+  const [enrollments, setEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(true);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [otp, setOtp] = useState('');
+  const [activating, setActivating] = useState(false);
+
   const fetchApplicationStatus = useCallback(async () => {
     try {
       const { recruitmentService } = await import('../../../services/recruitmentService');
@@ -85,9 +93,22 @@ export const StudentDashboard = () => {
     }
   }, []);
 
+  const fetchEnrollments = useCallback(async () => {
+    try {
+      setLoadingEnrollments(true);
+      const data = await enrollmentService.getMyEnrollments();
+      setEnrollments(data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch enrollments');
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchApplicationStatus();
-  }, [fetchApplicationStatus]);
+    fetchEnrollments();
+  }, [fetchApplicationStatus, fetchEnrollments]);
 
   // ── Fetch tasks + submissions ───────────────────────────────────────────────
   const fetchTaskData = useCallback(async () => {
@@ -231,6 +252,32 @@ export const StudentDashboard = () => {
               <p className="text-sm opacity-80">You have been officially selected for the bootcamp. Welcome to the student dashboard!</p>
             </div>
             <button onClick={() => window.location.reload()} className="px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:scale-105 transition-all">Unlock Dashboard</button>
+          </div>
+        </div>
+      )}
+
+      {/* Pending Enrollments */}
+      {!loadingEnrollments && enrollments.filter(e => !e.is_active).length > 0 && (
+        <div className="p-8 rounded-[32px] bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+              <Rocket className="w-8 h-8 animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-1">Enrollment Pending Activation</h3>
+              <p className="text-sm opacity-80">
+                You have been accepted into a bootcamp! Check your email for the activation OTP to complete enrollment.
+              </p>
+            </div>
+            <button 
+              onClick={() => {
+                setSelectedEnrollment(enrollments.find(e => !e.is_active));
+                setShowOtpModal(true);
+              }}
+              className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:scale-105 transition-all"
+            >
+              Activate Now
+            </button>
           </div>
         </div>
       )}
@@ -531,6 +578,74 @@ export const StudentDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* OTP Activation Modal */}
+      {showOtpModal && selectedEnrollment && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-2xl max-w-md w-full">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-portal-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Rocket className="w-8 h-8 text-portal-accent" />
+              </div>
+              <h3 className="text-xl font-bold text-portal-text">Activate Enrollment</h3>
+              <p className="text-sm text-portal-text-muted mt-2">
+                Enter the OTP sent to your email to complete enrollment for {selectedEnrollment.bootcamp?.name}
+              </p>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!otp.trim()) return;
+
+              try {
+                setActivating(true);
+                await enrollmentService.activateEnrollment(otp);
+                setShowOtpModal(false);
+                setOtp('');
+                setSelectedEnrollment(null);
+                fetchEnrollments(); // Refresh enrollments
+                // Refresh user data to update division
+                window.location.reload();
+              } catch (error) {
+                alert('Invalid OTP. Please check your email and try again.');
+              } finally {
+                setActivating(false);
+              }
+            }}>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Enter 6-digit OTP"
+                className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors text-center text-lg font-mono tracking-widest"
+                maxLength={6}
+                required
+              />
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtpModal(false);
+                    setOtp('');
+                    setSelectedEnrollment(null);
+                  }}
+                  className="flex-1 py-3 bg-portal-input border border-portal-border text-portal-text rounded-xl font-bold hover:bg-portal-bg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={activating || otp.length !== 6}
+                  className="flex-1 py-3 bg-portal-accent text-portal-bg rounded-xl font-bold hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {activating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Activate'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

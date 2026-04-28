@@ -139,7 +139,7 @@ export const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Growth Chart */}
-        <div className="lg:col-span-2 bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+        <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
               <Activity className="w-6 h-6 text-portal-accent" />
@@ -166,38 +166,6 @@ export const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Dynamic Contextual Panel (Focus Groups Only) */}
-        <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-          <h3 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
-            <Layers className="w-6 h-6 text-portal-accent" />
-            Focus Groups
-          </h3>
-          <div className="space-y-6">
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-portal-text">Alpha Team</span>
-                  <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
-                </div>
-                <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-portal-accent h-full w-[85%]" />
-                </div>
-              </div>
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-portal-text">Beta Research</span>
-                  <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Active</span>
-                </div>
-                <div className="w-full bg-portal-border h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-portal-accent h-full w-[40%]" />
-                </div>
-              </div>
-              <div className="pt-4 border-t border-portal-border">
-                <Link to="/admin/groups" className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] flex items-center gap-2 hover:gap-4 transition-all">
-                    Configure All Groups <ArrowUpRight className="w-4 h-4" />
-                </Link>
-              </div>
-          </div>
-        </div>
       </div>
 
       {/* Recent Activity */}

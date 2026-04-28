@@ -258,6 +258,18 @@ export const authService = {
     return response.data;
   },
 
+  async resendOtp({ email }) {
+    await ensureValidEmail(email);
+
+    try {
+      const response = await api.post('/auth/resend-otp', { email });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to resend OTP.';
+      return fail(message, error?.response?.status || 400);
+    }
+  },
+
   async googleLogin() {
     const users = getUsers();
     const user = users.find((item) => item.email === 'member@bms.com') || users[0];

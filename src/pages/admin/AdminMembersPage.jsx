@@ -54,13 +54,21 @@ export const AdminMembersPage = () => {
     const nameSource = user?.name || email.split('@')[0] || 'User';
     const cleanName = nameSource.replace(/[._-]+/g, ' ').trim();
     const prettyName = cleanName ? `${cleanName.charAt(0).toUpperCase()}${cleanName.slice(1)}` : 'User';
-    let divisionName = user?.division?.name || user?.division || 'Unassigned';
-    const divisionObj = divisions.find(d => d._id === divisionName || d.id === divisionName);
-    if (divisionObj) {
-      divisionName = divisionObj.name;
-    }
 
-    const divisionId = user?.division?._id || user?.division || '';
+    let divisionName = 'Unassigned';
+    let divisionId = '';
+
+    if (user?.division?.name) {
+      divisionName = user.division.name;
+      divisionId = user.division._id || '';
+    } else if (user?.division) {
+      divisionName = user.division;
+      divisionId = user.division;
+    } else if (Array.isArray(user?.memberships) && user.memberships.length > 0) {
+      const membership = user.memberships[0];
+      divisionName = membership.division?.name || membership.division || divisionName;
+      divisionId = membership.division?._id || membership.division || '';
+    }
 
     const assignedNames = Array.isArray(user?.assignedDivisions)
       ? user.assignedDivisions.map((div) => {
@@ -89,7 +97,17 @@ export const AdminMembersPage = () => {
     setIsLoadingUsers(true);
     setLoadError('');
     try {
-      const response = await userService.getUsers();
+      let response;
+      const divisionId = adminDivisionId || selectedDivision;
+
+      if (admin?.role === 'admin' && divisionId) {
+        response = await divisionService.getUsersByDivision(divisionId);
+      } else if (admin?.role === 'super_admin' || admin?.role === 'super-admin') {
+        response = await userService.getUsers();
+      } else {
+        response = await userService.getUsers();
+      }
+
       const userData = response?.data || response?.data?.data || [];
       setUsers(Array.isArray(userData) ? userData : []);
     } catch (error) {
@@ -117,7 +135,7 @@ export const AdminMembersPage = () => {
 
   React.useEffect(() => {
     const filtered = users
-      .filter((user) => user?.role === 'student')
+      .filter((user) => user?.role === 'student' || user?.is_Member)
       .map(buildDisplayUser)
       .filter((user) => 
         currentDivision === 'All' || 

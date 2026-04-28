@@ -27,6 +27,18 @@ const sessionService = {
     const response = await api.delete(`/sessions/${id}`);
     return response.data;
   },
+
+  // PATCH /api/v1/sessions/:id/assign-instructor
+  async assignInstructor(sessionId, instructorId) {
+    const response = await api.patch(`/sessions/${sessionId}/assign-instructor`, { instructorId });
+    return response.data;
+  },
+
+  // GET /api/v1/sessions/available-instructors/:divisionId
+  async getAvailableInstructors(divisionId) {
+    const response = await api.get(`/sessions/available-instructors/${divisionId}`);
+    return response.data;
+  },
 };
 
 export default sessionService;

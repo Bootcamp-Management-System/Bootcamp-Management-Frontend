@@ -163,6 +163,10 @@ export const AuthProvider = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       const result = await authService.signup(userData);
+      // Store OTP for development
+      if (result.otpCode) {
+        localStorage.setItem('dev_otp', result.otpCode);
+      }
       setState(prev => ({ ...prev, isLoading: false }));
       return result;
     } catch (error) {
@@ -210,6 +214,22 @@ export const AuthProvider = ({ children }) => {
     }
 
     localStorage.removeItem('pending_otp_email');
+    return response;
+  };
+
+  const resendOtp = async ({ email }) => {
+    const targetEmail = email || state.user?.email || localStorage.getItem('pending_otp_email');
+    if (!targetEmail) {
+      throw new Error('Email is required for OTP resend.');
+    }
+
+    const response = await authService.resendOtp({ email: targetEmail });
+    
+    // Store OTP for development
+    if (response.otpCode) {
+      localStorage.setItem('dev_otp', response.otpCode);
+    }
+    
     return response;
   };
 
@@ -282,7 +302,8 @@ export const AuthProvider = ({ children }) => {
       signup,
       googleLogin, 
       logout, 
-      verifyOTP, 
+      verifyOTP,
+      resendOtp, 
       changePassword, 
       forgotPassword, 
       resetPassword,

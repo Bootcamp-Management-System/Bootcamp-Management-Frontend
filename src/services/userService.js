@@ -52,4 +52,12 @@ export const userService = {
     const response = await api.patch(`/users/${userId}/promote`, payload);
     return response.data;
   },
+
+  /**
+   * Demotes a user to a lower role (admin to instructor, instructor to student)
+   */
+  demoteUser: async (userId, payload) => {
+    const response = await api.patch(`/users/${userId}/demote`, payload);
+    return response.data;
+  },
 };

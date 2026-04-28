@@ -13,4 +13,12 @@ export const divisionService = {
     const response = await api.post(`/divisions/${divisionId}/assign-admin`, { userId });
     return response.data;
   },
+  async getUsersByDivision(divisionId) {
+    const response = await api.get(`/divisions/${divisionId}/users`);
+    return response.data;
+  },
+  async deleteDivision(divisionId) {
+    const response = await api.delete(`/divisions/${divisionId}`);
+    return response.data;
+  },
 };

@@ -43,7 +43,7 @@ export const LoginPage = () => {
       const role = result.user.role;
       navigate(role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
     } catch (err) {
-      setError('Invalid email, ID, or password');
+      setError(err?.message || 'Invalid email, ID, or password');
     }
   };
 
