@@ -3,58 +3,7 @@ import { Bell, Check, CheckCheck, Trash2, ArrowUpCircle, UserPlus, FileCheck, Ca
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'promotion',
-    title: 'Student Promoted to Instructor',
-    message: 'Admin Sarah Jenkins promoted Emma Wilson from Student to Instructor in CPD division.',
-    time: '5 minutes ago',
-    read: false,
-    icon: ArrowUpCircle,
-    color: 'bg-[#f4ecff] text-[#8250df]'
-  },
-  {
-    id: 2,
-    type: 'approval',
-    title: 'Application Accepted',
-    message: 'Admin Team accepted application APP-042 for Data Science bootcamp.',
-    time: '1 hour ago',
-    read: false,
-    icon: FileCheck,
-    color: 'bg-[#dafbe1] text-[#1a7f37]'
-  },
-  {
-    id: 3,
-    type: 'user',
-    title: 'New User Added',
-    message: 'Admin Mike Johnson added 5 new students to Development division.',
-    time: '2 hours ago',
-    read: true,
-    icon: UserPlus,
-    color: 'bg-[#ddf4ff] text-[#0969da]'
-  },
-  {
-    id: 4,
-    type: 'session',
-    title: 'Session Created',
-    message: 'Admin Diana Prince created a new recurring session "Advanced React Patterns" in Development.',
-    time: '3 hours ago',
-    read: true,
-    icon: Calendar,
-    color: 'bg-[#fff8c5] text-[#9a6700]'
-  },
-  {
-    id: 5,
-    type: 'promotion',
-    title: 'Instructor Promoted to Admin',
-    message: 'Super Admin promoted John Doe from Instructor to Admin role.',
-    time: '1 day ago',
-    read: true,
-    icon: ArrowUpCircle,
-    color: 'bg-[#ffebe9] text-[#cf222e]'
-  },
-];
+const mockNotifications: any[] = [];
 
 export function Notifications() {
   const [notifications, setNotifications] = useState(mockNotifications);
