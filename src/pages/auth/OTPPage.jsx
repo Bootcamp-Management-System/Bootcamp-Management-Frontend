@@ -13,6 +13,7 @@ export const OTPPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email || user?.email || localStorage.getItem('pending_otp_email') || '';
+  const purpose = location.state?.purpose || 'register';
 
   const handleChange = (element, index) => {
     if (isNaN(Number(element.value))) return false;
@@ -24,6 +25,28 @@ export const OTPPage = () => {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text/plain').trim();
+    const pastedNumbers = pastedData.replace(/\D/g, '').slice(0, 6);
+    
+    if (pastedNumbers) {
+      const newOtp = [...otp];
+      for (let i = 0; i < pastedNumbers.length; i++) {
+        if (i < 6) newOtp[i] = pastedNumbers[i];
+      }
+      setOtp(newOtp);
+      
+      const nextEmptyIndex = newOtp.findIndex(val => val === '');
+      const targetIndex = nextEmptyIndex !== -1 ? nextEmptyIndex : 5;
+      
+      const inputs = document.querySelectorAll('input[name="otp-input"]');
+      if (inputs[targetIndex]) {
+        inputs[targetIndex].focus();
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -31,16 +54,24 @@ export const OTPPage = () => {
       setError('Email is required. Please go back to login.');
       return;
     }
-    if (!newPassword || newPassword.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
+    
+    if (purpose === 'forgot-password') {
+      if (!newPassword || newPassword.length < 8) {
+        setError('Password must be at least 8 characters.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
     }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+
     try {
-      await verifyOTP({ email, otp: otp.join(''), newPassword });
+      await verifyOTP({ 
+        email, 
+        otp: otp.join(''), 
+        newPassword: purpose === 'forgot-password' ? newPassword : undefined 
+      });
       
       // Clear dev OTP
       localStorage.removeItem('dev_otp');
@@ -107,32 +138,36 @@ export const OTPPage = () => {
             {otp.map((data, index) => (
               <input
                 key={index}
+                name="otp-input"
                 type="text"
                 maxLength={1}
                 value={data}
                 onChange={(e) => handleChange(e.target, index)}
                 onFocus={(e) => e.target.select()}
+                onPaste={handlePaste}
                 className="w-12 h-14 text-center text-xl font-bold bg-portal-input border border-portal-border text-portal-text rounded-xl focus:outline-none focus:border-portal-accent transition-all"
               />
             ))}
           </div>
 
-          <div className="space-y-4 mb-6">
-            <input
-              type="password"
-              placeholder="New password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
-            />
-            <input
-              type="password"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
-            />
-          </div>
+          {purpose === 'forgot-password' && (
+            <div className="space-y-4 mb-6">
+              <input
+                type="password"
+                placeholder="New password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
+              />
+              <input
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
+              />
+            </div>
+          )}
 
           {error ? (
             <p className="text-xs text-red-400 mb-4">{error}</p>

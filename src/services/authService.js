@@ -245,15 +245,12 @@ export const authService = {
       return fail('OTP is required.', 422);
     }
 
-    if (!String(newPassword || '').trim()) {
-      return fail('New password is required.', 422);
+    const payload = { email, otp };
+    if (newPassword) {
+      payload.newPassword = newPassword;
     }
 
-    const response = await api.post('/auth/verify-otp', {
-      email,
-      otp,
-      newPassword,
-    });
+    const response = await api.post('/auth/verify-otp', payload);
 
     return response.data;
   },
