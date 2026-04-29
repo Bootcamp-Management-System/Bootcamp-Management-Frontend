@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { motion } from "framer-motion";
 import { 
@@ -85,13 +86,25 @@ export const ProfilePage = () => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showNotification('Passwords do not match.', 'error');
+    if (!passwordData.currentPassword || !passwordData.newPassword) {
+      showNotification('Please fill in all password fields.', 'error');
       return;
     }
-    // Simulate password change
-    showNotification('Password changed successfully!', 'success');
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showNotification('New passwords do not match.', 'error');
+      return;
+    }
+    
+    try {
+      await authService.changePassword({
+        oldPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      showNotification('Success! Your password has been updated and saved securely.', 'success');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      showNotification(err.message || 'Failed to update password. Please check your current password.', 'error');
+    }
   };
 
   const showNotification = (message, type) => {
@@ -312,54 +325,25 @@ export const ProfilePage = () => {
           </div>
 
           {/* Account Security */}
-          <div className="bg-portal-card border border-portal-border rounded-3xl p-8">
-            <h4 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">
+          <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+            <h4 className="text-xl font-bold text-portal-text mb-6 flex items-center gap-3">
               <Lock className="w-6 h-6 text-portal-accent" />
               Security Settings
             </h4>
 
-            <form onSubmit={handleChangePassword} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-portal-text-muted">Current Password</label>
-                <input 
-                  type="password"
-                  placeholder="••••••••"
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text focus:border-portal-accent outline-none transition-colors"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-portal-text-muted">New Password</label>
-                  <input 
-                    type="password"
-                    placeholder="••••••••"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text focus:border-portal-accent outline-none transition-colors"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-portal-text-muted">Confirm New Password</label>
-                  <input 
-                    type="password"
-                    placeholder="••••••••"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text focus:border-portal-accent outline-none transition-colors"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end pt-4">
-                <button 
-                  type="submit"
-                  className="bg-white/10 text-portal-text px-8 py-3 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
-                >
-                  Update Password
-                </button>
-              </div>
-            </form>
+            <div className="space-y-4">
+              <p className="text-portal-text-muted text-sm leading-relaxed mb-6">
+                Keep your account secure by updating your password regularly. If you were provided a temporary password, please change it to a secure, personalized password.
+              </p>
+              
+              <a 
+                href="/change-password"
+                className="inline-flex items-center gap-2 bg-portal-input border border-portal-border hover:border-portal-accent/50 text-portal-text px-6 py-4 rounded-2xl font-bold transition-all group w-full sm:w-auto"
+              >
+                Change Password
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 text-portal-accent transition-transform" />
+              </a>
+            </div>
           </div>
         </div>
       </div>

@@ -436,34 +436,17 @@ export const authService = {
     return response.data;
   },
 
-  async changePassword({ email, password }) {
-    await ensureValidEmail(email);
-    await ensureStrongPassword(password);
-
-    const users = getUsers();
-    const normalizedEmail = normalizeEmail(email);
-    const userIndex = users.findIndex((item) => item.email.toLowerCase() === normalizedEmail);
-
-    if (userIndex === -1) {
-      return fail('Account not found for password update.', 404);
+  async changePassword({ oldPassword, newPassword }) {
+    try {
+      const response = await api.post('/auth/change-password', {
+        oldPassword,
+        newPassword
+      });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to update password.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    const updatedUser = {
-      ...users[userIndex],
-      password,
-      requiresPasswordChange: false,
-    };
-
-    users[userIndex] = updatedUser;
-    saveUsers(users);
-
-    const response = await makeResponse({
-      message: 'Password updated successfully.',
-      user: publicUser(updatedUser),
-      token: tokenFor(),
-    });
-
-    return response.data;
   },
 
   async resetPassword({ email, password }) {
