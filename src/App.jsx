@@ -27,6 +27,7 @@ import { InstructorPanel } from "./pages/auth/dashboard/InstructorPanel";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminMembersPage } from "./pages/admin/AdminMembersPage";
 import { AdminInstructorsPage } from "./pages/admin/AdminInstructorsPage";
+import { AdminSessionsPage } from "./pages/admin/AdminSessionsPage";
 import { AdminGroupsPage } from "./pages/admin/AdminGroupsPage";
 import { AdminReportsPage } from "./pages/admin/AdminReportsPage";
 import { AdminAdminsPage } from "./pages/admin/AdminAdminsPage";
