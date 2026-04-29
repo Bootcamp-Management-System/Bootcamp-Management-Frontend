@@ -23,8 +23,7 @@ import {
   Layers as LayersIcon,
   Rocket,
   RefreshCw,
-  Calendar,
-  UserCheck
+  Calendar
 } from 'lucide-react';
 
 export const Sidebar = () => {
