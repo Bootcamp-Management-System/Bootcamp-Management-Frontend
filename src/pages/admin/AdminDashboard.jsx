@@ -148,7 +148,7 @@ export const AdminDashboard = () => {
             <div className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Temporal Scale: 7D</div>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
               <AreaChart data={growthData}>
                 <defs>
                   <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
