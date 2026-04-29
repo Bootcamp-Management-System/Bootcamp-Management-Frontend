@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Search, Plus, Building2, Users, CalendarDays, TrendingUp, MoreVertical } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { Filter, Search, Plus, Building2, Users } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { divisionService } from '../../../../services/divisionService';
 import { userService } from '../../../../services/userService';
@@ -15,17 +14,10 @@ export function Divisions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Dynamic Analytics Data
-  const analyticsData = divisions.map(d => ({
-    name: d.name,
-    students: d.students || 0,
-    target: d.capacity || 100
-  }));
-
-  // Simple dynamic growth data (shows current month only if no history)
-  const growthData = [
-    { month: new Date().toLocaleString('default', { month: 'short' }), enrollments: divisions.reduce((acc, d) => acc + (d.students || 0), 0) }
-  ];
+  const uniqueCategories = useMemo(() => {
+    const names = new Set(divisions.map(d => d.name).filter(Boolean));
+    return Array.from(names).sort();
+  }, [divisions]);
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createName, setCreateName] = useState('');
@@ -37,14 +29,7 @@ export function Divisions() {
     const name = String(d?.name || '').toLowerCase();
     const adminName = String(d?.headAdmin?.name || '').toLowerCase();
     const matchesYear = selectedYear === 'All' ? true : String(d.year || '2024') === selectedYear;
-    const matchesCategory = (() => {
-      const cat = selectedCategory.toLowerCase();
-      if (cat === 'all' || cat === 'global') return true;
-      if (cat === 'datascience') return name.includes('data science') || name.includes('datascience');
-      if (cat === 'cyber') return name.includes('cyber');
-      if (cat === 'cpr' || cat === 'cpd') return name.includes('cp') || name.includes('cpr');
-      return name.includes(cat);
-    })();
+    const matchesCategory = selectedCategory === 'All' ? true : String(d.name) === selectedCategory;
     const matchesSearch = name.includes(searchQuery.toLowerCase()) || adminName.includes(searchQuery.toLowerCase());
     return matchesYear && matchesCategory && matchesSearch;
   });
@@ -213,11 +198,9 @@ export function Divisions() {
             className="bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] appearance-none transition-all cursor-pointer"
           >
             <option value="All">All Categories</option>
-            <option value="global">Global</option>
-            <option value="development">Development</option>
-            <option value="cyber">Cyber</option>
-            <option value="datascience">DataScience</option>
-            <option value="cpr">CPR</option>
+            {uniqueCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -305,72 +288,7 @@ export function Divisions() {
         )}
       </div>
 
-      {/* Analytics Section */}
-      <div className="pt-6 border-t border-[#d0d7de] dark:border-[#30363d]">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-[#24292f] dark:text-[#c9d1d9] flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-[#0969da] dark:text-[#2f81f7]" />
-            Overall Division Analytics
-          </h2>
-          <p className="text-sm text-[#57606a] dark:text-[#8b949e]">System-wide metrics across all active bootcamps.</p>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Enrollment Bar Chart */}
-          <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-base font-semibold text-[#24292f] dark:text-[#c9d1d9]">Current Enrollment vs Target</h3>
-              <button className="text-[#57606a] hover:text-[#24292f] dark:text-[#8b949e] dark:hover:text-[#c9d1d9]"><MoreVertical className="w-4 h-4" /></button>
-            </div>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analyticsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d0d7de" opacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#57606a', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#57606a', fontSize: 12 }} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(208, 215, 222, 0.2)' }}
-                    contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', color: '#c9d1d9', borderRadius: '8px', fontSize: '12px' }}
-                    itemStyle={{ color: '#c9d1d9' }}
-                  />
-                  <Bar dataKey="students" name="Enrolled" fill="#0969da" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  <Bar dataKey="target" name="Capacity Target" fill="#d0d7de" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Growth Area Chart */}
-          <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-base font-semibold text-[#24292f] dark:text-[#c9d1d9]">Total System Enrollment Growth</h3>
-              <select className="text-xs bg-transparent border-none text-[#57606a] dark:text-[#8b949e] focus:ring-0 cursor-pointer outline-none">
-                <option>Last 6 Months</option>
-                <option>Last Year</option>
-              </select>
-            </div>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={growthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorEnrollments" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#238636" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#238636" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d0d7de" opacity={0.5} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#57606a', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#57606a', fontSize: 12 }} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', color: '#c9d1d9', borderRadius: '8px', fontSize: '12px' }}
-                  />
-                  <Area type="monotone" dataKey="enrollments" name="Total Students" stroke="#238636" strokeWidth={3} fillOpacity={1} fill="url(#colorEnrollments)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

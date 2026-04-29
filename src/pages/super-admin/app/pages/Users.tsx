@@ -14,8 +14,8 @@ import { divisionService } from '../../../../services/divisionService';
 
 export function Users() {
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [divisions, setDivisions] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [divisions, setDivisions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Member');
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,23 +23,23 @@ export function Users() {
   const [selectedDivision, setSelectedDivision] = useState('All Divisions');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   
   // Promotion Dialog State
   const [isPromoteOpen, setIsPromoteOpen] = useState(false);
-  const [promotionTarget, setPromotionTarget] = useState(null);
+  const [promotionTarget, setPromotionTarget] = useState<any>(null);
   const [promoteToRole, setPromoteToRole] = useState('admin');
   const [targetDivisionId, setTargetDivisionId] = useState('');
 
   // Demotion Dialog State
   const [isDemoteOpen, setIsDemoteOpen] = useState(false);
-  const [demotionTarget, setDemotionTarget] = useState(null);
+  const [demotionTarget, setDemotionTarget] = useState<any>(null);
   const [demoteToRole, setDemoteToRole] = useState('instructor');
 
   const [newMember, setNewMember] = useState({
     name: '',
     email: '',
-    divisions: [],
+    divisions: [] as string[],
     year: '2026',
     department: '',
     campusId: '',
@@ -66,7 +66,7 @@ export function Users() {
         setTargetDivisionId(divisionsRes.data[0]._id);
         setNewMember(prev => ({ ...prev, divisions: [divisionsRes.data[0]._id] }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching data:', error);
       setError('Failed to load users or divisions. Please verify your connection or session.');
       toast.error('Failed to load users or divisions');
@@ -75,7 +75,7 @@ export function Users() {
     }
   };
 
-  const belongsToTab = (user, tab) => {
+  const belongsToTab = (user: any, tab: string) => {
     const role = user.role?.toLowerCase();
     if (tab === 'Member') return role === 'student' || user.is_Member;
     if (tab === 'Student') return role === 'student';
@@ -106,7 +106,7 @@ export function Users() {
     // Check division match
     let divMatch = true;
     if (selectedDivision !== 'All Divisions') {
-      const userDivIds = u.memberships?.map(m => m.division?._id || m.division) || [];
+      const userDivIds = u.memberships?.map((m: any) => m.division?._id || m.division) || [];
       if (u.division?._id) userDivIds.push(u.division._id);
       divMatch = userDivIds.includes(selectedDivision);
     }
@@ -121,7 +121,7 @@ export function Users() {
     return roleMatch && divMatch && statusMatch && yearMatch && searchMatch;
   });
 
-  const handlePromoteAction = (event, user, role = null) => {
+  const handlePromoteAction = (event: React.MouseEvent, user: any, role: string | null = null) => {
     event.stopPropagation();
     setPromotionTarget(user);
     if (role) {
@@ -156,12 +156,12 @@ export function Users() {
       
       setIsPromoteOpen(false);
       fetchData(); // Refresh list
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.response?.data?.message || 'Promotion failed');
     }
   };
 
-  const handleDemoteAction = (event, user, role = null) => {
+  const handleDemoteAction = (event: React.MouseEvent, user: any, role: string | null = null) => {
     event.stopPropagation();
     setDemotionTarget(user);
     if (role) {
@@ -191,7 +191,7 @@ export function Users() {
 
       setIsDemoteOpen(false);
       fetchData(); // Refresh list
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.response?.data?.message || 'Demotion failed');
     }
   };
@@ -214,7 +214,7 @@ export function Users() {
       toast.success(`${newMember.name} has been added as a member.`);
       setIsAddMemberOpen(false);
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to add member');
     }
   };
@@ -228,10 +228,6 @@ export function Users() {
           <p className="text-[#57606a] dark:text-[#8b949e]">Manage CSEC members, bootcamp students, instructors, and division admins across the system.</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-[#21262d] hover:bg-[#f6f8fa] dark:hover:bg-[#30363d] border border-[#d0d7de] dark:border-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md text-sm font-medium transition-colors shadow-sm">
-            <Mail className="w-4 h-4" />
-            Invite Admin
-          </button>
           <button
             onClick={() => setIsAddMemberOpen(true)}
             className="flex items-center gap-2 px-3 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
