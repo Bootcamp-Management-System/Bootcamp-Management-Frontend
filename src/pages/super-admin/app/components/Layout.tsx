@@ -48,11 +48,6 @@ export function Layout() {
     .join('')
     .toUpperCase();
 
-  const handleLogout = () => {
-    auth.logout?.();
-    navigate('/login');
-  };
-
   const isDarkTheme =
     theme === 'dark' ||
     (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -110,29 +105,6 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-
-        <div className="mt-6 pt-6 border-t border-portal-border space-y-2 px-4 pb-5">
-          <button
-            onClick={() => navigate(`${SUPER_ADMIN_BASE}/settings`)}
-            className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-portal-text-muted hover:text-portal-text transition-colors rounded-xl hover:bg-white/5',
-              isCollapsed ? 'justify-center px-0' : ''
-            )}
-          >
-            <Settings className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span>Settings</span>}
-          </button>
-          <button
-            onClick={handleLogout}
-            className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-400 hover:text-red-300 transition-colors rounded-xl hover:bg-red-500/10',
-              isCollapsed ? 'justify-center px-0' : ''
-            )}
-          >
-            <LogOut className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span>Logout</span>}
-          </button>
-        </div>
       </aside>
 
       {/* Main Content */}
@@ -170,7 +142,11 @@ export function Layout() {
               )}></span>
             </button>
             <div className="flex items-center gap-3 pl-4 border-l border-portal-border">
-              <div className="flex items-center gap-3 pl-1">
+              <button 
+                onClick={() => navigate(`${SUPER_ADMIN_BASE}/settings`)}
+                className="flex items-center gap-3 pl-1 hover:opacity-80 transition-opacity focus:outline-none"
+                title="Go to Settings"
+              >
                 <div className="text-right hidden sm:block">
                   <p className="text-base font-extrabold leading-none text-portal-text">{userName}</p>
                   <p className="text-xs text-portal-accent mt-1 uppercase font-bold tracking-wider">super admin</p>
@@ -178,7 +154,7 @@ export function Layout() {
                 <div className="w-11 h-11 rounded-full bg-portal-accent flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-portal-accent/20 border border-white/10 uppercase">
                   {userInitials || 'SA'}
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </header>

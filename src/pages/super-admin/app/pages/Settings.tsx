@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Save, Shield, KeyRound, Globe, User, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../context/AuthContext';
+import { Save, Shield, KeyRound, Globe, User, Eye, EyeOff, ArrowLeft, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
@@ -8,6 +10,8 @@ import { Label } from '../components/ui/label';
 import { Button } from '../components/ui/button';
 
 export function Settings() {
+  const navigate = useNavigate();
+  const auth = useAuth() as { logout?: () => void };
   const [activeTab, setActiveTab] = useState('profile');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -53,31 +57,57 @@ export function Settings() {
     toast.success('Settings saved successfully');
   };
 
+  const handleLogout = () => {
+    auth.logout?.();
+    navigate('/login');
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Settings</h1>
-        <p className="text-[#57606a] dark:text-[#8b949e]">Manage your profile, security, and system configuration.</p>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 hover:bg-[#eaeef2] dark:hover:bg-[#21262d] rounded-lg transition-colors text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]"
+          title="Go back"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Settings</h1>
+          <p className="text-[#57606a] dark:text-[#8b949e]">Manage your profile, security, and system configuration.</p>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl overflow-hidden shadow-sm">
         <div className="grid md:grid-cols-4 min-h-[600px]">
           <div className="md:col-span-1 border-b md:border-b-0 md:border-r border-[#d0d7de] dark:border-[#30363d] p-4 flex flex-row md:flex-col gap-1 overflow-x-auto bg-[#f6f8fa] dark:bg-[#0d1117]">
-            {tabs.map((tab) => (
+            <div className="flex flex-row md:flex-col gap-1 flex-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors w-full text-left whitespace-nowrap",
+                    activeTab === tab.id
+                      ? "bg-white dark:bg-[#21262d] font-semibold text-[#24292f] dark:text-[#c9d1d9] border border-[#d0d7de] dark:border-[#30363d] shadow-sm"
+                      : "text-[#57606a] dark:text-[#8b949e] hover:bg-[#eaeef2] dark:hover:bg-[#21262d]"
+                  )}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center md:items-stretch md:mt-auto pt-0 md:pt-4 ml-4 md:ml-0 md:border-t border-[#d0d7de] dark:border-[#30363d]">
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors w-full text-left whitespace-nowrap",
-                  activeTab === tab.id
-                    ? "bg-white dark:bg-[#21262d] font-semibold text-[#24292f] dark:text-[#c9d1d9] border border-[#d0d7de] dark:border-[#30363d] shadow-sm"
-                    : "text-[#57606a] dark:text-[#8b949e] hover:bg-[#eaeef2] dark:hover:bg-[#21262d]"
-                )}
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors w-full text-left whitespace-nowrap text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium"
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
+                <LogOut className="w-4 h-4" />
+                Logout
               </button>
-            ))}
+            </div>
           </div>
 
           <div className="md:col-span-3 p-6 sm:p-8 space-y-8">
