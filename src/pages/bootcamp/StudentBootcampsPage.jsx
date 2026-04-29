@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Rocket, 
-  ChevronRight, 
-  Zap, 
-  ShieldCheck, 
-  Globe, 
-  Code2, 
-  Clock, 
+import {
+  Rocket,
+  ChevronRight,
+  Zap,
+  ShieldCheck,
+  Globe,
+  Code2,
+  Clock,
   AlertCircle,
   Search,
   Filter,
@@ -51,8 +51,8 @@ export const StudentBootcampsPage = () => {
   };
 
   const filteredBootcamps = bootcamps.filter(bootcamp => {
-    const matchesSearch = bootcamp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         bootcamp.division?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = bootcamp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bootcamp.division?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterDivision === 'All' || bootcamp.division?.name === filterDivision;
     return matchesSearch && matchesFilter;
   });
@@ -89,8 +89,8 @@ export const StudentBootcampsPage = () => {
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search bootcamps or divisions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,11 +103,10 @@ export const StudentBootcampsPage = () => {
             <button
               key={div}
               onClick={() => setFilterDivision(div)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                filterDivision === div 
-                ? 'bg-portal-accent text-portal-bg shadow-lg shadow-portal-accent/20' 
-                : 'bg-portal-card border border-portal-border text-portal-text-muted hover:border-portal-accent/30'
-              }`}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${filterDivision === div
+                  ? 'bg-portal-accent text-portal-bg shadow-lg shadow-portal-accent/20'
+                  : 'bg-portal-card border border-portal-border text-portal-text-muted hover:border-portal-accent/30'
+                }`}
             >
               {div}
             </button>
@@ -120,12 +119,12 @@ export const StudentBootcampsPage = () => {
         {filteredBootcamps.length > 0 ? (
           filteredBootcamps.map((bootcamp, i) => {
             const status = getApplicationStatus(bootcamp._id);
-            const Icon = bootcamp.name.toLowerCase().includes('cyber') ? ShieldCheck : 
-                         bootcamp.name.toLowerCase().includes('web') ? Globe : 
-                         bootcamp.name.toLowerCase().includes('ai') ? Zap : Code2;
+            const Icon = bootcamp.name.toLowerCase().includes('cyber') ? ShieldCheck :
+              bootcamp.name.toLowerCase().includes('web') ? Globe :
+                bootcamp.name.toLowerCase().includes('ai') ? Zap : Code2;
 
             return (
-              <div 
+              <div
                 key={bootcamp._id}
                 className="group relative bg-portal-card border border-portal-border rounded-[40px] p-8 shadow-xl transition-all duration-500 hover:y-[-8px] hover:border-portal-accent/30 overflow-hidden flex flex-col"
               >
@@ -134,11 +133,10 @@ export const StudentBootcampsPage = () => {
                     <Icon className="w-7 h-7 text-portal-accent group-hover:text-portal-bg transition-colors duration-500" />
                   </div>
                   {status && (
-                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                      status === 'ACCEPTED' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                      status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                      'bg-portal-accent/10 text-portal-accent border-portal-accent/20'
-                    }`}>
+                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${status === 'ACCEPTED' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                        status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                          'bg-portal-accent/10 text-portal-accent border-portal-accent/20'
+                      }`}>
                       {status.replace('_', ' ')}
                     </div>
                   )}
@@ -170,7 +168,7 @@ export const StudentBootcampsPage = () => {
                   </div>
 
                   {status ? (
-                    <button 
+                    <button
                       onClick={() => navigate('/dashboard')}
                       className="w-full py-4 bg-white/5 border border-white/10 text-portal-text rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
                     >
@@ -178,7 +176,7 @@ export const StudentBootcampsPage = () => {
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => navigate(`/apply/${bootcamp._id}`)}
                       className="w-full py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-portal-accent/20"
                     >

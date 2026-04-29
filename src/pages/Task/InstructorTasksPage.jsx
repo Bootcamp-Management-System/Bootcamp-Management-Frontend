@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import taskService from '../../services/taskService';
 import submissionService from '../../services/submissionService';
+import sessionService from '../../services/sessionService';
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 const fmt = (date) =>
@@ -20,10 +21,11 @@ const statusColor = (status) => ({
 }[status] || 'bg-slate-500/20 text-slate-400 border-slate-500/30');
 
 // ─── Create Task Modal ───────────────────────────────────────────────────────
-const CreateTaskModal = ({ onClose, onCreate, divisionId }) => {
+const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
   const [form, setForm] = useState({
     title: '',
     description: '',
+    session: '',
     startTime: '',
     endTime: '',
     deadline: '',
@@ -36,8 +38,8 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.title || !form.description || !form.startTime || !form.endTime || !form.deadline) {
-      return setError('All fields are required.');
+    if (!form.title || !form.description || !form.session || !form.startTime || !form.endTime || !form.deadline) {
+      return setError('All fields, including session, are required.');
     }
     setLoading(true);
     try {
@@ -87,6 +89,16 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId }) => {
           <div>
             <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Description</label>
             <textarea name="description" value={form.description} onChange={handleChange} rows={3} placeholder="What should students do?" className={`${inputClass} resize-none`} />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Target Session</label>
+            <select name="session" value={form.session} onChange={handleChange} className={inputClass}>
+              <option value="" disabled>Select a session you instruct</option>
+              {sessions.map(s => (
+                <option key={s._id} value={s._id}>{s.title} ({new Date(s.startTime).toLocaleDateString()})</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -348,30 +360,42 @@ const TaskCard = ({ task, onDelete, onReviewSubmission }) => {
 export const InstructorTasksPage = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
   const divisionId = user?.division;
 
-  const fetchTasks = useCallback(async () => {
+  const fetchTasksAndSessions = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await taskService.getTasks({ division: divisionId });
-      setTasks(res.data || []);
+      const [tasksRes, sessionsRes] = await Promise.all([
+        taskService.getTasks({ division: divisionId }),
+        sessionService.getSessions({ division: divisionId })
+      ]);
+      setTasks(tasksRes.data || []);
+      
+      const allSessions = sessionsRes.data || [];
+      // Instructors can only create tasks for sessions they instruct
+      const mySessions = allSessions.filter(s => 
+        (s.instructor?._id || s.instructor) === (user?.id || user?._id) || 
+        user?.role === 'admin' || user?.role === 'super_admin'
+      );
+      setSessions(mySessions);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to load tasks.');
+      setError(err?.response?.data?.message || 'Failed to load data.');
     } finally {
       setLoading(false);
     }
-  }, [divisionId]);
+  }, [divisionId, user]);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
+  useEffect(() => { fetchTasksAndSessions(); }, [fetchTasksAndSessions]);
 
   const handleCreate = async (data) => {
     await taskService.createTask(data);
-    await fetchTasks();
+    await fetchTasksAndSessions();
   };
 
   const handleDelete = async (id) => {
@@ -396,6 +420,7 @@ export const InstructorTasksPage = () => {
             onClose={() => setShowCreate(false)}
             onCreate={handleCreate}
             divisionId={divisionId}
+            sessions={sessions}
           />
         )}
       </AnimatePresence>
@@ -412,11 +437,17 @@ export const InstructorTasksPage = () => {
             <p className="text-portal-text-muted">Create tasks and review student submissions for your division.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={fetchTasks} className="p-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-border transition-colors">
+            <button onClick={fetchTasksAndSessions} className="p-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-border transition-colors">
               <RefreshCw className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setShowCreate(true)}
+              onClick={() => {
+                if (sessions.length === 0) {
+                  alert('You have no sessions assigned to you. An admin must schedule a session for you first.');
+                  return;
+                }
+                setShowCreate(true);
+              }}
               className="flex items-center gap-2 bg-portal-accent text-white px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" /> Create Task
@@ -451,7 +482,7 @@ export const InstructorTasksPage = () => {
           <div className="flex flex-col items-center justify-center py-24 text-red-400 gap-3">
             <XCircle className="w-10 h-10" />
             <p className="text-sm font-semibold">{error}</p>
-            <button onClick={fetchTasks} className="text-sm text-portal-accent hover:underline">Retry</button>
+            <button onClick={fetchTasksAndSessions} className="text-sm text-portal-accent hover:underline">Retry</button>
           </div>
         ) : tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-portal-text-muted gap-4">

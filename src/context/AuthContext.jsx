@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
         parsedUser.divisions = ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"];
         localStorage.setItem('auth_user', JSON.stringify(parsedUser));
       }
-      
+
       setState({
         token: storedToken,
         user: parsedUser,
@@ -224,12 +224,12 @@ export const AuthProvider = ({ children }) => {
     }
 
     const response = await authService.resendOtp({ email: targetEmail });
-    
+
     // Store OTP for development
     if (response.otpCode) {
       localStorage.setItem('dev_otp', response.otpCode);
     }
-    
+
     return response;
   };
 
@@ -237,10 +237,10 @@ export const AuthProvider = ({ children }) => {
     if (state.user) {
       const updatedUser = { ...state.user, firstLogin: false };
       const mockToken = 'mock_jwt_token_after_first_login';
-      
+
       localStorage.setItem('auth_token', mockToken);
       localStorage.setItem('auth_user', JSON.stringify(updatedUser));
-      
+
       setState({
         user: updatedUser,
         token: mockToken,
@@ -261,18 +261,18 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updates) => {
     if (state.user) {
       // Strictly prevent updating verified/identity fields from the user side
-      const { 
-        id, 
-        idNo, 
-        email, 
-        role, 
-        attendance, 
-        division, 
-        status, 
+      const {
+        id,
+        idNo,
+        email,
+        role,
+        attendance,
+        division,
+        status,
         firstLogin,
-        ...allowedUpdates 
+        ...allowedUpdates
       } = updates;
-      
+
       const updatedUser = { ...state.user, ...allowedUpdates };
       localStorage.setItem('auth_user', JSON.stringify(updatedUser));
       setState(prev => ({ ...prev, user: updatedUser }));
@@ -292,23 +292,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const switchRole = () => {
+    if (state.user) {
+      const originalRole = state.user.originalRole || state.user.role;
+      if (originalRole === 'instructor') {
+        const newRole = state.user.role === 'instructor' ? 'student' : 'instructor';
+        const updatedUser = { 
+          ...state.user, 
+          role: newRole,
+          originalRole: originalRole
+        };
+        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+        setState(prev => ({ ...prev, user: updatedUser }));
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      ...state, 
+    <AuthContext.Provider value={{
+      ...state,
       selectedDivision,
       setGlobalDivision,
       demoLogin,
-      login, 
+      login,
       signup,
-      googleLogin, 
-      logout, 
+      googleLogin,
+      logout,
       verifyOTP,
-      resendOtp, 
-      changePassword, 
-      forgotPassword, 
+      resendOtp,
+      changePassword,
+      forgotPassword,
       resetPassword,
       updateProfile,
-      completeOnboarding
+      completeOnboarding,
+      switchRole
     }}>
       {children}
     </AuthContext.Provider>

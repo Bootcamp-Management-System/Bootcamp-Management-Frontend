@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useDivision } from '../../../context/DivisionContext';
-import { 
-  BookOpen, 
-  Clock, 
-  CheckCircle2, 
-  Calendar, 
-  ArrowRight, 
+import {
+  BookOpen,
+  Clock,
+  CheckCircle2,
+  Calendar,
+  ArrowRight,
   MoreHorizontal,
   FileText,
   Activity,
@@ -21,19 +21,25 @@ import {
   Loader2,
   AlertCircle,
   Link as LinkIcon,
-  Rocket
+  Rocket,
+  ShieldCheck,
+  Globe,
+  Zap,
+  Code2
 } from 'lucide-react';
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  Tooltip as ChartTooltip 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip as ChartTooltip
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import taskService from '../../../services/taskService';
 import submissionService from '../../../services/submissionService';
 import enrollmentService from '../../../services/enrollmentService';
+import { bootcampService } from '../../../services/bootcampService';
+import { recruitmentService } from '../../../services/recruitmentService';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 const fmtDeadline = (date) => {
@@ -79,19 +85,9 @@ export const StudentDashboard = () => {
   const [otp, setOtp] = useState('');
   const [activating, setActivating] = useState(false);
 
-  const fetchApplicationStatus = useCallback(async () => {
-    try {
-      const { recruitmentService } = await import('../../../services/recruitmentService');
-      const data = await recruitmentService.getMyApplications();
-      if (data.data && data.data.length > 0) {
-        setApplication(data.data[0]); // Take the most recent
-      }
-    } catch (err) {
-      console.error('Failed to fetch app status');
-    } finally {
-      setLoadingApp(false);
-    }
-  }, []);
+  const [availableBootcamps, setAvailableBootcamps] = useState([]);
+  const [loadingBootcamps, setLoadingBootcamps] = useState(true);
+  const [applications, setApplications] = useState([]);
 
   const fetchEnrollments = useCallback(async () => {
     try {
@@ -105,10 +101,28 @@ export const StudentDashboard = () => {
     }
   }, []);
 
+  const fetchBootcamps = useCallback(async () => {
+    try {
+      setLoadingBootcamps(true);
+      const [bootcampsData, appsData] = await Promise.all([
+        bootcampService.getPublicBootcamps(),
+        recruitmentService.getMyApplications()
+      ]);
+      setAvailableBootcamps(bootcampsData.data || []);
+      setApplications(appsData.data || []);
+      setApplication(appsData.data && appsData.data.length > 0 ? appsData.data[0] : null);
+    } catch (err) {
+      console.error('Failed to fetch bootcamps');
+    } finally {
+      setLoadingBootcamps(false);
+      setLoadingApp(false);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchApplicationStatus();
+    fetchBootcamps();
     fetchEnrollments();
-  }, [fetchApplicationStatus, fetchEnrollments]);
+  }, [fetchBootcamps, fetchEnrollments]);
 
   // ── Fetch tasks + submissions ───────────────────────────────────────────────
   const fetchTaskData = useCallback(async () => {
@@ -182,11 +196,11 @@ export const StudentDashboard = () => {
       </header>
 
       {/* No Application CTA */}
-      {!application && !loadingApp && (
+      {!application && !loadingApp && availableBootcamps.length === 0 && !loadingBootcamps && (
         <div className="relative p-10 rounded-[40px] bg-gradient-to-br from-portal-accent/20 via-portal-bg to-portal-accent/5 border border-portal-accent/20 shadow-2xl overflow-hidden group">
           <div className="absolute top-0 right-0 w-96 h-96 bg-portal-accent/10 rounded-full blur-[100px] -mr-48 -mt-48 animate-pulse" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] -ml-32 -mb-32" />
-          
+
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <div className="w-20 h-20 rounded-[24px] bg-portal-accent flex items-center justify-center shadow-2xl shadow-portal-accent/30 group-hover:scale-110 transition-transform duration-500">
               <Rocket className="w-10 h-10 text-portal-bg" />
@@ -197,8 +211,8 @@ export const StudentDashboard = () => {
                 You haven't joined any active programs yet. Explore our elite bootcamps across Web, Cyber, AI, and more.
               </p>
             </div>
-            <button 
-              onClick={() => navigate('/bootcamps')} 
+            <button
+              onClick={() => navigate('/bootcamps')}
               className="px-10 py-5 bg-portal-accent text-portal-bg rounded-2xl font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-portal-accent/20 flex items-center gap-3 whitespace-nowrap"
             >
               Explore Bootcamps
@@ -229,9 +243,9 @@ export const StudentDashboard = () => {
                 {application.status === 'REJECTED' && "Sorry for this time... We've reviewed your application and cannot move forward at this moment."}
               </p>
             </div>
-            { (application.status === 'SCREENED_ROUND_1' || application.status === 'WAITLISTED') && (
-              <button 
-                onClick={() => navigate(`/recruitment/submit/${application._id}`)} 
+            {(application.status === 'SCREENED_ROUND_1' || application.status === 'WAITLISTED') && (
+              <button
+                onClick={() => navigate(`/recruitment/submit/${application._id}`)}
                 className="px-6 py-3 bg-portal-accent text-portal-bg rounded-xl font-bold hover:scale-105 transition-all"
               >
                 Complete Recruitment Task
@@ -269,7 +283,7 @@ export const StudentDashboard = () => {
                 You have been accepted into a bootcamp! Check your email for the activation OTP to complete enrollment.
               </p>
             </div>
-            <button 
+            <button
               onClick={() => {
                 setSelectedEnrollment(enrollments.find(e => !e.is_active));
                 setShowOtpModal(true);
@@ -578,8 +592,82 @@ export const StudentDashboard = () => {
           </div>
         </div>
       </div>
+      {/* Available Bootcamps Section */}
+      <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
+            <Rocket className="w-6 h-6 text-portal-accent" />
+            Available Bootcamps
+          </h3>
+          <Link
+            to="/bootcamps"
+            className="text-xs font-bold text-portal-accent flex items-center gap-1 hover:text-portal-text transition-colors uppercase tracking-widest"
+          >
+            View All <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
 
-      {/* OTP Activation Modal */}
+        {loadingBootcamps ? (
+          <div className="flex items-center gap-2 text-portal-text-muted text-sm py-8">
+            <Loader2 className="w-4 h-4 animate-spin text-portal-accent" /> Loading bootcamps…
+          </div>
+        ) : availableBootcamps.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center text-portal-text-muted">
+            <Rocket className="w-8 h-8 text-portal-accent/40" />
+            <p className="text-sm font-semibold">No bootcamps available</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {availableBootcamps.slice(0, 3).map((bootcamp) => {
+              const Icon = bootcamp.name.toLowerCase().includes('cyber') ? ShieldCheck :
+                bootcamp.name.toLowerCase().includes('web') ? Globe :
+                  bootcamp.name.toLowerCase().includes('ai') ? Zap : Code2;
+
+              const hasApplied = applications.some(app => app.bootcamp?._id === bootcamp._id || app.bootcamp === bootcamp._id);
+              const appStatus = applications.find(app => app.bootcamp?._id === bootcamp._id || app.bootcamp === bootcamp._id)?.status;
+
+              return (
+                <div key={bootcamp._id} className="group relative bg-portal-input border border-portal-border/50 rounded-2xl p-6 hover:border-portal-accent/30 transition-all overflow-hidden">
+                  <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-portal-accent/5 rounded-full blur-2xl group-hover:bg-portal-accent/10 transition-colors" />
+
+                  <div className="w-12 h-12 bg-portal-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-portal-accent/20 transition-colors">
+                    <Icon className="w-6 h-6 text-portal-accent" />
+                  </div>
+
+                  <h4 className="text-lg font-bold text-portal-text mb-2 group-hover:text-portal-accent transition-colors line-clamp-2">
+                    {bootcamp.name}
+                  </h4>
+
+                  <p className="text-sm text-portal-text-muted mb-4 line-clamp-2">
+                    {bootcamp.description || 'Join this elite bootcamp program.'}
+                  </p>
+
+                  {hasApplied ? (
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${appStatus === 'ACCEPTED' ? 'bg-green-500' :
+                        appStatus === 'PENDING' ? 'bg-yellow-500' :
+                          appStatus === 'REJECTED' ? 'bg-red-500' : 'bg-gray-500'
+                        }`} />
+                      <span className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">
+                        {appStatus === 'ACCEPTED' ? 'Accepted' :
+                          appStatus === 'PENDING' ? 'Pending' :
+                            appStatus === 'REJECTED' ? 'Rejected' : 'Applied'}
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/apply/${bootcamp._id}`)}
+                      className="w-full py-2 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      Apply Now
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
       {showOtpModal && selectedEnrollment && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-2xl max-w-md w-full">

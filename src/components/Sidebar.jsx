@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import csecLogo from '../assets/csec logo.jpg';
-import { 
-  LayoutDashboard, 
-  Users, 
-  ClipboardList, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  Settings,
   LogOut,
   ChevronRight,
   ChevronLeft,
@@ -21,12 +21,16 @@ import {
   FileBarChart,
   TrendingUp,
   Layers as LayersIcon,
-  Rocket
+  Rocket,
+  RefreshCw,
+  Calendar,
+  UserCheck
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const panelLabel =
@@ -48,6 +52,7 @@ export const Sidebar = () => {
         { id: 'admin-recruitment', icon: TrendingUp, label: 'Recruitment Hub', path: '/admin/recruitment' },
         { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
         { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
+        { id: 'admin-sessions', icon: Calendar, label: 'Sessions', path: '/admin/sessions' },
       ];
 
       if (user.role === 'super_admin') {
@@ -63,8 +68,9 @@ export const Sidebar = () => {
 
     if (user?.role === 'instructor') {
       return [
-        ...base,
-        { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/instructor/tasks' },
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Panel', path: '/instructor' },
+        { id: 'tasks', icon: ClipboardList, label: 'Tasks', path: '/instructor/tasks' },
+        { id: 'attendance', icon: UserCheck, label: 'Attendance', path: '/instructor/attendance' },
         { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
       ];
     }
@@ -81,13 +87,13 @@ export const Sidebar = () => {
   const navItems = getNavItems();
 
   return (
-    <motion.aside 
+    <motion.aside
       initial={false}
       animate={{ width: isCollapsed ? '80px' : '280px' }}
       className="bg-portal-card border-r border-portal-border flex flex-col shrink-0 relative transition-colors duration-300"
     >
       {/* Toggle Button */}
-      <button 
+      <button
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute -right-3 top-20 w-6 h-6 bg-portal-accent rounded-full flex items-center justify-center text-white shadow-lg shadow-portal-accent/20 z-50 hover:scale-110 transition-transform"
       >
@@ -119,6 +125,27 @@ export const Sidebar = () => {
           </AnimatePresence>
         </div>
 
+        {/* Dual-Role Switcher */}
+        {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
+          <div className={`mb-6 ${isCollapsed ? 'px-0 flex justify-center' : 'px-2'}`}>
+            <button
+              onClick={() => {
+                switchRole();
+                navigate(user.role === 'instructor' ? '/dashboard' : '/instructor');
+              }}
+              title={isCollapsed ? `Switch to ${user.role === 'instructor' ? 'Student' : 'Instructor'}` : undefined}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+                user.role === 'instructor' 
+                  ? 'bg-portal-input border border-portal-border text-portal-text hover:bg-portal-bg' 
+                  : 'bg-portal-accent text-white hover:bg-portal-accent-hover shadow-portal-accent/20'
+              } ${isCollapsed ? 'px-0 w-10 h-10' : 'px-4'}`}
+            >
+              <RefreshCw className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}</span>}
+            </button>
+          </div>
+        )}
+
         <nav className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
@@ -128,8 +155,8 @@ export const Sidebar = () => {
                 to={item.path || '#'}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group relative
-                  ${isActive 
-                    ? 'bg-portal-accent/10 text-portal-accent' 
+                  ${isActive
+                    ? 'bg-portal-accent/10 text-portal-accent'
                     : 'text-portal-text-muted hover:bg-portal-text/5 hover:text-portal-text'
                   }
                   ${isCollapsed ? 'justify-center px-0' : ''}
@@ -149,9 +176,9 @@ export const Sidebar = () => {
                   )}
                 </AnimatePresence>
                 {!isCollapsed && isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="active-pill"
-                    className="absolute left-0 w-1 h-6 bg-portal-accent rounded-r-full" 
+                    className="absolute left-0 w-1 h-6 bg-portal-accent rounded-r-full"
                   />
                 )}
               </Link>
@@ -164,7 +191,7 @@ export const Sidebar = () => {
             <Settings className="w-5 h-5 shrink-0" />
             {!isCollapsed && <span>Settings</span>}
           </button>
-          <button 
+          <button
             onClick={logout}
             className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}
           >

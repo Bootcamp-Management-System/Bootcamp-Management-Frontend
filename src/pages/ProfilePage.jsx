@@ -52,7 +52,7 @@ const divisionContent = {
 };
 
 export const ProfilePage = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, switchRole } = useAuth();
   const { activeDivision } = useDivision();
   
   // Ensure we have divisions to show
@@ -182,6 +182,31 @@ export const ProfilePage = () => {
 
         {/* Right Column: Edit Profile & Security */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Dual-Role Switcher (For Instructors) */}
+          {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
+            <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <h4 className="text-xl font-bold text-portal-text flex items-center gap-3">
+                  <Briefcase className="w-6 h-6 text-portal-accent" />
+                  Dual-Role Workspace
+                </h4>
+                <p className="text-sm text-portal-text-muted mt-2">
+                  Switch between managing your assigned classes and participating in learning bootcamps as a student.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  switchRole();
+                  showNotification(`Switched to ${user.role === 'instructor' ? 'Student' : 'Instructor'} View`, 'success');
+                }}
+                className="bg-portal-accent text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all whitespace-nowrap w-full sm:w-auto justify-center"
+              >
+                <ArrowRight className="w-5 h-5" />
+                Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}
+              </button>
+            </div>
+          )}
+
           {/* Verified Identity (Non-Editable) */}
           <div className="bg-portal-card/50 border border-portal-border rounded-3xl p-8 opacity-90">
             <h4 className="text-xl font-bold text-portal-text mb-8 flex items-center gap-3">

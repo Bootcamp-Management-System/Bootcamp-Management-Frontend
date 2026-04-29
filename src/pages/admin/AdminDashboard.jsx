@@ -1,25 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  Shield, 
-  Users, 
-  BookOpen, 
-  Activity, 
-  ArrowUpRight, 
-  CheckCircle2, 
+import {
+  Shield,
+  Users,
+  BookOpen,
+  Activity,
+  ArrowUpRight,
+  CheckCircle2,
   Clock,
   ClipboardList,
   UserCheck,
   Layers
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -55,7 +55,7 @@ export const AdminDashboard = () => {
     bootcamps: 0,
     groups: 0
   });
-  
+
   const currentDivisionId = user?.division;
   const currentDivisionName = user?.division?.name || user?.divisionName || 'Division';
 
@@ -106,9 +106,9 @@ export const AdminDashboard = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header>
         <div className="flex items-center gap-3 mb-2">
-           <div className="px-3 py-1 bg-portal-accent/10 border border-portal-accent/20 rounded-full text-[10px] font-bold text-portal-accent uppercase tracking-widest">
-              Division Protocol
-           </div>
+          <div className="px-3 py-1 bg-portal-accent/10 border border-portal-accent/20 rounded-full text-[10px] font-bold text-portal-accent uppercase tracking-widest">
+            Division Protocol
+          </div>
         </div>
         <h2 className="text-3xl font-bold mb-2 text-portal-text">
           {currentDivisionName} Command
@@ -152,8 +152,8 @@ export const AdminDashboard = () => {
               <AreaChart data={growthData}>
                 <defs>
                   <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1a2e3b" vertical={false} />
@@ -178,9 +178,9 @@ export const AdminDashboard = () => {
           <button className="text-[10px] font-bold text-portal-accent uppercase tracking-widest hover:text-portal-text transition-colors">Dossier Access</button>
         </div>
         <div className="space-y-4">
-           <div className="text-center py-10 text-portal-text-muted italic text-sm">
-             {loading ? 'Synchronizing logs...' : 'No recent operations logged for this division.'}
-           </div>
+          <div className="text-center py-10 text-portal-text-muted italic text-sm">
+            {loading ? 'Synchronizing logs...' : 'No recent operations logged for this division.'}
+          </div>
         </div>
       </div>
     </div>

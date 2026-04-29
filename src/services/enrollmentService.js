@@ -1,15 +1,18 @@
-import api from '../api/api.js';
+import api from '../api/api';
 
 const enrollmentService = {
-  // Get user's enrollments
+  activateEnrollment: async (otp) => {
+    const response = await api.post('/enrollments/activate', { otp });
+    return response.data;
+  },
+
   getMyEnrollments: async () => {
     const response = await api.get('/enrollments/me');
     return response.data;
   },
 
-  // Activate enrollment with OTP
-  activateEnrollment: async (otp) => {
-    const response = await api.post('/enrollments/activate', { otp });
+  getBootcampEnrollments: async (bootcampId) => {
+    const response = await api.get(`/enrollments/bootcamp/${bootcampId}`);
     return response.data;
   }
 };
