@@ -58,6 +58,7 @@ import { InstructorTasksPage } from "./pages/Task/InstructorTasksPage";
 import { WeeklyProgressPage } from "./pages/WeeklyProgressPage";
 import { StudentBootcampsPage } from "./pages/bootcamp/StudentBootcampsPage";
 import { StudentEnrollmentsPage } from "./pages/bootcamp/StudentEnrollmentsPage";
+import { StudentBootcampDashboardPage } from "./pages/bootcamp/StudentBootcampDashboardPage";
 import { StudentApplicationsPage } from "./pages/bootcamp/StudentApplicationsPage";
 import { StudentMemberHubPage } from "./pages/auth/dashboard/StudentMemberHubPage";
 import { StudentSessionsPage } from "./pages/sessions/StudentSessionsPage";
@@ -183,6 +184,28 @@ export default function App() {
                   <ProtectedRoute allowedRoles={["student", "member"]}>
                     <Layout>
                       <StudentEnrollmentsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/enrollments/:bootcampId"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentBootcampDashboardPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/enrollments/:bootcampId/sessions/:sessionId"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentBootcampDashboardPage />
                     </Layout>
                   </ProtectedRoute>
                 }

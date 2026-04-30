@@ -8,6 +8,10 @@ import { useAuth } from '../../context/AuthContext';
 import taskService from '../../services/taskService';
 import submissionService from '../../services/submissionService';
 
+const MotionDiv = motion.div;
+const MotionH2 = motion.h2;
+const MotionP = motion.p;
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt = (d) =>
   d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
@@ -55,7 +59,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -150,7 +154,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
             )}
           </div>
         </form>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 };
@@ -172,7 +176,7 @@ const TaskNode = ({ task, index, mySubmission, onClick }) => {
 
   return (
     <div className="relative flex items-center justify-center">
-      <motion.div
+      <MotionDiv
         initial={{ scale: 0 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}
@@ -188,10 +192,10 @@ const TaskNode = ({ task, index, mySubmission, onClick }) => {
         )}
         {isActive && <Play className="w-8 h-8 fill-current" />}
         {isOverdueTask && <Clock className="w-7 h-7 opacity-80" />}
-      </motion.div>
+      </MotionDiv>
 
       {/* Desktop Card */}
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
         whileInView={{ opacity: 1, x: isLeft ? -100 : 100 }}
         viewport={{ once: true }}
@@ -228,7 +232,7 @@ const TaskNode = ({ task, index, mySubmission, onClick }) => {
             <ExternalLink className="w-3 h-3" /> View Submission
           </button>
         )}
-      </motion.div>
+      </MotionDiv>
 
       {/* Mobile label */}
       <div className="absolute -bottom-10 md:hidden text-center whitespace-nowrap">
@@ -240,7 +244,7 @@ const TaskNode = ({ task, index, mySubmission, onClick }) => {
 };
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export const StudentTaskPage = () => {
+export const StudentTaskPage = ({ bootcampId, embedded = false }) => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [mySubmissions, setMySubmissions] = useState({});
@@ -255,7 +259,7 @@ export const StudentTaskPage = () => {
     setError('');
     try {
       const [tasksRes, subsRes] = await Promise.all([
-        taskService.getTasks({ division: divisionId }),
+        taskService.getTasks(bootcampId ? { bootcamp: bootcampId } : { division: divisionId }),
         submissionService.getSubmissions(),
       ]);
 
@@ -275,7 +279,7 @@ export const StudentTaskPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [divisionId]);
+  }, [divisionId, bootcampId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -302,31 +306,33 @@ export const StudentTaskPage = () => {
         )}
       </AnimatePresence>
 
-      <div className="max-w-4xl mx-auto py-8 px-4 min-h-screen">
+      <div className={`${embedded ? 'max-w-5xl mx-auto py-2' : 'max-w-4xl mx-auto py-8 px-4 min-h-screen'}`}>
         <header className="text-center mb-14">
-          <motion.h2
+          <MotionH2
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-extrabold text-portal-text mb-3 tracking-tight"
           >
-            Your Task Path
-          </motion.h2>
-          <motion.p
+            {bootcampId ? 'My Tasks' : 'Your Task Path'}
+          </MotionH2>
+          <MotionP
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
             className="text-portal-text-muted text-base max-w-lg mx-auto"
           >
             Complete each task to level up. Click any node to view details and submit your work.
-          </motion.p>
+          </MotionP>
 
           <div className="flex items-center justify-center gap-6 mt-6 text-xs font-semibold text-portal-text-muted">
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-portal-accent inline-block" /> Submitted</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-slate-700 border border-portal-accent/50 inline-block" /> Active</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-950 border border-red-500/40 inline-block" /> Overdue</span>
-            <button onClick={fetchData} className="flex items-center gap-1 text-portal-accent hover:underline">
-              <RefreshCw className="w-3 h-3" /> Refresh
-            </button>
+            {!embedded && (
+              <button onClick={fetchData} className="flex items-center gap-1 text-portal-accent hover:underline">
+                <RefreshCw className="w-3 h-3" /> Refresh
+              </button>
+            )}
           </div>
         </header>
 
@@ -347,13 +353,17 @@ export const StudentTaskPage = () => {
               <Trophy className="w-12 h-12 text-portal-accent/40" />
             </div>
             <p className="text-lg font-bold text-portal-text">No tasks assigned yet</p>
-            <p className="text-sm">Your instructor hasn't assigned any tasks to your division.</p>
+            <p className="text-sm">
+              {bootcampId
+                ? "Your instructor hasn't assigned any tasks for this bootcamp yet."
+                : "Your instructor hasn't assigned any tasks to your division."}
+            </p>
           </div>
         ) : (
           <div className="relative">
             {/* Central Path Line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-portal-border -translate-x-1/2 z-0">
-              <motion.div
+              <MotionDiv
                 initial={{ height: 0 }}
                 animate={{ height: '100%' }}
                 transition={{ duration: 1.5, ease: 'easeInOut' }}

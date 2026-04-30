@@ -20,7 +20,7 @@ import { divisionService } from '../../services/divisionService';
 import { userService } from '../../services/userService';
 
 export const AdminInstructorsPage = () => {
-  const { user: admin, selectedDivision } = useAuth();
+  const { user: admin } = useAuth();
   const [divisions, setDivisions] = React.useState([]);
   const [users, setUsers] = React.useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -51,7 +51,7 @@ export const AdminInstructorsPage = () => {
   const [promoteError, setPromoteError] = useState('');
   const [promoteSuccess, setPromoteSuccess] = useState(null);
 
-  const buildDisplayUser = (user) => {
+  const buildDisplayUser = React.useCallback((user) => {
     const email = user?.email || '';
     const nameSource = user?.name || email.split('@')[0] || 'User';
     const cleanName = nameSource.replace(/[._-]+/g, ' ').trim();
@@ -72,6 +72,23 @@ export const AdminInstructorsPage = () => {
         }).filter(Boolean)
       : [];
 
+    const instructorMembershipNames = Array.isArray(user?.memberships)
+      ? user.memberships
+          .filter((membership) => membership?.isInstructor)
+          .map((membership) => {
+            const idOrName = membership?.division?.name || membership?.division;
+            const divObj = divisions.find(d => d._id === idOrName || d.id === idOrName);
+            return divObj ? divObj.name : idOrName;
+          })
+          .filter(Boolean)
+      : [];
+
+    const allInstructorDivisions = Array.from(new Set([
+      ...assignedNames,
+      ...instructorMembershipNames,
+      divisionName !== 'Unassigned' ? divisionName : null,
+    ].filter(Boolean)));
+
     return {
       id: user?._id || user?.id || email,
       name: prettyName,
@@ -79,11 +96,11 @@ export const AdminInstructorsPage = () => {
       role: user?.role,
       division: divisionName,
       divisionId,
-      assignedDivisions: assignedNames,
+      assignedDivisions: allInstructorDivisions,
       status: user?.verified ? 'Active' : 'Pending',
       idNo: user?.campusId || user?.idNo || (user?._id ? user._id.slice(-6).toUpperCase() : 'N/A'),
     };
-  };
+  }, [divisions]);
 
   const loadUsers = async () => {
     setIsLoadingUsers(true);
@@ -119,7 +136,11 @@ export const AdminInstructorsPage = () => {
     const filteredInstructors = users
       .filter((user) => user?.role === 'instructor')
       .map(buildDisplayUser)
-      .filter((user) => currentDivision === 'All' || user.division === currentDivision);
+      .filter((user) => (
+        currentDivision === 'All' ||
+        user.division === currentDivision ||
+        user.assignedDivisions?.includes(currentDivision)
+      ));
     setInstructors(filteredInstructors);
 
     let filteredMembers = users
@@ -132,7 +153,7 @@ export const AdminInstructorsPage = () => {
       );
     
     setMembers(filteredMembers);
-  }, [currentDivision, users]);
+  }, [buildDisplayUser, currentDivision, users]);
 
   const resolveDivisionId = (divisionValue) => {
     if (!divisionValue) return null;
@@ -157,7 +178,6 @@ export const AdminInstructorsPage = () => {
       return;
     }
 
-    const selectedDivisionValue = form.get('division');
     const divisionId = adminDivisionId;
 
     try {
@@ -249,7 +269,7 @@ export const AdminInstructorsPage = () => {
     },
     { 
       header: 'Specialization', 
-      render: (row) => (
+      render: () => (
         <div className="flex items-center gap-2">
           <Award className="w-3.5 h-3.5 text-portal-accent" />
           <span className="text-xs text-portal-text/80 font-medium">Senior Lead</span>

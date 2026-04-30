@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
-import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { z } from 'zod';
+
+const MotionDiv = motion.div;
 
 // Define the schema using Zod
 const signupSchema = z.object({
@@ -32,7 +32,6 @@ const signupSchema = z.object({
 });
 
 export const SignupPage = () => {
-  const { t } = useTranslation();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +39,6 @@ export const SignupPage = () => {
   const [bootcampId] = useState(() => new URLSearchParams(window.location.search).get('bootcampId'));
   const navigate = useNavigate();
   const { signup, isAuthenticated, user } = useAuth();
-  const { theme } = useTheme();
 
   const getHomePath = (role) => (
     role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard'
@@ -115,16 +113,16 @@ export const SignupPage = () => {
       {/* Left Column: Visual Branding */}
       <div className="hidden lg:flex w-2/5 relative items-center justify-center p-12 border-r border-white/5">
         <div className="max-w-sm space-y-8 relative z-10">
-          <motion.div 
+          <MotionDiv 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="w-24 h-24 rounded-3xl overflow-hidden shadow-2xl shadow-portal-accent/20 ring-2 ring-portal-accent/20"
           >
             <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
-          </motion.div>
+          </MotionDiv>
           <div className="space-y-4">
-            <h1 className="text-5xl font-bold text-white leading-tight">{t('auth.signup_title')}</h1>
-            <p className="text-portal-text-muted text-lg leading-relaxed">{t('auth.signup_subtitle')}</p>
+            <h1 className="text-5xl font-bold text-white leading-tight">Join the Next Gen.</h1>
+            <p className="text-portal-text-muted text-lg leading-relaxed">Create your specialized profile in seconds and start applying for the top bootcamps at ASTU.</p>
           </div>
           <div className="space-y-4 pt-8">
             {['Global Developer Network', 'Accelerated Learning', 'Secure Certification'].map((item) => (
@@ -139,7 +137,7 @@ export const SignupPage = () => {
 
       {/* Right Column: Signup Form */}
       <div className="flex-1 relative z-10 flex items-center justify-center p-6 md:p-12 lg:p-20">
-        <motion.div 
+        <MotionDiv 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md w-full"
@@ -149,13 +147,13 @@ export const SignupPage = () => {
               <Sparkles className="w-5 h-5 text-portal-accent animate-pulse" />
               <span className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.3em]">Quick Onboarding</span>
             </div>
-            <h2 className="text-4xl font-bold text-white mb-2">{t('auth.create_account')}</h2>
-            <p className="text-portal-text-muted">{t('auth.login_title')}</p>
+            <h2 className="text-4xl font-bold text-white mb-2">Create an Account</h2>
+            <p className="text-portal-text-muted">Log in to your specialized learning environment</p>
           </div>
 
           <form onSubmit={formik.handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className={labelClass}>{t('auth.full_name')}</label>
+              <label className={labelClass}>Full Name</label>
               <div className="relative group">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input
@@ -170,7 +168,7 @@ export const SignupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>{t('auth.email_id')}</label>
+              <label className={labelClass}>Email / ID</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input
@@ -186,7 +184,7 @@ export const SignupPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className={labelClass}>{t('auth.password')}</label>
+                <label className={labelClass}>Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
@@ -209,7 +207,7 @@ export const SignupPage = () => {
                 {formik.touched.password && formik.errors.password && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.password}</p>}
               </div>
               <div className="space-y-2">
-                <label className={labelClass}>{t('auth.confirm_password')}</label>
+                <label className={labelClass}>Confirm</label>
                 <div className="relative group">
                   <BadgeCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
@@ -247,19 +245,14 @@ export const SignupPage = () => {
 
             <div className="mt-8 text-center">
               <p className="text-sm text-portal-text-muted">
-                {t('auth.already_have_account')} {' '}
+                Already have an account?{' '}
                 <Link to="/login" className="text-portal-accent font-bold hover:underline underline-offset-4">
-                  {t('nav.login')}
+                  Login
                 </Link>
               </p>
             </div>
           </form>
-        </motion.div>
-      </div>
-      {/* Theme & Language Switcher */}
-      <div className="absolute bottom-8 right-8 flex items-center gap-3">
-        <LanguageSwitcher />
-        <ThemeSwitcher />
+        </MotionDiv>
       </div>
     </div>
   );

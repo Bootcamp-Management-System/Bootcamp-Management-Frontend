@@ -41,8 +41,13 @@ const sessionService = {
   },
 
   // GET /api/v1/sessions/available-instructors/:divisionId
-  async getAvailableInstructors(divisionId) {
-    const response = await api.get(`/sessions/available-instructors/${divisionId}`);
+  async getAvailableInstructors(divisionId, filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.startTime) params.append('startTime', filters.startTime);
+    if (filters.endTime) params.append('endTime', filters.endTime);
+    if (filters.sessionId) params.append('sessionId', filters.sessionId);
+    const query = params.toString();
+    const response = await api.get(`/sessions/available-instructors/${divisionId}${query ? `?${query}` : ''}`);
     return response.data;
   },
 };

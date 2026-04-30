@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { divisionService } from '../services/divisionService';
 import { notificationService } from '../services/notificationService';
-import { Bell, Search, Sun, Moon, User, Settings, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ThemeSwitcher } from './ThemeSwitcher';
-import { LanguageSwitcher } from './LanguageSwitcher';
-import { useTranslation } from 'react-i18next';
+
+const MotionDiv = motion.div;
 
 export const Navbar = () => {
-  const { t } = useTranslation();
   const { user, selectedDivision, setGlobalDivision, logout, switchRole } = useAuth();
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -86,7 +82,7 @@ export const Navbar = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
           <input 
             type="text" 
-            placeholder={t('nav.search')} 
+            placeholder="Search..." 
             className="w-full bg-portal-input border border-portal-border rounded-xl py-2 pl-11 pr-4 text-xs text-portal-text focus:outline-none focus:border-portal-accent transition-colors"
           />
         </div>
@@ -116,13 +112,10 @@ export const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <LanguageSwitcher />
-        <ThemeSwitcher />
-
         <button
           onClick={() => navigate('/notifications')}
           className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all relative"
-          title={t('nav.notifications')}
+          title="Notifications"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
@@ -153,21 +146,21 @@ export const Navbar = () => {
           <AnimatePresence>
             {showProfileDropdown && (
               <>
-                <motion.div 
+                <MotionDiv 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="fixed inset-0 z-40" 
                   onClick={() => setShowProfileDropdown(false)}
                 />
-                <motion.div
+                <MotionDiv
                   initial={{ opacity: 0, scale: 0.95, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                   className="absolute right-0 mt-3 w-64 bg-portal-card border border-portal-border rounded-2xl shadow-2xl z-50 p-2 overflow-hidden ring-1 ring-black/10"
                 >
                   <div className="px-4 py-3 mb-2 border-b border-portal-border/50">
-                    <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest mb-1">{t('nav.profile')} ({user?.role})</p>
+                    <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest mb-1">My Profile ({user?.role})</p>
                     <p className="text-sm font-bold text-portal-text truncate">{user?.email}</p>
                   </div>
                   
@@ -176,7 +169,7 @@ export const Navbar = () => {
                       onClick={() => { navigate('/profile'); setShowProfileDropdown(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-text hover:bg-portal-accent/10 hover:text-portal-accent transition-all text-left"
                     >
-                      <User className="w-4 h-4" /> {t('nav.profile')}
+                      <User className="w-4 h-4" /> My Profile
                     </button>
                     {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
                       <button 
@@ -186,8 +179,8 @@ export const Navbar = () => {
                           setShowProfileDropdown(false);
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-accent hover:bg-portal-accent/10 transition-all text-left"
-                      >
-                        <RefreshCw className="w-4 h-4" /> {t('nav.switch_to')} {user.role === 'instructor' ? 'Student' : 'Instructor'}
+                    >
+                        <RefreshCw className="w-4 h-4" /> Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}
                       </button>
                     )}
                   </div>
@@ -198,9 +191,9 @@ export const Navbar = () => {
                     onClick={() => { logout(); setShowProfileDropdown(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black text-red-400 hover:bg-red-400/10 transition-all text-left"
                   >
-                    <LogOut className="w-4 h-4" /> {t('nav.logout')}
+                    <LogOut className="w-4 h-4" /> Logout
                   </button>
-                </motion.div>
+                </MotionDiv>
               </>
             )}
           </AnimatePresence>

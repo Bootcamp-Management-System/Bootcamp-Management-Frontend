@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, IdCard, Lock, ShieldCheck, Sun, Moon } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { ArrowLeft, Eye, EyeOff, IdCard, Lock, ShieldCheck } from 'lucide-react';
+
+const MotionDiv = motion.div;
+const MotionP = motion.p;
 
 export const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
@@ -11,7 +13,6 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, isAuthenticated, user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const fromPath = location.state?.from?.pathname;
@@ -70,7 +71,7 @@ export const LoginPage = () => {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />
 
       {/* Header Logo Section */}
-      <motion.div 
+      <MotionDiv 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 text-center relative z-10 flex flex-col items-center"
@@ -80,10 +81,10 @@ export const LoginPage = () => {
         </div>
         <h1 className="text-3xl font-bold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
         <p className="text-portal-text-muted text-sm mt-2 font-medium">Log in to your specialized learning environment</p>
-      </motion.div>
+      </MotionDiv>
 
       {/* Main Login Card */}
-      <motion.div 
+      <MotionDiv 
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
@@ -131,14 +132,14 @@ export const LoginPage = () => {
 
           <AnimatePresence>
             {error && (
-              <motion.p 
+              <MotionP 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 className="text-red-400 text-xs font-medium text-center bg-red-400/10 py-2 rounded-lg border border-red-400/20"
               >
                 {error}
-              </motion.p>
+              </MotionP>
             )}
           </AnimatePresence>
 
@@ -165,15 +166,7 @@ export const LoginPage = () => {
             </Link>
           </p>
         </div>
-      </motion.div>
-
-      {/* Theme Toggle Button */}
-      <button 
-        onClick={toggleTheme}
-        className="absolute bottom-8 right-8 p-3 bg-white/5 border border-white/5 rounded-full text-portal-text-muted hover:text-portal-accent transition-all"
-      >
-        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-      </button>
+      </MotionDiv>
     </div>
   );
 };

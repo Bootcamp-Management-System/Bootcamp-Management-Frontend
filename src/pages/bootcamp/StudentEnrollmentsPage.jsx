@@ -17,7 +17,7 @@ export const StudentEnrollmentsPage = () => {
       setLoading(true);
       const data = await enrollmentService.getMyEnrollments();
       setEnrollments(data.data || []);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch enrollments');
     } finally {
       setLoading(false);
@@ -132,10 +132,10 @@ export const StudentEnrollmentsPage = () => {
                 </div>
 
                 <button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate(`/enrollments/${enrollment.bootcamp?._id || enrollment.bootcamp}`)}
                   className="w-full py-4 bg-portal-accent/10 border border-portal-accent/20 text-portal-accent rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-portal-accent hover:text-portal-bg transition-all shadow-lg shadow-portal-accent/20"
                 >
-                  Go to Dashboard
+                  Open Bootcamp Dashboard
                   <Rocket className="w-4 h-4" />
                 </button>
               </div>
@@ -175,7 +175,7 @@ export const StudentEnrollmentsPage = () => {
                 setSelectedEnrollment(null);
                 fetchEnrollments();
                 window.location.reload();
-              } catch (error) {
+              } catch {
                 alert('Invalid OTP. Please check your email and try again.');
               } finally {
                 setActivating(false);

@@ -24,11 +24,11 @@ export const AdminSessionsPage = () => {
   const currentDivision = admin?.role === 'super_admin' ? selectedDivision : (admin?.division?._id || admin?.division);
 
   const [sessions, setSessions] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [availableInstructors, setAvailableInstructors] = React.useState([]);
   const [availableBootcamps, setAvailableBootcamps] = React.useState([]);
+  const [formError, setFormError] = React.useState('');
   const [formData, setFormData] = useState({
     title: '',
     bootcamp: '',
@@ -38,17 +38,20 @@ export const AdminSessionsPage = () => {
     time: ''
   });
 
-  React.useEffect(() => {
-    const fetchAvailableInstructors = async () => {
-      try {
-        const res = await sessionService.getAvailableInstructors(currentDivision);
-        setAvailableInstructors(res.data || []);
-      } catch (error) {
-        console.error("Failed to fetch available instructors:", error);
-        setAvailableInstructors([]);
-      }
-    };
+  const getSelectedTimeWindow = React.useCallback(() => {
+    if (!formData.date || !formData.time) return {};
 
+    const startTime = new Date(`${formData.date}T${formData.time}`);
+    if (Number.isNaN(startTime.getTime())) return {};
+
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+    return {
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+    };
+  }, [formData.date, formData.time]);
+
+  React.useEffect(() => {
     const fetchBootcamps = async () => {
       try {
         const res = await bootcampService.getBootcamps({ division: currentDivision });
@@ -59,12 +62,39 @@ export const AdminSessionsPage = () => {
     };
 
     if (currentDivision) {
-      fetchAvailableInstructors();
       fetchBootcamps();
     }
   }, [currentDivision]);
 
   React.useEffect(() => {
+    const fetchAvailableInstructors = async () => {
+      try {
+        const res = await sessionService.getAvailableInstructors(currentDivision, {
+          ...getSelectedTimeWindow(),
+          sessionId: selectedSession?._id,
+        });
+        const instructors = res.data || [];
+        setAvailableInstructors(instructors);
+
+        if (formData.instructor && !instructors.some((instructor) => instructor._id === formData.instructor)) {
+          setFormData((current) => (
+            current.instructor === formData.instructor ? { ...current, instructor: '' } : current
+          ));
+        }
+      } catch (error) {
+        console.error("Failed to fetch available instructors:", error);
+        setAvailableInstructors([]);
+      }
+    };
+
+    if (currentDivision) {
+      fetchAvailableInstructors();
+    }
+  }, [currentDivision, formData.instructor, getSelectedTimeWindow, selectedSession?._id]);
+
+  React.useEffect(() => {
+    setFormError('');
+
     if (selectedSession) {
       setFormData({
         title: selectedSession.title || '',
@@ -86,21 +116,19 @@ export const AdminSessionsPage = () => {
     }
   }, [selectedSession, isModalOpen]);
 
-  const fetchSessions = async () => {
+  const fetchSessions = React.useCallback(async () => {
     try {
-      setLoading(true);
       const res = await sessionService.getSessions({ division: currentDivision });
       setSessions(res.data || []);
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [currentDivision]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setFormError('');
       const startTime = new Date(`${formData.date}T${formData.time}`);
       const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
 
@@ -124,6 +152,7 @@ export const AdminSessionsPage = () => {
       fetchSessions();
     } catch (error) {
       console.error('Failed to save session:', error);
+      setFormError(error?.response?.data?.message || error?.response?.data?.error || 'Failed to save session.');
     }
   };
 
@@ -131,7 +160,7 @@ export const AdminSessionsPage = () => {
     if (currentDivision) {
       fetchSessions();
     }
-  }, [currentDivision]);
+  }, [currentDivision, fetchSessions]);
 
   const columns = [
     {
@@ -235,6 +264,11 @@ export const AdminSessionsPage = () => {
         title={selectedSession ? 'Edit Resource Node' : 'Broadcast New Session'}
       >
         <form className="space-y-8" onSubmit={handleSubmit}>
+          {formError && (
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-semibold text-red-400">
+              {formError}
+            </div>
+          )}
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Session Title</label>

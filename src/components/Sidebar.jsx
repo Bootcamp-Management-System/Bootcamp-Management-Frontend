@@ -6,7 +6,6 @@ import csecLogo from '../assets/csec logo.jpg';
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
   GraduationCap,
   BookOpen,
   Shield,
@@ -71,8 +70,6 @@ export const Sidebar = () => {
         title: 'Academy',
         items: [
           { id: 'explore-bootcamps', icon: Globe, label: 'Explore Bootcamps', path: '/bootcamps' },
-          { id: 'sessions', icon: Calendar, label: 'Sessions', path: '/sessions' },
-          { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
           { id: 'enrollments', icon: ShieldCheck, label: 'My Enrollments', path: '/enrollments' },
         ]
       },

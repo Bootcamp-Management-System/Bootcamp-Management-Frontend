@@ -13,7 +13,7 @@ const fmtDateTime = (value) =>
     minute: '2-digit',
   }) : 'Not set';
 
-export const StudentSessionsPage = () => {
+export const StudentSessionsPage = ({ bootcampId, embedded = false }) => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
@@ -26,14 +26,14 @@ export const StudentSessionsPage = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await sessionService.getSessions();
+      const response = await sessionService.getSessions(bootcampId ? { bootcamp: bootcampId } : {});
       setSessions(response.data || []);
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load sessions.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [bootcampId]);
 
   const loadSession = useCallback(async () => {
     if (!sessionId) return;
@@ -60,15 +60,17 @@ export const StudentSessionsPage = () => {
 
   if (!sessionId) {
     return (
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className={`${embedded ? '' : 'max-w-6xl mx-auto'} space-y-8`}>
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-portal-text">Sessions</h1>
             <p className="text-portal-text-muted mt-1">View scheduled classes, resources, locations, and meeting links.</p>
           </div>
-          <button onClick={loadSessions} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-card transition-colors">
-            <RefreshCw className="w-4 h-4" /> Refresh
-          </button>
+          {!embedded && (
+            <button onClick={loadSessions} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-card transition-colors">
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </button>
+          )}
         </header>
 
         {loading ? (
@@ -84,7 +86,11 @@ export const StudentSessionsPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {sessions.map((item) => (
-              <Link key={item._id} to={`/sessions/${item._id}`} className="bg-portal-card border border-portal-border rounded-2xl p-6 hover:border-portal-accent transition-all">
+              <Link
+                key={item._id}
+                to={bootcampId ? `/enrollments/${bootcampId}/sessions/${item._id}` : `/sessions/${item._id}`}
+                className="bg-portal-card border border-portal-border rounded-2xl p-6 hover:border-portal-accent transition-all"
+              >
                 <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent w-fit mb-4"><BookOpen className="w-5 h-5" /></div>
                 <h3 className="text-lg font-black text-portal-text mb-2 line-clamp-1">{item.title}</h3>
                 <p className="text-sm text-portal-text-muted line-clamp-2 mb-4">{item.description || 'Session details are not published yet.'}</p>
@@ -105,9 +111,9 @@ export const StudentSessionsPage = () => {
   if (!session) return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className={`${embedded ? '' : 'max-w-5xl mx-auto'} space-y-6`}>
       <header className="flex items-start gap-4">
-        <button onClick={() => navigate('/sessions')} className="p-3 rounded-xl bg-portal-card border border-portal-border text-portal-text-muted hover:text-portal-text">
+        <button onClick={() => navigate(bootcampId ? `/enrollments/${bootcampId}` : '/sessions')} className="p-3 rounded-xl bg-portal-card border border-portal-border text-portal-text-muted hover:text-portal-text">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>

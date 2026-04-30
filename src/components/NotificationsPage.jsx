@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Calendar, Check, CheckCheck, FileCheck, Info, Megaphone, UserPlus, X } from 'lucide-react';
+import { ArrowLeft, Bell, Calendar, Check, CheckCheck, FileCheck, Info, Megaphone, UserPlus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { notificationService } from '../services/notificationService';
 
@@ -133,6 +133,15 @@ export const NotificationsPage = ({
 
   return (
     <div className="space-y-6">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-2 rounded-lg border border-[#d0d7de] bg-white px-3 py-2 text-sm font-medium text-[#24292f] shadow-sm transition-colors hover:bg-[#f6f8fa] dark:border-[#30363d] dark:bg-[#21262d] dark:text-[#c9d1d9] dark:hover:bg-[#30363d]"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9] flex items-center gap-3">
