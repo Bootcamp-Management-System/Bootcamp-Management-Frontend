@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import csecLogo from '../../assets/csec-logo.jpg';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, IdCard, Lock, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, IdCard, Lock, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 export const LoginPage = () => {
@@ -75,8 +76,8 @@ export const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 text-center relative z-10 flex flex-col items-center"
       >
-        <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mb-4 border border-portal-accent/20 shadow-lg shadow-portal-accent/5">
-          <ShieldCheck className="w-8 h-8 text-portal-accent" />
+        <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 shadow-xl shadow-portal-accent/20 ring-2 ring-portal-accent/20">
+          <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
         </div>
         <h1 className="text-3xl font-bold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
         <p className="text-portal-text-muted text-sm mt-2 font-medium">Log in to your specialized learning environment</p>

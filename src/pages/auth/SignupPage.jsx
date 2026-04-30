@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import csecLogo from '../../assets/csec-logo.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { 
@@ -10,7 +11,6 @@ import {
   User, 
   UserPlus, 
   ArrowLeft, 
-  ShieldCheck,
   CheckCircle2,
   Sparkles
 } from 'lucide-react';
@@ -114,16 +114,16 @@ export const SignupPage = () => {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="w-20 h-20 bg-portal-accent/10 rounded-3xl flex items-center justify-center border border-portal-accent/20 shadow-2xl shadow-portal-accent/5"
+            className="w-24 h-24 rounded-3xl overflow-hidden shadow-2xl shadow-portal-accent/20 ring-2 ring-portal-accent/20"
           >
-            <ShieldCheck className="w-10 h-10 text-portal-accent" />
+            <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
           </motion.div>
           <div className="space-y-4">
             <h1 className="text-5xl font-bold text-white leading-tight">Join the <br /> <span className="text-portal-accent">Next Gen</span>.</h1>
             <p className="text-portal-text-muted text-lg leading-relaxed">Create your specialized profile in seconds and start applying for the top bootcamps at ASTU.</p>
           </div>
           <div className="space-y-4 pt-8">
-            {['Global Developer Network', 'Accelerated Learning', 'Secure Certification'].map((item, i) => (
+            {['Global Developer Network', 'Accelerated Learning', 'Secure Certification'].map((item) => (
               <div key={item} className="flex items-center gap-3 text-white/60 font-medium">
                 <CheckCircle2 className="w-5 h-5 text-portal-accent" />
                 {item}
