@@ -250,8 +250,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const forgotPassword = async (_email) => {
-    // Simulate sending OTP
+  const forgotPassword = async (email) => {
+    return await authService.forgotPassword({ email });
   };
 
   const resetPassword = async (_otp, _newPassword) => {

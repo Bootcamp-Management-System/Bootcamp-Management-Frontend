@@ -172,15 +172,48 @@ export const StudentDashboard = () => {
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
     .slice(0, 3);
 
-  const events = [
-    { title: 'Advanced React Workshop', type: 'Workshop', date: 'Oct 24, 2026', time: '2:00 PM', attendees: 45 },
-    { title: 'Weekly Division Sync', type: 'Meeting', date: 'Oct 26, 2026', time: '10:00 AM', attendees: 12 },
-  ];
+  // ── Derived Recruitment Tasks ───────────────────────────────────────────
+  const recruitmentTasks = applications.filter(app => 
+    ['SCREENED_ROUND_1', 'WAITLISTED'].includes(app.status)
+  );
 
   return (
     <div className="max-w-7xl mx-auto space-y-10 pb-10">
-      {/* Priority Action Card — Focus First */}
-      {!loadingTasks && upcomingTasks.length > 0 ? (
+      {/* Priority Recruitment Action Card */}
+      {recruitmentTasks.length > 0 ? (
+        <div className="relative p-10 rounded-[40px] bg-gradient-to-br from-purple-500/20 via-portal-card to-portal-bg border border-purple-500/20 shadow-2xl overflow-hidden group">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-[100px] -mr-48 -mt-48 animate-pulse" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+            <div className="w-24 h-24 rounded-3xl bg-purple-500 flex items-center justify-center shadow-2xl shadow-purple-500/30 group-hover:rotate-6 transition-transform duration-500 shrink-0">
+              <Code2 className="w-12 h-12 text-white" />
+            </div>
+            
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
+                <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-black text-purple-400 uppercase tracking-widest">Recruitment Task</span>
+                <span className="text-[10px] font-bold text-portal-accent flex items-center gap-1">
+                  <Activity className="w-3 h-3" /> Technical Screening
+                </span>
+              </div>
+              <h3 className="text-3xl font-black text-portal-text mb-2 tracking-tight line-clamp-1">
+                {recruitmentTasks[0].bootcampApplied} - {recruitmentTasks[0].status === 'SCREENED_ROUND_1' ? 'Phase 2 Task' : 'Waitlist Task'}
+              </h3>
+              <p className="text-portal-text-muted text-lg max-w-2xl line-clamp-2 opacity-80">
+                Congratulations! You've been selected for the technical screening. Submit your work now to proceed to the final evaluation.
+              </p>
+            </div>
+            
+            <button
+              onClick={() => navigate(`/recruitment/submit/${recruitmentTasks[0]._id}`)}
+              className="px-10 py-5 bg-purple-500 text-white rounded-2xl font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-purple-500/20 flex items-center gap-3 whitespace-nowrap"
+            >
+              Start Technical Task
+              <ArrowRight className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      ) : !loadingTasks && upcomingTasks.length > 0 ? (
         <div className="relative p-10 rounded-[40px] bg-gradient-to-br from-portal-accent/20 via-portal-card to-portal-bg border border-portal-accent/20 shadow-2xl overflow-hidden group">
           <div className="absolute top-0 right-0 w-96 h-96 bg-portal-accent/5 rounded-full blur-[100px] -mr-48 -mt-48 animate-pulse" />
           

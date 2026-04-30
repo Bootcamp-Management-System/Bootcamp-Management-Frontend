@@ -6,10 +6,13 @@ import {
   AlertCircle, 
   Loader2, 
   ArrowRight,
-  ShieldCheck,
-  Zap,
-  Globe,
-  Code2
+  ShieldCheck, 
+  Zap, 
+  Globe, 
+  Code2,
+  Eye,
+  X,
+  FileText
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { recruitmentService } from '../../services/recruitmentService';
@@ -17,6 +20,9 @@ import { recruitmentService } from '../../services/recruitmentService';
 export const StudentApplicationsPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [appTemplate, setAppTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
   const navigate = useNavigate();
 
   const fetchApplications = async () => {
@@ -34,6 +40,19 @@ export const StudentApplicationsPage = () => {
   useEffect(() => {
     fetchApplications();
   }, []);
+
+  const handleViewDetails = async (app) => {
+    setSelectedApp(app);
+    try {
+      setLoadingTemplate(true);
+      const data = await recruitmentService.getTemplate(app.bootcamp?._id || app.bootcamp);
+      setAppTemplate(data.data);
+    } catch (err) {
+      console.error('Failed to fetch template');
+    } finally {
+      setLoadingTemplate(false);
+    }
+  };
 
   const getStatusConfig = (status) => {
     switch (status) {
@@ -136,21 +155,30 @@ export const StudentApplicationsPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:items-end gap-3">
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${config.bg} ${config.color} ${config.border} font-bold text-xs uppercase tracking-widest`}>
-                      <StatusIcon className="w-4 h-4" />
-                      {config.label}
+                    <div className="flex flex-col md:items-end gap-3">
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${config.bg} ${config.color} ${config.border} font-bold text-xs uppercase tracking-widest`}>
+                        <StatusIcon className="w-4 h-4" />
+                        {config.label}
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={() => handleViewDetails(app)}
+                          className="flex items-center gap-2 text-[10px] font-bold text-portal-text-muted hover:text-portal-accent transition-colors uppercase tracking-widest group"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View Submission
+                        </button>
+
+                        {(app.status === 'SCREENED_ROUND_1' || app.status === 'WAITLISTED') && (
+                          <button 
+                            onClick={() => navigate(`/recruitment/submit/${app._id}`)}
+                            className="flex items-center gap-2 text-[10px] font-bold text-portal-accent hover:text-white transition-colors uppercase tracking-widest group"
+                          >
+                            Complete Task <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    
-                    {(app.status === 'SCREENED_ROUND_1' || app.status === 'WAITLISTED') && (
-                      <button 
-                        onClick={() => navigate(`/recruitment/submit/${app._id}`)}
-                        className="flex items-center gap-2 text-xs font-bold text-portal-accent hover:text-white transition-colors uppercase tracking-widest group"
-                      >
-                        Complete Task <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                  </div>
                 </div>
 
                 {/* Progress bar or additional info if needed */}
@@ -183,6 +211,116 @@ export const StudentApplicationsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Submission Details Modal */}
+      {selectedApp && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="bg-portal-card border border-portal-border rounded-[40px] p-0 shadow-2xl max-w-2xl w-full relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-portal-accent/10 rounded-full blur-3xl -mr-16 -mt-16" />
+            
+            {/* Modal Header */}
+            <div className="p-8 border-b border-portal-border flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-portal-accent/10 rounded-2xl flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-portal-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-portal-text tracking-tight">{selectedApp.bootcampApplied}</h3>
+                  <p className="text-[10px] text-portal-text-muted uppercase font-black tracking-widest mt-1">Application Details</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => { setSelectedApp(null); setAppTemplate(null); }}
+                className="p-2 hover:bg-portal-accent/10 rounded-xl text-portal-text-muted hover:text-portal-accent transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto custom-scrollbar space-y-8">
+              {loadingTemplate ? (
+                <div className="flex flex-col items-center justify-center py-20 text-portal-text-muted">
+                  <Loader2 className="w-10 h-10 animate-spin text-portal-accent mb-4" />
+                  <p className="text-sm font-bold uppercase tracking-widest">Retrieving submission...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Phase 1 Answers */}
+                  <section className="space-y-4">
+                    <h4 className="text-xs font-black text-portal-accent uppercase tracking-[0.2em] flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-portal-accent" />
+                      Phase 1: General Application
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {appTemplate?.phase1Fields?.map((field) => (
+                        <div key={field.name} className="p-4 bg-portal-input border border-portal-border rounded-2xl">
+                          <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-2">{field.label}</p>
+                          <p className="text-sm text-portal-text font-medium leading-relaxed whitespace-pre-wrap">
+                            {selectedApp.phase1Answers?.[field.name] || <span className="italic opacity-50">No response provided</span>}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Phase 2 Answers */}
+                  {selectedApp.phase2Submission?.data && Object.keys(selectedApp.phase2Submission.data).length > 0 && (
+                    <section className="space-y-4 pt-8 border-t border-portal-border/50">
+                      <h4 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        Phase 2: Technical Task
+                      </h4>
+                      <div className="grid grid-cols-1 gap-4">
+                        {appTemplate?.phase2Fields?.map((field) => (
+                          <div key={field.name} className="p-4 bg-portal-input border border-portal-border rounded-2xl">
+                            <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-2">{field.label}</p>
+                            {field.type === 'url' ? (
+                              <a 
+                                href={selectedApp.phase2Submission.data[field.name]} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm text-portal-accent hover:underline font-bold break-all flex items-center gap-2"
+                              >
+                                {selectedApp.phase2Submission.data[field.name]}
+                                <ArrowRight className="w-3 h-3" />
+                              </a>
+                            ) : (
+                              <p className="text-sm text-portal-text font-medium leading-relaxed whitespace-pre-wrap">
+                                {selectedApp.phase2Submission.data[field.name]}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Decision Note if Rejected or Waitlisted */}
+                  {selectedApp.decisionHistory?.length > 0 && selectedApp.decisionHistory[selectedApp.decisionHistory.length - 1].note && (
+                    <section className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
+                      <h4 className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Note from Committee</h4>
+                      <p className="text-sm text-portal-text-muted italic leading-relaxed">
+                        "{selectedApp.decisionHistory[selectedApp.decisionHistory.length - 1].note}"
+                      </p>
+                    </section>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-8 border-t border-portal-border shrink-0 bg-white/[0.01]">
+              <button 
+                onClick={() => { setSelectedApp(null); setAppTemplate(null); }}
+                className="w-full py-4 bg-portal-input border border-portal-border text-portal-text rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-portal-border transition-all"
+              >
+                Close View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

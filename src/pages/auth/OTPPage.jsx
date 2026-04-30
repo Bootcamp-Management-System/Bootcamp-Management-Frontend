@@ -12,16 +12,49 @@ export const OTPPage = () => {
   const [resendMessage, setResendMessage] = useState('');  const { verifyOTP, resendOtp, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const email = location.state?.email || user?.email || localStorage.getItem('pending_otp_email') || '';
-  const purpose = location.state?.purpose || 'register';
+  const queryParams = new URLSearchParams(location.search);
+  
+  const [email, setEmail] = useState(
+    location.state?.email || 
+    queryParams.get('email') || 
+    user?.email || 
+    localStorage.getItem('pending_otp_email') || 
+    ''
+  );
+  const purpose = location.state?.purpose || queryParams.get('purpose') || 'register';
 
-  const handleChange = (element, index) => {
-    if (isNaN(Number(element.value))) return false;
+  const handleChange = (value, index) => {
+    if (isNaN(Number(value)) && value !== '') return;
 
-    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
 
-    if (element.nextSibling && element.value !== '') {
-      element.nextSibling.focus();
+    // Move to next input if value is entered
+    if (value && index < 5) {
+      const nextInput = document.querySelectorAll('input[name="otp-input"]')[index + 1];
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        const prevInput = document.querySelectorAll('input[name="otp-input"]')[index - 1];
+        if (prevInput) {
+          prevInput.focus();
+          // Optional: clear previous input on backspace move
+          // const newOtp = [...otp];
+          // newOtp[index - 1] = '';
+          // setOtp(newOtp);
+        }
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      const prevInput = document.querySelectorAll('input[name="otp-input"]')[index - 1];
+      if (prevInput) prevInput.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      const nextInput = document.querySelectorAll('input[name="otp-input"]')[index + 1];
+      if (nextInput) nextInput.focus();
     }
   };
 
@@ -33,13 +66,12 @@ export const OTPPage = () => {
     if (pastedNumbers) {
       const newOtp = [...otp];
       for (let i = 0; i < pastedNumbers.length; i++) {
-        if (i < 6) newOtp[i] = pastedNumbers[i];
+        newOtp[i] = pastedNumbers[i];
       }
       setOtp(newOtp);
       
-      const nextEmptyIndex = newOtp.findIndex(val => val === '');
-      const targetIndex = nextEmptyIndex !== -1 ? nextEmptyIndex : 5;
-      
+      // Focus the last filled input or the next empty one
+      const targetIndex = Math.min(pastedNumbers.length, 5);
       const inputs = document.querySelectorAll('input[name="otp-input"]');
       if (inputs[targetIndex]) {
         inputs[targetIndex].focus();
@@ -120,11 +152,18 @@ export const OTPPage = () => {
           <ShieldCheck className="w-8 h-8 text-portal-accent" />
         </div>
         
-        <h1 className="text-2xl font-bold text-portal-text">Verify Identity</h1>
+        <h1 className="text-2xl font-bold text-portal-text">
+          {purpose === 'forgot-password' ? 'Reset Password' : 'Verify Identity'}
+        </h1>
         <p className="text-portal-text-muted mt-2 mb-4">
-          We've sent a 6-digit code to <br />
-          <span className="font-bold text-portal-text">{email || 'your email'}</span>
+          {purpose === 'forgot-password' 
+            ? 'Enter your email and reset details' 
+            : "We've sent a 6-digit code to your email"}
         </p>
+
+        {purpose !== 'forgot-password' && email && (
+          <p className="text-portal-text font-bold mb-6">{email}</p>
+        )}
 
         {localStorage.getItem('dev_otp') && (
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6">
@@ -140,9 +179,12 @@ export const OTPPage = () => {
                 key={index}
                 name="otp-input"
                 type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 maxLength={1}
                 value={data}
-                onChange={(e) => handleChange(e.target, index)}
+                onChange={(e) => handleChange(e.target.value, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
                 onFocus={(e) => e.target.select()}
                 onPaste={handlePaste}
                 className="w-12 h-14 text-center text-xl font-bold bg-portal-input border border-portal-border text-portal-text rounded-xl focus:outline-none focus:border-portal-accent transition-all"
@@ -152,6 +194,15 @@ export const OTPPage = () => {
 
           {purpose === 'forgot-password' && (
             <div className="space-y-4 mb-6">
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Your Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
+                />
+              </div>
               <input
                 type="password"
                 placeholder="New password"

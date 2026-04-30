@@ -23,6 +23,14 @@ export const recruitmentService = {
     const response = await api.get('/recruitment', { params });
     return response.data;
   },
+  
+  /**
+   * Fetches a single application by ID
+   */
+  getApplication: async (applicationId) => {
+    const response = await api.get(`/recruitment/${applicationId}`);
+    return response.data;
+  },
 
   /**
    * Fetches applications specifically for the logged-in student

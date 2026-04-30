@@ -32,8 +32,8 @@ export const RecruitmentSubmissionPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const appsData = await recruitmentService.getApplications();
-      const app = appsData.data.find(a => a._id === applicationId);
+      const res = await recruitmentService.getApplication(applicationId);
+      const app = res.data;
       if (!app) throw new Error('Application not found');
       
       const templateData = await recruitmentService.getTemplate(app.bootcamp._id || app.bootcamp);
