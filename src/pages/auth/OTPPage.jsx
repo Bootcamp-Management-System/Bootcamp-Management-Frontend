@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from "framer-motion";
-import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 export const OTPPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [resetStep, setResetStep] = useState('otp');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');  const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState('');  const { verifyOTP, resendOtp, forgotPassword, resetPassword, user } = useAuth();
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const { verifyOTP, resendOtp, forgotPassword, resetPassword, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
@@ -22,6 +26,8 @@ export const OTPPage = () => {
     ''
   );
   const purpose = location.state?.purpose || queryParams.get('purpose') || 'register';
+  const isPasswordReset = purpose === 'forgot-password';
+  const otpValue = otp.join('');
 
   const handleChange = (value, index) => {
     if (isNaN(Number(value)) && value !== '') return;
@@ -87,7 +93,18 @@ export const OTPPage = () => {
       return;
     }
     
-    if (purpose === 'forgot-password') {
+    if (isPasswordReset && resetStep === 'otp') {
+      if (otpValue.length !== 6) {
+        setError('Enter the 6-digit reset code from your email.');
+        return;
+      }
+
+      setResetStep('password');
+      setResendMessage('');
+      return;
+    }
+
+    if (isPasswordReset) {
       if (!newPassword || newPassword.length < 8) {
         setError('Password must be at least 8 characters.');
         return;
@@ -99,16 +116,21 @@ export const OTPPage = () => {
     }
 
     try {
-      if (purpose === 'forgot-password') {
+      if (isPasswordReset) {
         await resetPassword({
           email,
-          otp: otp.join(''),
+          otp: otpValue,
           newPassword,
         });
+
+        localStorage.removeItem('dev_otp');
+        setSuccessMessage('Password reset successful. You can now log in with your new password.');
+        setTimeout(() => navigate('/login', { replace: true }), 2500);
+        return;
       } else {
         await verifyOTP({
           email,
-          otp: otp.join(''),
+          otp: otpValue,
         });
       }
       
@@ -137,7 +159,7 @@ export const OTPPage = () => {
     setResendMessage('');
 
     try {
-      if (purpose === 'forgot-password') {
+      if (isPasswordReset) {
         await forgotPassword(email);
       } else {
         await resendOtp({ email });
@@ -164,96 +186,128 @@ export const OTPPage = () => {
         </div>
         
         <h1 className="text-2xl font-bold text-portal-text">
-          {purpose === 'forgot-password' ? 'Reset Password' : 'Verify Identity'}
+          {isPasswordReset ? 'Reset Password' : 'Verify Identity'}
         </h1>
         <p className="text-portal-text-muted mt-2 mb-4">
-          {purpose === 'forgot-password' 
-            ? 'Enter your email and reset details' 
+          {isPasswordReset 
+            ? resetStep === 'otp'
+              ? 'Enter the reset code sent to your email'
+              : 'Create your new password'
             : "We've sent a 6-digit code to your email"}
         </p>
 
-        {purpose !== 'forgot-password' && email && (
+        {email && (
           <p className="text-portal-text font-bold mb-6">{email}</p>
         )}
 
-        {localStorage.getItem('dev_otp') && (
+        {successMessage ? (
+          <div className="rounded-2xl border border-green-400/20 bg-green-400/10 p-6 text-center">
+            <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-green-400" />
+            <p className="text-sm font-bold text-green-400">{successMessage}</p>
+            <p className="mt-2 text-xs text-portal-text-muted">Redirecting to login...</p>
+          </div>
+        ) : null}
+
+        {!successMessage && localStorage.getItem('dev_otp') && (
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6">
             <p className="text-yellow-400 text-sm font-bold">Development Mode: Use OTP</p>
             <p className="text-yellow-400 text-2xl font-mono font-bold tracking-widest">{localStorage.getItem('dev_otp')}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="flex justify-center gap-2 mb-8">
-            {otp.map((data, index) => (
-              <input
-                key={index}
-                name="otp-input"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={1}
-                value={data}
-                onChange={(e) => handleChange(e.target.value, index)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                onFocus={(e) => e.target.select()}
-                onPaste={handlePaste}
-                className="w-12 h-14 text-center text-xl font-bold bg-portal-input border border-portal-border text-portal-text rounded-xl focus:outline-none focus:border-portal-accent transition-all"
-              />
-            ))}
-          </div>
+        {!successMessage && (
+          <form onSubmit={handleSubmit}>
+            {(!isPasswordReset || resetStep === 'otp') && (
+              <>
+                {isPasswordReset && (
+                  <div className="relative mb-6">
+                    <input
+                      type="email"
+                      placeholder="Your Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
+                    />
+                  </div>
+                )}
 
-          {purpose === 'forgot-password' && (
-            <div className="space-y-4 mb-6">
-              <div className="relative">
+                <div className="flex justify-center gap-2 mb-8">
+                  {otp.map((data, index) => (
+                    <input
+                      key={index}
+                      name="otp-input"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={1}
+                      value={data}
+                      onChange={(e) => handleChange(e.target.value, index)}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
+                      onFocus={(e) => e.target.select()}
+                      onPaste={handlePaste}
+                      className="w-12 h-14 text-center text-xl font-bold bg-portal-input border border-portal-border text-portal-text rounded-xl focus:outline-none focus:border-portal-accent transition-all"
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {isPasswordReset && resetStep === 'password' && (
+              <div className="space-y-4 mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetStep('otp');
+                    setError('');
+                  }}
+                  className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-portal-text-muted transition-colors hover:text-portal-accent"
+                >
+                  <ArrowLeft className="h-3 w-3" />
+                  Back to code
+                </button>
                 <input
-                  type="email"
-                  placeholder="Your Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="password"
+                  placeholder="New password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
+                />
+                <input
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
                 />
               </div>
-              <input
-                type="password"
-                placeholder="New password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
-              />
-              <input
-                type="password"
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-portal-input border border-portal-border text-portal-text rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-portal-accent transition-all"
-              />
-            </div>
-          )}
+            )}
 
-          {error ? (
-            <p className="text-xs text-red-400 mb-4">{error}</p>
-          ) : null}
+            {error ? (
+              <p className="text-xs text-red-400 mb-4">{error}</p>
+            ) : null}
 
-          <button 
-            type="submit"
-            className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
-          >
-            Verify & Continue
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
+            >
+              {isPasswordReset && resetStep === 'password' ? 'Reset Password' : 'Verify & Continue'}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+        )}
 
-        <p className="text-sm text-portal-text-muted mt-8">
-          Didn't receive the code? <br />
-          <button 
-            onClick={handleResendOtp}
-            disabled={resendLoading}
-            className="text-portal-accent font-bold hover:underline mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {resendLoading ? 'Sending...' : 'Resend OTP'}
-          </button>
-        </p>
+        {!successMessage && (!isPasswordReset || resetStep === 'otp') && (
+          <p className="text-sm text-portal-text-muted mt-8">
+            Didn't receive the code? <br />
+            <button
+              onClick={handleResendOtp}
+              disabled={resendLoading}
+              className="text-portal-accent font-bold hover:underline mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendLoading ? 'Sending...' : 'Resend OTP'}
+            </button>
+          </p>
+        )}
 
         {resendMessage && (
           <p className="text-sm text-green-400 mt-2">{resendMessage}</p>
