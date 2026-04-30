@@ -126,23 +126,6 @@ export const Sidebar = () => {
           </AnimatePresence>
         </div>
 
-        {/* Dual-Role Switcher */}
-        {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
-          <div className={`mb-6 ${isCollapsed ? 'px-0 flex justify-center' : 'px-2'}`}>
-            <button
-              onClick={() => {
-                switchRole();
-                navigate(user.role === 'instructor' ? '/dashboard' : '/instructor');
-              }}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
-                user.role === 'instructor' ? 'bg-portal-input border border-portal-border text-portal-text' : 'bg-portal-accent text-white shadow-portal-accent/20'
-              } ${isCollapsed ? 'px-0 w-10 h-10' : 'px-4'}`}
-            >
-              <RefreshCw className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span>Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}</span>}
-            </button>
-          </div>
-        )}
 
         <nav className="space-y-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
           {navSections.map((section) => (

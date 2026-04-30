@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { divisionService } from '../services/divisionService';
-import { Bell, Search, Sun, Moon, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Search, Sun, Moon, User, Settings, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 export const Navbar = () => {
-  const { user, selectedDivision, setGlobalDivision, logout } = useAuth();
+  const { user, selectedDivision, setGlobalDivision, logout, switchRole } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -145,6 +145,18 @@ export const Navbar = () => {
                     >
                       <Settings className="w-4 h-4" /> Settings
                     </button>
+                    {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
+                      <button 
+                        onClick={() => {
+                          switchRole();
+                          navigate(user.role === 'instructor' ? '/dashboard' : '/instructor');
+                          setShowProfileDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-accent hover:bg-portal-accent/10 transition-all text-left"
+                      >
+                        <RefreshCw className="w-4 h-4" /> Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}
+                      </button>
+                    )}
                   </div>
                   
                   <div className="my-2 border-t border-portal-border/50" />
