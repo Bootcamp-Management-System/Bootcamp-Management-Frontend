@@ -34,6 +34,7 @@ import { AdminAdminsPage } from "./pages/admin/AdminAdminsPage";
 import { AdminRecruitmentPage } from "./pages/admin/AdminRecruitmentPage";
 import { InstructorAttendancePage } from "./pages/auth/dashboard/InstructorAttendancePage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { NotificationsPage } from "./components/NotificationsPage";
 import { SuperAdminRoot } from "./pages/super-admin/SuperAdminRoot";
 import { Dashboard as SuperAdminDashboard } from "./pages/super-admin/app/pages/Dashboard";
 import { Divisions as SuperAdminDivisions } from "./pages/super-admin/app/pages/Divisions";
@@ -116,6 +117,26 @@ export default function App() {
                   >
                     <Layout>
                       <ProfilePage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[
+                      "student",
+                      "member",
+                      "instructor",
+                      "admin",
+                      "super_admin",
+                      "super-admin",
+                    ]}
+                  >
+                    <Layout>
+                      <NotificationsPage />
                     </Layout>
                   </ProtectedRoute>
                 }

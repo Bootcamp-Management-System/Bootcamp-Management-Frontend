@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { divisionService } from '../services/divisionService';
+import { notificationService } from '../services/notificationService';
 import { Bell, Search, Sun, Moon, User, Settings, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +12,7 @@ export const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [, setDivisionOptions] = React.useState(['All']);
   const divisionLabelMap = {
     Development: 'Development',
@@ -42,6 +44,36 @@ export const Navbar = () => {
       loadDivisions();
     }
   }, [user?.role, selectedDivision, setGlobalDivision]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadUnreadNotifications = async () => {
+      if (!user) {
+        setUnreadCount(0);
+        return;
+      }
+
+      try {
+        const response = await notificationService.getNotifications({ status: 'unread', limit: 100 });
+        if (isMounted) {
+          setUnreadCount(response.data?.count || response.data?.data?.length || 0);
+        }
+      } catch {
+        if (isMounted) setUnreadCount(0);
+      }
+    };
+
+    loadUnreadNotifications();
+    const intervalId = window.setInterval(loadUnreadNotifications, 30000);
+    window.addEventListener('notifications:changed', loadUnreadNotifications);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+      window.removeEventListener('notifications:changed', loadUnreadNotifications);
+    };
+  }, [user]);
 
   return (
     <header className="h-20 bg-portal-bg/80 backdrop-blur-xl border-b border-portal-border flex items-center justify-between px-8 shrink-0 relative z-50">
@@ -88,9 +120,17 @@ export const Navbar = () => {
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
-        <button className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all relative">
+        <button
+          onClick={() => navigate('/notifications')}
+          className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all relative"
+          title="Notifications"
+        >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-portal-bg" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-portal-bg">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
         
         {/* Profile Section */}

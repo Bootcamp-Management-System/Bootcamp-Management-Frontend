@@ -21,6 +21,7 @@ import {
 import { useTheme } from './ThemeProvider';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../../../context/AuthContext';
+import { notificationService } from '../../../../services/notificationService';
 
 const SUPER_ADMIN_BASE = '/super-admin';
 
@@ -37,6 +38,7 @@ export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [unreadCount, setUnreadCount] = React.useState(0);
 
   const isNotificationsPage = location.pathname === `${SUPER_ADMIN_BASE}/notifications`;
   const userName = auth.user?.name || 'Super Admin';
@@ -55,6 +57,31 @@ export function Layout() {
   const handleThemeToggle = () => {
     setTheme(isDarkTheme ? 'light' : 'dark');
   };
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadUnreadNotifications = async () => {
+      try {
+        const response = await notificationService.getNotifications({ status: 'unread', limit: 100 });
+        if (isMounted) {
+          setUnreadCount(response.data?.count || response.data?.data?.length || 0);
+        }
+      } catch {
+        if (isMounted) setUnreadCount(0);
+      }
+    };
+
+    loadUnreadNotifications();
+    const intervalId = window.setInterval(loadUnreadNotifications, 30000);
+    window.addEventListener('notifications:changed', loadUnreadNotifications);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+      window.removeEventListener('notifications:changed', loadUnreadNotifications);
+    };
+  }, [location.pathname]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-portal-bg text-portal-text font-sans transition-colors duration-300">
@@ -134,12 +161,11 @@ export function Layout() {
               title="Notifications"
             >
               <Bell className="w-6 h-6" />
-              <span className={cn(
-                'absolute top-2 right-2 w-2 h-2 rounded-full border-2',
-                isNotificationsPage
-                  ? 'bg-portal-accent border-portal-bg'
-                  : 'bg-red-500 border-portal-bg'
-              )}></span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-portal-bg">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
             <div className="flex items-center gap-3 pl-4 border-l border-portal-border">
               <button 
