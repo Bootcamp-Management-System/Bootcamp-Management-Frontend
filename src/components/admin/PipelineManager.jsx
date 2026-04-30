@@ -55,6 +55,7 @@ export const PipelineManager = ({ bootcampId }) => {
     { id: 'TASK_EVALUATION', label: 'Evaluation', icon: FileText, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
     { id: 'WAITLISTED', label: 'Waitlist', icon: Clock, color: 'text-orange-400', bg: 'bg-orange-400/10' },
     { id: 'ACCEPTED', label: 'Accepted', icon: CheckCircle2, color: 'text-green-400', bg: 'bg-green-400/10' },
+    { id: 'MEMBER', label: 'Members', icon: Star, color: 'text-teal-400', bg: 'bg-teal-400/10' },
     { id: 'REJECTED', label: 'Rejected', icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10' },
   ];
 
@@ -196,6 +197,7 @@ export const PipelineManager = ({ bootcampId }) => {
               {/* Footer: Decisions */}
               <div className="p-8 bg-portal-bg/30 border-t border-portal-border">
                 <div className="flex flex-wrap items-center gap-4">
+                  {/* Phase 1: Screening */}
                   {activeStage === 'PENDING' && (
                     <>
                       <button 
@@ -212,11 +214,22 @@ export const PipelineManager = ({ bootcampId }) => {
                         className="flex-1 min-w-[200px] py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
                       >
                         {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
-                        Accept (Congratulations)
+                        Accept Direct
                       </button>
                     </>
                   )}
 
+                  {/* Phase 2: Technical (Waiting for student) */}
+                  {activeStage === 'SCREENED_ROUND_1' && (
+                    <div className="flex-1 p-4 bg-portal-bg border border-dashed border-portal-border rounded-2xl text-center">
+                      <p className="text-sm font-bold text-portal-text-muted flex items-center justify-center gap-2">
+                        <Clock className="w-4 h-4 animate-pulse text-purple-400" />
+                        Waiting for candidate to submit technical task
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Phase 3: Evaluation (Technical or Waitlist Task) */}
                   {activeStage === 'TASK_EVALUATION' && (
                     <>
                       <button 
@@ -238,6 +251,7 @@ export const PipelineManager = ({ bootcampId }) => {
                     </>
                   )}
 
+                  {/* Phase 4: Waitlist Management */}
                   {activeStage === 'WAITLISTED' && (
                     <button 
                       onClick={() => handleDecision(selectedApp._id, 'ACCEPT')}
@@ -249,6 +263,19 @@ export const PipelineManager = ({ bootcampId }) => {
                     </button>
                   )}
 
+                  {/* Phase 5: Accepted Management */}
+                  {activeStage === 'ACCEPTED' && (
+                    <button 
+                      onClick={() => handleDecision(selectedApp._id, 'MEMBER')}
+                      disabled={processingId === selectedApp._id}
+                      className="flex-1 min-w-[200px] py-4 bg-teal-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-teal-500/20"
+                    >
+                      {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
+                      Promote to Official Member
+                    </button>
+                  )}
+
+                  {/* Universal Rejection (Except for Accepted/Rejected/Member tabs) */}
                   {['PENDING', 'TASK_EVALUATION', 'WAITLISTED', 'SCREENED_ROUND_1'].includes(activeStage) && (
                     <button 
                       onClick={() => handleDecision(selectedApp._id, 'REJECT')}

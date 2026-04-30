@@ -9,7 +9,7 @@ import {
   AlertCircle,
   FileCode
 } from 'lucide-react';
-import { recruitmentService } from '../services/recruitmentService';
+import recruitmentService from '../services/recruitmentService';
 import { useAuth } from '../context/AuthContext';
 
 export const RecruitmentSubmissionPage = () => {
@@ -32,6 +32,7 @@ export const RecruitmentSubmissionPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      
       const res = await recruitmentService.getApplication(applicationId);
       const app = res.data;
       if (!app) throw new Error('Application not found');

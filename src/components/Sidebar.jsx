@@ -19,7 +19,8 @@ import {
   Calendar,
   ShieldCheck,
   Zap,
-  Timer
+  Timer,
+  Globe
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -69,6 +70,7 @@ export const Sidebar = () => {
       {
         title: 'Academy',
         items: [
+          { id: 'explore-bootcamps', icon: Globe, label: 'Explore Bootcamps', path: '/bootcamps' },
           { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
           { id: 'enrollments', icon: ShieldCheck, label: 'My Enrollments', path: '/enrollments' },
         ]

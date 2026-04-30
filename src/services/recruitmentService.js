@@ -96,3 +96,5 @@ export const recruitmentService = {
     return response.data;
   }
 };
+
+export default recruitmentService;
