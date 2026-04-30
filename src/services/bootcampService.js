@@ -28,6 +28,11 @@ export const bootcampService = {
     return response.data;
   },
 
+  getAvailableBootcamps: async () => {
+    const response = await api.get('/bootcamps/available');
+    return response.data;
+  },
+
   /**
    * Fetches a single bootcamp by its unique ID
    */

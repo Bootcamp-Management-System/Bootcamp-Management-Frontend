@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -15,7 +15,7 @@ import { useAuth } from '../context/AuthContext';
 export const ApplyPage = () => {
   const { bootcampId } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   
   const [bootcamp, setBootcamp] = useState(null);
   const [template, setTemplate] = useState(null);
@@ -25,11 +25,7 @@ export const ApplyPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [bootcampId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [bcData, templateData] = await Promise.all([
@@ -45,7 +41,11 @@ export const ApplyPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bootcampId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleChange = (name, value) => {
     setAnswers(prev => ({ ...prev, [name]: value }));
@@ -63,7 +63,7 @@ export const ApplyPage = () => {
       await recruitmentService.applyToBootcamp(bootcampId, answers);
       setSubmitted(true);
     } catch (err) {
-      alert(err.response?.data?.message || 'Submission failed');
+      alert(err.response?.data?.message || err.response?.data?.error || 'Submission failed');
     } finally {
       setSubmitting(false);
     }

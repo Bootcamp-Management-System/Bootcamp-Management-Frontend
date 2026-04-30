@@ -15,7 +15,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { bootcampService } from '../../services/bootcampService';
 import { recruitmentService } from '../../services/recruitmentService';
-import { useAuth } from '../../context/AuthContext';
 
 export const StudentBootcampsPage = () => {
   const [bootcamps, setBootcamps] = useState([]);
@@ -24,20 +23,24 @@ export const StudentBootcampsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDivision, setFilterDivision] = useState('All');
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [bootcampsData, appsData] = await Promise.all([
-          bootcampService.getPublicBootcamps(),
-          recruitmentService.getMyApplications()
-        ]);
+        const bootcampsData = await bootcampService.getAvailableBootcamps();
         setBootcamps(bootcampsData.data || []);
-        setApplications(appsData.data || []);
+
+        try {
+          const appsData = await recruitmentService.getMyApplications();
+          setApplications(appsData.data || []);
+        } catch (error) {
+          console.error('Failed to fetch applications:', error);
+          setApplications([]);
+        }
       } catch (error) {
         console.error('Failed to fetch bootcamps:', error);
+        setBootcamps([]);
       } finally {
         setLoading(false);
       }
@@ -80,7 +83,7 @@ export const StudentBootcampsPage = () => {
             Available <span className="text-transparent bg-clip-text bg-gradient-to-r from-portal-accent to-blue-400">Bootcamps</span>
           </h1>
           <p className="text-portal-text-muted text-lg max-w-2xl leading-relaxed">
-            Explore our elite training programs across all divisions. Select a bootcamp that aligns with your goals and start your journey today.
+            Explore bootcamps that are currently open for applications. Each application uses the exact form prepared by that bootcamp's division.
           </p>
         </div>
       </header>
@@ -117,7 +120,7 @@ export const StudentBootcampsPage = () => {
       {/* Bootcamps Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredBootcamps.length > 0 ? (
-          filteredBootcamps.map((bootcamp, i) => {
+          filteredBootcamps.map((bootcamp) => {
             const status = getApplicationStatus(bootcamp._id);
             const Icon = bootcamp.name.toLowerCase().includes('cyber') ? ShieldCheck :
               bootcamp.name.toLowerCase().includes('web') ? Globe :
@@ -193,8 +196,8 @@ export const StudentBootcampsPage = () => {
         ) : (
           <div className="col-span-full py-20 text-center bg-portal-card border border-portal-border border-dashed rounded-[40px]">
             <AlertCircle className="w-16 h-16 text-portal-text-muted mx-auto mb-6 opacity-20" />
-            <h3 className="text-2xl font-bold text-portal-text">No bootcamps matching your criteria.</h3>
-            <p className="text-portal-text-muted mt-2">Try adjusting your search or filter to see more programs.</p>
+            <h3 className="text-2xl font-bold text-portal-text">No available bootcamps right now.</h3>
+            <p className="text-portal-text-muted mt-2">A bootcamp appears here after its division publishes the application template.</p>
           </div>
         )}
       </div>
