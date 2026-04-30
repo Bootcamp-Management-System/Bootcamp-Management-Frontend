@@ -153,8 +153,10 @@ const normalizeRole = (role) => {
 const publicUser = (user) => {
   if (!user) return null;
   const role = normalizeRole(user.role);
+  const id = user.id || user._id;
   return {
-    id: user.id,
+    id,
+    _id: id,
     email: user.email,
     role,
     division: user.division,
@@ -237,6 +239,19 @@ export const authService = {
     } catch (error) {
       const message = error?.response?.data?.message || error?.message || 'Login failed.';
       return fail(message, error?.response?.status || 400);
+    }
+  },
+
+  async getCurrentUser() {
+    try {
+      const response = await api.get('/users/me', {
+        skipAuthRedirect: true,
+      });
+      const payload = response?.data?.data || response?.data?.user || response?.data;
+      return ensureDivisions(publicUser(payload));
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Session validation failed.';
+      return fail(message, error?.response?.status || 401);
     }
   },
 

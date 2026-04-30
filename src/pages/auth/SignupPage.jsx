@@ -32,7 +32,13 @@ export const SignupPage = () => {
   const [success, setSuccess] = useState('');
   const [bootcampId] = useState(() => new URLSearchParams(window.location.search).get('bootcampId'));
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, isAuthenticated, user } = useAuth();
+
+  const getHomePath = (role) => (
+    role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard'
+  );
+
+  const dashboardPath = isAuthenticated && user ? getHomePath(user.role) : '/';
 
   const formik = useFormik({
     initialValues: {
@@ -85,6 +91,14 @@ export const SignupPage = () => {
 
   return (
     <div className="min-h-screen bg-[#020617] flex font-outfit relative overflow-hidden">
+      <Link
+        to={dashboardPath}
+        className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Dashboard
+      </Link>
+
       {/* Background Orbs */}
       <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-portal-accent/10 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" />

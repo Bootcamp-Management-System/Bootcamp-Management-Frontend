@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, IdCard, Lock, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Crown, IdCard, Lock, ShieldCheck, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 export const LoginPage = () => {
@@ -13,13 +13,20 @@ export const LoginPage = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const fromPath = location.state?.from?.pathname;
+
+  const getHomePath = (role) => (
+    role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard'
+  );
+
+  const dashboardPath = isAuthenticated && user ? getHomePath(user.role) : '/';
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const role = user.role;
-      navigate(role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      const target = fromPath && fromPath !== '/login' ? fromPath : getHomePath(user.role);
+      navigate(target, { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, fromPath]);
 
 
 
@@ -40,8 +47,8 @@ export const LoginPage = () => {
         navigate('/force-change-password', { state: { email: result.user.email, purpose: 'force-change-password' } });
         return;
       }
-      const role = result.user.role;
-      navigate(role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      const target = fromPath && fromPath !== '/login' ? fromPath : getHomePath(result.user.role);
+      navigate(target, { replace: true });
     } catch (err) {
       setError(err?.message || 'Invalid email, ID, or password');
     }
@@ -49,6 +56,14 @@ export const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#020617] relative overflow-hidden p-6 font-outfit">
+      <Link
+        to={dashboardPath}
+        className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Dashboard
+      </Link>
+
       {/* Dynamic Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-portal-accent/10 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />

@@ -32,17 +32,12 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      if (isAuthRoute) {
+      if (isAuthRoute || error.config?.skipAuthRedirect) {
         return Promise.reject(error);
       }
 
-      console.warn('🔑 Session invalid or expired. Redirecting to login...');
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      // Only redirect if we are not already on the login page
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
+      console.warn('Session invalid or expired.');
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
     }
     return Promise.reject(error);
   }

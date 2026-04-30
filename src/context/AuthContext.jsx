@@ -3,6 +3,22 @@ import { authService } from '../services/authService';
 
 const AuthContext = createContext(undefined);
 
+const normalizeUser = (user) => {
+  if (!user) return null;
+  const id = user.id || user._id;
+  return {
+    ...user,
+    id,
+    _id: id,
+    role:
+      user.role === 'super-admin' || user.role === 'super admin'
+        ? 'super_admin'
+        : user.role === 'student'
+          ? 'member'
+          : user.role,
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [state, setState] = useState({
     user: null,
@@ -16,20 +32,28 @@ export const AuthProvider = ({ children }) => {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
+    const restoreSession = async () => {
     const storedToken = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('auth_user');
 
     if (storedToken && storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      // Migration: Normalize backend roles and ensure divisions exist for old sessions
-      if (parsedUser.role === 'super-admin' || parsedUser.role === 'super admin') {
-        parsedUser.role = 'super_admin';
-      }
+      try {
+        let parsedUser = normalizeUser(JSON.parse(storedUser));
 
       if (parsedUser.role === 'member' && (!parsedUser.divisions || parsedUser.divisions.length < 4)) {
         parsedUser.divisions = ["Development", "Cyber Security", "Data Science", "CP (Competitive Programming)"];
         localStorage.setItem('auth_user', JSON.stringify(parsedUser));
       }
+
+        if (!storedToken.startsWith('demo_token_')) {
+          const verifiedUser = await authService.getCurrentUser();
+          parsedUser = normalizeUser({ ...parsedUser, ...verifiedUser });
+          localStorage.setItem('auth_user', JSON.stringify(parsedUser));
+        }
+
+        if (cancelled) return;
 
       setState({
         token: storedToken,
@@ -44,27 +68,64 @@ export const AuthProvider = ({ children }) => {
       } else if (parsedUser.division) {
         setSelectedDivision(parsedUser.division);
       }
+      } catch {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        if (!cancelled) {
+          setState({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      }
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
+
+    };
+
+    restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      setState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
   const setSession = ({ user, token }) => {
+    const normalizedUser = normalizeUser(user);
     if (token) {
       localStorage.setItem('auth_token', token);
     } else {
       localStorage.removeItem('auth_token');
     }
-    if (user) {
-      localStorage.setItem('auth_user', JSON.stringify(user));
+    if (normalizedUser) {
+      localStorage.setItem('auth_user', JSON.stringify(normalizedUser));
     } else {
       localStorage.removeItem('auth_user');
     }
 
     setState({
-      user: user || null,
+      user: normalizedUser || null,
       token: token || null,
-      isAuthenticated: Boolean(user) && Boolean(token),
+      isAuthenticated: Boolean(normalizedUser) && Boolean(token),
       isLoading: false,
     });
   };
@@ -118,7 +179,8 @@ export const AuthProvider = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       const result = await authService.login({ email: identifier, password });
-      const { user, token, requiresPasswordChange, requiresApproval, requiresOtp } = result || {};
+      const { token, requiresPasswordChange, requiresApproval, requiresOtp } = result || {};
+      const user = normalizeUser(result?.user);
 
       if (token) {
         localStorage.setItem('auth_token', token);
@@ -127,10 +189,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (user) {
-        // Normalize role for frontend
-        if (user.role === 'super-admin' || user.role === 'super admin') {
-          user.role = 'super_admin';
-        }
         localStorage.setItem('auth_user', JSON.stringify(user));
       }
 
