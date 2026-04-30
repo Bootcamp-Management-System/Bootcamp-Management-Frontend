@@ -20,8 +20,7 @@ import {
   ShieldCheck,
   Zap,
   Timer,
-  Globe,
-  Bell
+  Globe
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -40,7 +39,6 @@ export const Sidebar = () => {
         { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
         { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
         { id: 'admin-sessions', icon: Calendar, label: 'Sessions', path: '/admin/sessions' },
-        { id: 'admin-notifications', icon: Bell, label: 'Notifications', path: '/notifications' },
       ];
 
       if (user.role === 'super_admin') {
@@ -58,7 +56,6 @@ export const Sidebar = () => {
           { id: 'dashboard', icon: LayoutDashboard, label: 'Panel', path: '/instructor' },
           { id: 'tasks', icon: ClipboardList, label: 'Tasks', path: '/instructor/tasks' },
           { id: 'attendance', icon: UserCheck, label: 'Attendance', path: '/instructor/attendance' },
-          { id: 'notifications', icon: Bell, label: 'Notifications', path: '/notifications' },
         ]
       }];
     }
@@ -68,7 +65,6 @@ export const Sidebar = () => {
         title: 'Main',
         items: [
           { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: dashboardPath },
-          { id: 'notifications', icon: Bell, label: 'Notifications', path: '/notifications' },
         ]
       },
       {
