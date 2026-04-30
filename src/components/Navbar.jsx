@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { divisionService } from '../services/divisionService';
-import { Bell, Search, Sun, Moon } from 'lucide-react';
+import { Bell, Search, Sun, Moon, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export const Navbar = () => {
-  const { user, selectedDivision, setGlobalDivision } = useAuth();
+  const { user, selectedDivision, setGlobalDivision, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [, setDivisionOptions] = React.useState(['All']);
   const divisionLabelMap = {
     Development: 'Development',
@@ -89,14 +93,72 @@ export const Navbar = () => {
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-portal-bg" />
         </button>
         
-        <div className="flex items-center gap-3 pl-4 border-l border-portal-border">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-bold leading-none text-portal-text">{user?.name}</p>
-            <p className="text-[10px] text-portal-accent mt-1 uppercase font-bold tracking-wider">{user?.role}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-portal-accent flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-portal-accent/20 border border-white/10 uppercase">
-            {user?.name?.substring(0, 2)}
-          </div>
+        {/* Profile Section */}
+        <div className="relative ml-2">
+          <button 
+            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+            className="flex items-center gap-3 pl-4 border-l border-portal-border group transition-all"
+          >
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold leading-none text-portal-text group-hover:text-portal-accent transition-colors">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-portal-accent mt-1 uppercase font-black tracking-wider leading-none">
+                {user?.is_Member ? 'Member' : user?.role === 'member' ? 'Student' : user?.role}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-portal-accent flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-portal-accent/20 border border-white/10 uppercase ring-2 ring-transparent group-hover:ring-portal-accent/30 transition-all">
+              {user?.name?.substring(0, 2) || '??'}
+            </div>
+            <ChevronDown className={`w-4 h-4 text-portal-text-muted transition-transform duration-300 ${showProfileDropdown ? 'rotate-180' : ''}`} />
+          </button>
+
+          <AnimatePresence>
+            {showProfileDropdown && (
+              <>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowProfileDropdown(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  className="absolute right-0 mt-3 w-64 bg-portal-card border border-portal-border rounded-2xl shadow-2xl z-50 p-2 overflow-hidden ring-1 ring-black/10"
+                >
+                  <div className="px-4 py-3 mb-2 border-b border-portal-border/50">
+                    <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest mb-1">Signed in as</p>
+                    <p className="text-sm font-bold text-portal-text truncate">{user?.email}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <button 
+                      onClick={() => { navigate('/profile'); setShowProfileDropdown(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-text hover:bg-portal-accent/10 hover:text-portal-accent transition-all text-left"
+                    >
+                      <User className="w-4 h-4" /> My Profile
+                    </button>
+                    <button 
+                      onClick={() => { navigate('/settings'); setShowProfileDropdown(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-text hover:bg-portal-accent/10 hover:text-portal-accent transition-all text-left"
+                    >
+                      <Settings className="w-4 h-4" /> Settings
+                    </button>
+                  </div>
+                  
+                  <div className="my-2 border-t border-portal-border/50" />
+                  
+                  <button 
+                    onClick={() => { logout(); setShowProfileDropdown(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black text-red-400 hover:bg-red-400/10 transition-all text-left"
+                  >
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

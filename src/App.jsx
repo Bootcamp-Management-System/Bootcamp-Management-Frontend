@@ -55,7 +55,9 @@ import { StudentTaskPage } from "./pages/Task/StudentTaskPage";
 import { InstructorTasksPage } from "./pages/Task/InstructorTasksPage";
 import { WeeklyProgressPage } from "./pages/WeeklyProgressPage";
 import { StudentBootcampsPage } from "./pages/bootcamp/StudentBootcampsPage";
-
+import { StudentEnrollmentsPage } from "./pages/bootcamp/StudentEnrollmentsPage";
+import { StudentApplicationsPage } from "./pages/bootcamp/StudentApplicationsPage";
+import { StudentMemberHubPage } from "./pages/auth/dashboard/StudentMemberHubPage";
 export default function App() {
   return (
     <ThemeProvider>
@@ -83,6 +85,17 @@ export default function App() {
                   <ProtectedRoute allowedRoles={["student", "member"]}>
                     <Layout>
                       <StudentDashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/member-hub"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentMemberHubPage />
                     </Layout>
                   </ProtectedRoute>
                 }
@@ -136,6 +149,28 @@ export default function App() {
                   <ProtectedRoute allowedRoles={["student", "member"]}>
                     <Layout>
                       <StudentBootcampsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/enrollments"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentEnrollmentsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/applications"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentApplicationsPage />
                     </Layout>
                   </ProtectedRoute>
                 }

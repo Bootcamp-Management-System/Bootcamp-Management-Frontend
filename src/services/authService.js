@@ -164,6 +164,8 @@ const publicUser = (user) => {
     name: user.name,
     campusId: user.campusId || user.idNo,
     divisions: user.divisions,
+    memberships: user.memberships || [],
+    is_Member: Boolean(user.is_Member),
     firstLogin: user.firstLogin,
   };
 };
@@ -252,7 +254,7 @@ export const authService = {
 
     const response = await api.post('/auth/verify-otp', payload);
 
-    return response.data;
+    return normalizeAuthResponse(response);
   },
 
   async resendOtp({ email }) {
