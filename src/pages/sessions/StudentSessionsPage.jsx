@@ -142,16 +142,19 @@ export const StudentSessionsPage = () => {
             No resources uploaded for this session yet.
           </div>
         ) : resources.map((resource) => (
-          <a key={resource._id} href={resource.file_url} target="_blank" rel="noreferrer" className="bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-portal-accent transition-colors">
+          <button key={resource._id} type="button" onClick={() => resourceService.openResource(resource)} className="w-full text-left bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-portal-accent transition-colors">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent"><FileText className="w-5 h-5" /></div>
               <div>
                 <h3 className="font-bold text-portal-text">{resource.title}</h3>
-                <p className="text-sm text-portal-text-muted">{resource.description || 'Resource file'}</p>
+                <p className="text-sm text-portal-text-muted">{resource.description || (resource.resource_type === 'link' ? 'External resource link' : 'Resource file')}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-portal-text-muted mt-2">
+                  {resource.resource_type === 'link' ? 'External link' : resource.file_type || 'File'} - {resource.download_count || 0} opens
+                </p>
               </div>
             </div>
             <ExternalLink className="w-4 h-4 text-portal-accent" />
-          </a>
+          </button>
         ))}
       </section>
     </div>

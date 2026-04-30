@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import csecLogo from '../../assets/csec-logo.jpg';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, IdCard, Lock } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, IdCard, Lock, ShieldCheck, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 export const LoginPage = () => {
-  const { t } = useTranslation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, isAuthenticated, user } = useAuth();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const fromPath = location.state?.from?.pathname;
@@ -59,7 +56,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-portal-bg relative overflow-hidden p-6 font-sans transition-colors duration-500">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#020617] relative overflow-hidden p-6 font-outfit">
       <Link
         to={dashboardPath}
         className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
@@ -78,11 +75,11 @@ export const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 text-center relative z-10 flex flex-col items-center"
       >
-        <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 shadow-xl shadow-portal-accent/20 ring-2 ring-portal-accent/20">
-          <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
+        <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mb-4 border border-portal-accent/20 shadow-lg shadow-portal-accent/5">
+          <ShieldCheck className="w-8 h-8 text-portal-accent" />
         </div>
         <h1 className="text-3xl font-bold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
-        <p className="text-portal-text-muted text-sm mt-2 font-medium">{t('auth.login_title')}</p>
+        <p className="text-portal-text-muted text-sm mt-2 font-medium">Log in to your specialized learning environment</p>
       </motion.div>
 
       {/* Main Login Card */}
@@ -94,7 +91,7 @@ export const LoginPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">{t('auth.email_id')}</label>
+            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">Email / ID</label>
             <div className="relative group">
               <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
@@ -109,7 +106,7 @@ export const LoginPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">{t('auth.password')}</label>
+            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">Password</label>
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
@@ -149,32 +146,34 @@ export const LoginPage = () => {
             type="submit"
             className="group w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-bold text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            {t('nav.login')}
+            Login
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
-            {t('auth.forgot_password')}
+            Forgot password?
           </Link>
         </div>
 
 
         <div className="mt-8 pt-8 border-t border-white/5 text-center">
           <p className="text-sm text-portal-text-muted">
-            {t('auth.new_applicant')} {' '}
+            New applicant? {' '}
             <Link to="/signup" className="text-portal-accent font-bold hover:underline underline-offset-4 decoration-2">
-              {t('auth.create_account')}
+              Create an Account
             </Link>
           </p>
         </div>
       </motion.div>
 
-      {/* Theme & Language Switcher */}
-      <div className="absolute bottom-8 right-8 flex items-center gap-3">
-        <LanguageSwitcher />
-        <ThemeSwitcher />
-      </div>
+      {/* Theme Toggle Button */}
+      <button 
+        onClick={toggleTheme}
+        className="absolute bottom-8 right-8 p-3 bg-white/5 border border-white/5 rounded-full text-portal-text-muted hover:text-portal-accent transition-all"
+      >
+        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
     </div>
   );
 };

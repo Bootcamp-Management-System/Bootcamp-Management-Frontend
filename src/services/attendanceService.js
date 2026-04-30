@@ -15,6 +15,11 @@ const attendanceService = {
     return response.data;
   },
 
+  async submitAttendance(sessionId, records) {
+    const response = await api.post('/attendance/submit', { sessionId, records });
+    return response.data;
+  },
+
   // GET /api/v1/attendance/qr-token/:sessionId
   async generateQRCode(sessionId) {
     const response = await api.get(`/attendance/qr-token/${sessionId}`);
@@ -23,7 +28,7 @@ const attendanceService = {
 
   // POST /api/v1/attendance/scan
   async scanQRCode(qrToken) {
-    const response = await api.post('/attendance/scan', { qrToken });
+    const response = await api.post('/attendance/scan', { token: qrToken });
     return response.data;
   },
 };

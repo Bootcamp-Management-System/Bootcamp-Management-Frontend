@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   BookOpen,
@@ -8,6 +8,7 @@ import {
   ClipboardList,
   ExternalLink,
   FileUp,
+  FileText,
   Loader2,
   MapPin,
   Monitor,
@@ -49,6 +50,13 @@ const emptyTask = {
   deadline: '',
 };
 
+const ATTENDANCE_STATUSES = ['Present', 'Absent', 'Late', 'Excused'];
+
+const isAttendanceLocked = (session) => {
+  if (!session?.endTime) return false;
+  return Date.now() - new Date(session.endTime).getTime() > 24 * 60 * 60 * 1000;
+};
+
 export const InstructorSessionsPage = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
@@ -56,15 +64,19 @@ export const InstructorSessionsPage = () => {
   const [session, setSession] = useState(null);
   const [activeTab, setActiveTab] = useState('resources');
   const [resources, setResources] = useState([]);
-  const [attendance, setAttendance] = useState([]);
+  const [, setAttendance] = useState([]);
+  const [attendanceStudents, setAttendanceStudents] = useState([]);
+  const [attendanceDraft, setAttendanceDraft] = useState({});
   const [tasks, setTasks] = useState([]);
   const [selectedBootcampId, setSelectedBootcampId] = useState('');
   const [qrToken, setQrToken] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [submittingAttendance, setSubmittingAttendance] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
   const [details, setDetails] = useState({ description: '', location: 'Lab 1', meetingLink: '' });
-  const [resourceForm, setResourceForm] = useState({ title: '', description: '', file: null });
+  const [resourceForm, setResourceForm] = useState({ title: '', description: '', type: 'file', url: '', file: null });
   const [taskForm, setTaskForm] = useState(emptyTask);
 
   const loadSessions = useCallback(async () => {
@@ -101,6 +113,14 @@ export const InstructorSessionsPage = () => {
       });
       setResources(resourceResponse.data || []);
       setAttendance(attendanceResponse.data || []);
+      setAttendanceStudents(attendanceResponse.students || []);
+      const savedDraft = JSON.parse(localStorage.getItem(`attendance-draft:${sessionId}`) || '{}');
+      const existingDraft = (attendanceResponse.data || []).reduce((acc, record) => {
+        const studentId = record.student?._id || record.student;
+        if (studentId) acc[studentId] = record.status;
+        return acc;
+      }, {});
+      setAttendanceDraft({ ...existingDraft, ...savedDraft });
       setTasks(taskResponse.data || []);
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load session workspace.');
@@ -190,20 +210,30 @@ export const InstructorSessionsPage = () => {
 
   const uploadResource = async (event) => {
     event.preventDefault();
-    if (!resourceForm.title || !resourceForm.file) return;
+    if (!resourceForm.title) return;
+    if (resourceForm.type === 'file' && !resourceForm.file) return;
+    if (resourceForm.type === 'link' && !resourceForm.url) return;
 
     const data = new FormData();
     data.append('title', resourceForm.title);
     data.append('description', resourceForm.description);
-    data.append('file', resourceForm.file);
+    if (resourceForm.type === 'file') data.append('file', resourceForm.file);
+    if (resourceForm.type === 'link') data.append('external_url', resourceForm.url);
     data.append('session_id', session._id);
-    data.append('division_id', session.division?._id || session.division);
-    data.append('visibility', 'division');
+    data.append('bootcamp_id', session.bootcamp?._id || session.bootcamp);
+    data.append('visibility', 'bootcamp');
 
-    await resourceService.uploadResource(data);
-    setResourceForm({ title: '', description: '', file: null });
-    const response = await resourceService.getResourcesBySession(session._id);
-    setResources(response.data || []);
+    try {
+      await resourceService.uploadResource(data);
+      setResourceForm({ title: '', description: '', type: 'file', url: '', file: null });
+      const response = await resourceService.getResourcesBySession(session._id);
+      setResources(response.data || []);
+      setToast({ type: 'success', message: 'Resource uploaded successfully.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to upload resource.' });
+      window.setTimeout(() => setToast(null), 3000);
+    }
   };
 
   const createTask = async (event) => {
@@ -221,6 +251,42 @@ export const InstructorSessionsPage = () => {
   const generateQr = async () => {
     const response = await attendanceService.generateQRCode(session._id);
     setQrToken(response.qrToken || response.token || '');
+  };
+
+  const setDraftAttendance = (studentId, status) => {
+    setAttendanceDraft((current) => ({ ...current, [studentId]: status }));
+  };
+
+  const saveAttendanceDraft = () => {
+    localStorage.setItem(`attendance-draft:${session._id}`, JSON.stringify(attendanceDraft));
+    setToast({ type: 'success', message: 'Attendance draft saved.' });
+    window.setTimeout(() => setToast(null), 3000);
+  };
+
+  const submitAttendance = async () => {
+    const records = attendanceStudents
+      .map((student) => ({ studentId: student._id, status: attendanceDraft[student._id] }))
+      .filter((record) => record.status);
+
+    if (records.length === 0) {
+      setToast({ type: 'error', message: 'Mark at least one student before submitting.' });
+      window.setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
+    setSubmittingAttendance(true);
+    try {
+      const response = await attendanceService.submitAttendance(session._id, records);
+      setAttendance(response.data || []);
+      localStorage.removeItem(`attendance-draft:${session._id}`);
+      setToast({ type: 'success', message: 'Attendance submitted and students notified.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to submit attendance.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } finally {
+      setSubmittingAttendance(false);
+    }
   };
 
   if (!sessionId) {
@@ -330,6 +396,15 @@ export const InstructorSessionsPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {toast && (
+        <div className={`fixed top-6 right-6 z-[200] rounded-xl border px-5 py-3 text-sm font-bold shadow-xl ${
+          toast.type === 'success'
+            ? 'bg-green-500/10 border-green-500/30 text-green-400'
+            : 'bg-red-500/10 border-red-500/30 text-red-400'
+        }`}>
+          {toast.message}
+        </div>
+      )}
       <header className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
         <div className="flex items-start gap-4">
           <button onClick={() => navigate('/instructor/sessions')} className="p-3 rounded-xl bg-portal-card border border-portal-border text-portal-text-muted hover:text-portal-text">
@@ -345,9 +420,15 @@ export const InstructorSessionsPage = () => {
             <p className="text-sm text-portal-text-muted">{session.bootcamp?.name} • {fmtDateTime(session.startTime)} - {fmtDateTime(session.endTime)}</p>
           </div>
         </div>
-        <button disabled={saving || session.status === 'completed'} onClick={endSession} className="px-5 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-sm hover:bg-red-500/20 disabled:opacity-50">
-          End Session
-        </button>
+        {session.status === 'completed' ? (
+          <div className="px-5 py-3 rounded-xl bg-portal-card border border-portal-border text-sm text-portal-text-muted">
+            Completed {fmtDateTime(session.completedAt || session.endTime)}
+          </div>
+        ) : (
+          <button disabled={saving} onClick={endSession} className="px-5 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-sm hover:bg-red-500/20 disabled:opacity-50">
+            End Session
+          </button>
+        )}
       </header>
 
       <section className="bg-portal-card border border-portal-border rounded-2xl p-6">
@@ -392,18 +473,38 @@ export const InstructorSessionsPage = () => {
             <h2 className="text-lg font-black text-portal-text">Upload Resource</h2>
             <input value={resourceForm.title} onChange={(event) => setResourceForm((current) => ({ ...current, title: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" placeholder="Resource title" />
             <textarea value={resourceForm.description} onChange={(event) => setResourceForm((current) => ({ ...current, description: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none resize-none" rows={3} placeholder="Short description" />
-            <input type="file" onChange={(event) => setResourceForm((current) => ({ ...current, file: event.target.files?.[0] || null }))} className="w-full text-sm text-portal-text-muted" />
+            <div className="grid grid-cols-2 gap-2 rounded-xl bg-portal-input border border-portal-border p-1">
+              {[
+                { id: 'file', label: 'File' },
+                { id: 'link', label: 'Link' },
+              ].map((option) => (
+                <button key={option.id} type="button" onClick={() => setResourceForm((current) => ({ ...current, type: option.id }))} className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${resourceForm.type === option.id ? 'bg-portal-accent text-white' : 'text-portal-text-muted hover:text-portal-text'}`}>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {resourceForm.type === 'file' ? (
+              <input type="file" accept=".pdf,.zip,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov" onChange={(event) => setResourceForm((current) => ({ ...current, file: event.target.files?.[0] || null }))} className="w-full text-sm text-portal-text-muted" />
+            ) : (
+              <input type="url" value={resourceForm.url} onChange={(event) => setResourceForm((current) => ({ ...current, url: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" placeholder="https://notion.so/... or https://docs.google.com/..." />
+            )}
             <button className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm"><FileUp className="w-4 h-4" /> Upload</button>
           </form>
           <div className="space-y-3">
             {resources.length === 0 ? <EmptyState text="No resources uploaded for this session yet." /> : resources.map((resource) => (
               <div key={resource._id} className="bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4">
-                <div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-portal-accent/10 text-portal-accent"><FileText className="w-4 h-4" /></div>
+                  <div>
                   <h3 className="font-bold text-portal-text">{resource.title}</h3>
-                  <p className="text-sm text-portal-text-muted">{resource.description || 'No description'}</p>
+                  <p className="text-sm text-portal-text-muted">{resource.description || (resource.resource_type === 'link' ? 'External resource link' : 'Resource file')}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-portal-text-muted mt-2">
+                    {resource.resource_type === 'link' ? 'External link' : resource.file_type || 'File'} - {resource.download_count || 0} opens
+                  </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {resource.file_url && <a href={resource.file_url} target="_blank" rel="noreferrer" className="p-2 rounded-lg text-portal-accent hover:bg-portal-accent/10"><ExternalLink className="w-4 h-4" /></a>}
+                  <button type="button" onClick={() => resourceService.openResource(resource)} className="p-2 rounded-lg text-portal-accent hover:bg-portal-accent/10"><ExternalLink className="w-4 h-4" /></button>
                   <button onClick={async () => { await resourceService.deleteResource(resource._id); setResources((current) => current.filter((item) => item._id !== resource._id)); }} className="p-2 rounded-lg text-red-400 hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -415,22 +516,63 @@ export const InstructorSessionsPage = () => {
       {activeTab === 'attendance' && (
         <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
           <div className="bg-portal-card border border-portal-border rounded-2xl p-6 space-y-4">
-            <h2 className="text-lg font-black text-portal-text">Attendance QR</h2>
-            <p className="text-sm text-portal-text-muted">Generate the current attendance token for students to scan during or after the session.</p>
-            <button onClick={generateQr} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm"><QrCode className="w-4 h-4" /> Generate QR Token</button>
-            {qrToken && <div className="break-all rounded-xl bg-portal-input border border-portal-border p-4 text-xs font-mono text-portal-text">{qrToken}</div>}
+            <p className="text-sm text-portal-text-muted">
+              Mark enrolled students within 24 hours after the session ends.
+            </p>
+            <div className="rounded-xl bg-portal-input border border-portal-border p-4 space-y-2 text-sm text-portal-text-muted">
+              <p className="font-bold text-portal-text">Status types</p>
+              <p>Present</p>
+              <p>Absent</p>
+              <p>Late</p>
+              <p>Excused</p>
+            </div>
+            <div className="rounded-xl bg-portal-input border border-portal-border p-4 space-y-2 text-sm text-portal-text-muted">
+              <p className="font-bold text-portal-text">Rules</p>
+              <p>One record per student per session</p>
+              <p>Editable within 24 hours</p>
+              <p>Late if more than 10 minutes</p>
+            </div>
+            {session.status !== 'completed' && (
+              <>
+                <button onClick={generateQr} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm"><QrCode className="w-4 h-4" /> Generate QR Token</button>
+                {qrToken && <div className="break-all rounded-xl bg-portal-input border border-portal-border p-4 text-xs font-mono text-portal-text">{qrToken}</div>}
+              </>
+            )}
+            {isAttendanceLocked(session) && (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
+                Attendance editing is closed for this session.
+              </div>
+            )}
           </div>
           <div className="bg-portal-card border border-portal-border rounded-2xl overflow-hidden">
-            <div className="p-5 border-b border-portal-border flex items-center gap-2 text-portal-text font-black"><Users className="w-5 h-5 text-portal-accent" /> Attendance Records</div>
-            {attendance.length === 0 ? <EmptyState text="No attendance records for this session yet." /> : attendance.map((record) => (
-              <div key={record._id} className="px-5 py-4 border-b border-portal-border last:border-0 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-portal-text">{record.student?.name || record.student?.email || 'Student'}</p>
-                  <p className="text-xs text-portal-text-muted">{record.student?.email}</p>
-                </div>
-                <span className="text-xs font-black uppercase tracking-widest text-portal-accent">{record.status}</span>
+            <div className="p-5 border-b border-portal-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-portal-text font-black"><Users className="w-5 h-5 text-portal-accent" /> Enrolled Students</div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" disabled={isAttendanceLocked(session)} onClick={saveAttendanceDraft} className="px-4 py-2 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input text-sm font-bold disabled:opacity-50">
+                  Save Draft
+                </button>
+                <button type="button" disabled={isAttendanceLocked(session) || submittingAttendance} onClick={submitAttendance} className="px-4 py-2 rounded-xl bg-portal-accent text-white text-sm font-bold hover:bg-portal-accent-hover disabled:opacity-50">
+                  {submittingAttendance ? 'Submitting...' : 'Submit'}
+                </button>
               </div>
-            ))}
+            </div>
+            {attendanceStudents.length === 0 ? <EmptyState text="No enrolled students found for this bootcamp." /> : attendanceStudents.map((student) => {
+              const currentStatus = attendanceDraft[student._id] || '';
+              return (
+                <div key={student._id} className="px-5 py-4 border-b border-portal-border last:border-0 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-portal-text">{student.name || student.email || 'Student'}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {ATTENDANCE_STATUSES.map((status) => (
+                      <button key={status} type="button" disabled={isAttendanceLocked(session)} onClick={() => setDraftAttendance(student._id, status)} className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-colors disabled:opacity-50 ${currentStatus === status ? 'bg-portal-accent text-white border-portal-accent' : 'border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input'}`}>
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
