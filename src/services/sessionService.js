@@ -4,9 +4,15 @@ const sessionService = {
   // GET /api/v1/sessions
   async getSessions(filters = {}) {
     const params = new URLSearchParams();
-    if (filters.bootcampId) params.append('bootcampId', filters.bootcampId);
+    if (filters.bootcampId) params.append('bootcamp', filters.bootcampId);
+    if (filters.bootcamp) params.append('bootcamp', filters.bootcamp);
     if (filters.division) params.append('division', filters.division);
     const response = await api.get(`/sessions?${params.toString()}`);
+    return response.data;
+  },
+
+  async getSessionById(id) {
+    const response = await api.get(`/sessions/${id}`);
     return response.data;
   },
 

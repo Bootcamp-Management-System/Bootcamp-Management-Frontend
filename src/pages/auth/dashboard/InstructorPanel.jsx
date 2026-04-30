@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { Users, ClipboardList, MessageSquare, Plus, ArrowRight, Loader2 } from 'lucide-react';
+import { ClipboardList, MessageSquare, ArrowRight, Loader2, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import taskService from '../../../services/taskService';
 import submissionService from '../../../services/submissionService';
@@ -57,14 +57,14 @@ export const InstructorPanel = () => {
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-portal-text">Instructor Dashboard</h1>
-          <p className="text-portal-text-muted mt-1">Manage your division's tasks and review student submissions.</p>
+          <p className="text-portal-text-muted mt-1">Prepare assigned sessions, publish resources, manage attendance, and review student submissions.</p>
         </div>
         <button
-          onClick={() => navigate('/instructor/tasks')}
+          onClick={() => navigate('/instructor/sessions')}
           className="bg-portal-accent text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
-          <Plus className="w-5 h-5" />
-          Manage Tasks
+          <Calendar className="w-5 h-5" />
+          Open Sessions
         </button>
       </header>
 

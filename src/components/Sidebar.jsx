@@ -54,6 +54,7 @@ export const Sidebar = () => {
         title: 'Instructor',
         items: [
           { id: 'dashboard', icon: LayoutDashboard, label: 'Panel', path: '/instructor' },
+          { id: 'sessions', icon: Calendar, label: 'Sessions', path: '/instructor/sessions' },
           { id: 'tasks', icon: ClipboardList, label: 'Tasks', path: '/instructor/tasks' },
           { id: 'attendance', icon: UserCheck, label: 'Attendance', path: '/instructor/attendance' },
         ]
@@ -71,6 +72,7 @@ export const Sidebar = () => {
         title: 'Academy',
         items: [
           { id: 'explore-bootcamps', icon: Globe, label: 'Explore Bootcamps', path: '/bootcamps' },
+          { id: 'sessions', icon: Calendar, label: 'Sessions', path: '/sessions' },
           { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
           { id: 'enrollments', icon: ShieldCheck, label: 'My Enrollments', path: '/enrollments' },
         ]

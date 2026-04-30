@@ -5,6 +5,8 @@ const taskService = {
   async getTasks(filters = {}) {
     const params = new URLSearchParams();
     if (filters.division) params.append('division', filters.division);
+    if (filters.session) params.append('session', filters.session);
+    if (filters.bootcamp) params.append('bootcamp', filters.bootcamp);
     const response = await api.get(`/tasks?${params.toString()}`);
     return response.data;
   },

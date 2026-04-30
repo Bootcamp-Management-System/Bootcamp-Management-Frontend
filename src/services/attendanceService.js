@@ -2,14 +2,16 @@ import api from '../api/api';
 
 const attendanceService = {
   // GET /api/v1/attendance
-  async getAttendance(sessionId) {
+  async getAttendance(input) {
+    const sessionId = typeof input === 'object' ? input.sessionId : input;
     const response = await api.get('/attendance', { params: { sessionId } });
     return response.data;
   },
 
   // POST /api/v1/attendance/mark
-  async markAttendance(sessionId, studentId, status) {
-    const response = await api.post('/attendance/mark', { sessionId, studentId, status });
+  async markAttendance(input, studentId, status) {
+    const payload = typeof input === 'object' ? input : { sessionId: input, studentId, status };
+    const response = await api.post('/attendance/mark', payload);
     return response.data;
   },
 

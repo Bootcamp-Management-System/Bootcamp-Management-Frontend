@@ -24,6 +24,7 @@ import { RecruitmentSubmissionPage } from "./pages/RecruitmentSubmissionPage";
 // Dashboard Pages
 import { StudentDashboard } from "./pages/auth/dashboard/StudentDashboard";
 import { InstructorPanel } from "./pages/auth/dashboard/InstructorPanel";
+import { InstructorSessionsPage } from "./pages/instructor/InstructorSessionsPage";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminMembersPage } from "./pages/admin/AdminMembersPage";
 import { AdminInstructorsPage } from "./pages/admin/AdminInstructorsPage";
@@ -59,6 +60,7 @@ import { StudentBootcampsPage } from "./pages/bootcamp/StudentBootcampsPage";
 import { StudentEnrollmentsPage } from "./pages/bootcamp/StudentEnrollmentsPage";
 import { StudentApplicationsPage } from "./pages/bootcamp/StudentApplicationsPage";
 import { StudentMemberHubPage } from "./pages/auth/dashboard/StudentMemberHubPage";
+import { StudentSessionsPage } from "./pages/sessions/StudentSessionsPage";
 export default function App() {
   return (
     <ThemeProvider>
@@ -198,6 +200,28 @@ export default function App() {
               />
 
               <Route
+                path="/sessions"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentSessionsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/sessions/:sessionId"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "member"]}>
+                    <Layout>
+                      <StudentSessionsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/instructor"
                 element={
                   <ProtectedRoute allowedRoles={["instructor"]}>
@@ -216,6 +240,28 @@ export default function App() {
                   >
                     <Layout>
                       <InstructorTasksPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/instructor/sessions"
+                element={
+                  <ProtectedRoute allowedRoles={["instructor"]}>
+                    <Layout>
+                      <InstructorSessionsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/instructor/sessions/:sessionId"
+                element={
+                  <ProtectedRoute allowedRoles={["instructor"]}>
+                    <Layout>
+                      <InstructorSessionsPage />
                     </Layout>
                   </ProtectedRoute>
                 }
