@@ -13,7 +13,6 @@ import {
   Monitor,
   Plus,
   QrCode,
-  RefreshCw,
   Save,
   Trash2,
   Users,
@@ -23,6 +22,8 @@ import sessionService from '../../services/sessionService';
 import resourceService from '../../services/resourceService';
 import attendanceService from '../../services/attendanceService';
 import taskService from '../../services/taskService';
+
+const MotionButton = motion.button;
 
 const fmtDateTime = (value) =>
   value ? new Date(value).toLocaleString('en-US', {
@@ -57,6 +58,7 @@ export const InstructorSessionsPage = () => {
   const [resources, setResources] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [selectedBootcampId, setSelectedBootcampId] = useState('');
   const [qrToken, setQrToken] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -114,8 +116,47 @@ export const InstructorSessionsPage = () => {
 
   const sessionStats = useMemo(() => ({
     upcoming: sessions.filter((item) => new Date(item.startTime) > new Date()).length,
-    completed: sessions.filter((item) => item.status === 'completed').length,
   }), [sessions]);
+
+  const bootcampGroups = useMemo(() => {
+    const groups = new Map();
+
+    sessions.forEach((item) => {
+      const bootcamp = item.bootcamp;
+      const bootcampId = bootcamp?._id || bootcamp || 'unassigned';
+      const existing = groups.get(bootcampId) || {
+        id: bootcampId,
+        name: bootcamp?.name || 'Unassigned bootcamp',
+        sessions: [],
+        upcoming: 0,
+        completed: 0,
+      };
+
+      existing.sessions.push(item);
+      if (new Date(item.startTime) > new Date()) existing.upcoming += 1;
+      if (item.status === 'completed') existing.completed += 1;
+      groups.set(bootcampId, existing);
+    });
+
+    return Array.from(groups.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [sessions]);
+
+  const selectedBootcamp = useMemo(
+    () => bootcampGroups.find((bootcamp) => bootcamp.id === selectedBootcampId),
+    [bootcampGroups, selectedBootcampId]
+  );
+
+  const visibleSessions = selectedBootcamp?.sessions || [];
+
+  const displayedStats = selectedBootcamp
+    ? {
+        assigned: visibleSessions.length,
+        upcoming: selectedBootcamp.upcoming,
+      }
+    : {
+        assigned: sessions.length,
+        upcoming: sessionStats.upcoming,
+      };
 
   const saveDetails = async () => {
     setSaving(true);
@@ -187,19 +228,25 @@ export const InstructorSessionsPage = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-portal-text">My Sessions</h1>
-            <p className="text-portal-text-muted mt-1">Open an assigned session to prepare resources, attendance, and tasks.</p>
+            <h1 className="text-3xl font-extrabold text-portal-text">Sessions</h1>
+            <p className="text-portal-text-muted mt-1">
+              {selectedBootcamp
+                ? `Open an assigned session in ${selectedBootcamp.name}.`
+                : 'Choose an available bootcamp to view your assigned sessions.'}
+            </p>
           </div>
-          <button onClick={loadSessions} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-card transition-colors">
-            <RefreshCw className="w-4 h-4" /> Refresh
-          </button>
+          {selectedBootcamp && (
+            <button onClick={() => setSelectedBootcampId('')} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-card transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Bootcamps
+            </button>
+          )}
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Assigned', value: sessions.length, icon: BookOpen },
-            { label: 'Upcoming', value: sessionStats.upcoming, icon: Calendar },
-            { label: 'Completed', value: sessionStats.completed, icon: CheckCircle2 },
+            { label: 'Bootcamps', value: bootcampGroups.length, icon: BookOpen },
+            { label: 'Assigned', value: displayedStats.assigned, icon: ClipboardList },
+            { label: 'Upcoming', value: displayedStats.upcoming, icon: Calendar },
           ].map((item) => (
             <div key={item.label} className="bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center gap-4">
               <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent"><item.icon className="w-5 h-5" /></div>
@@ -221,10 +268,33 @@ export const InstructorSessionsPage = () => {
             <h2 className="text-xl font-bold text-portal-text">No assigned sessions yet</h2>
             <p className="text-portal-text-muted mt-2">When an admin assigns you to a session, it will appear here.</p>
           </div>
+        ) : !selectedBootcamp ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {bootcampGroups.map((bootcamp) => (
+              <MotionButton
+                whileHover={{ y: -4 }}
+                key={bootcamp.id}
+                onClick={() => setSelectedBootcampId(bootcamp.id)}
+                className="text-left bg-portal-card border border-portal-border rounded-2xl p-6 hover:border-portal-accent transition-all"
+              >
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent"><BookOpen className="w-5 h-5" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-portal-text-muted">
+                    {bootcamp.sessions.length} session{bootcamp.sessions.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <h3 className="text-lg font-black text-portal-text mb-2 line-clamp-1">{bootcamp.name}</h3>
+                <div className="space-y-2 text-xs text-portal-text-muted">
+                  <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {bootcamp.upcoming} upcoming</span>
+                  <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {bootcamp.completed} completed</span>
+                </div>
+              </MotionButton>
+            ))}
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {sessions.map((item) => (
-              <motion.button
+            {visibleSessions.map((item) => (
+              <MotionButton
                 whileHover={{ y: -4 }}
                 key={item._id}
                 onClick={() => navigate(`/instructor/sessions/${item._id}`)}
@@ -240,7 +310,7 @@ export const InstructorSessionsPage = () => {
                   <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {fmtDateTime(item.startTime)}</span>
                   <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {item.location || 'Location not set'}</span>
                 </div>
-              </motion.button>
+              </MotionButton>
             ))}
           </div>
         )}

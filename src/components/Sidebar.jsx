@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import csecLogo from '../assets/csec logo.jpg';
 import {
@@ -15,7 +15,6 @@ import {
   UserCheck,
   TrendingUp,
   Layers as LayersIcon,
-  RefreshCw,
   Calendar,
   ShieldCheck,
   Zap,
@@ -23,10 +22,12 @@ import {
   Globe
 } from 'lucide-react';
 
+const MotionAside = motion.aside;
+const MotionDiv = motion.div;
+
 export const Sidebar = () => {
-  const { user, switchRole } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getNavItems = () => {
@@ -55,8 +56,6 @@ export const Sidebar = () => {
         items: [
           { id: 'dashboard', icon: LayoutDashboard, label: 'Panel', path: '/instructor' },
           { id: 'sessions', icon: Calendar, label: 'Sessions', path: '/instructor/sessions' },
-          { id: 'tasks', icon: ClipboardList, label: 'Tasks', path: '/instructor/tasks' },
-          { id: 'attendance', icon: UserCheck, label: 'Attendance', path: '/instructor/attendance' },
         ]
       }];
     }
@@ -97,7 +96,7 @@ export const Sidebar = () => {
   const navSections = getNavItems();
 
   return (
-    <motion.aside
+    <MotionAside
       initial={false}
       animate={{ width: isCollapsed ? '80px' : '280px' }}
       className="bg-portal-card border-r border-portal-border flex flex-col shrink-0 relative transition-colors duration-300 z-[100]"
@@ -118,12 +117,12 @@ export const Sidebar = () => {
           </div>
           <AnimatePresence>
             {!isCollapsed && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+              <MotionDiv initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
                 <h1 className="font-extrabold text-lg leading-none text-portal-text tracking-tight">CSEC ASTU</h1>
                 <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
                   Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'member' ? 'Student' : user?.role}
                 </p>
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </div>
@@ -158,6 +157,6 @@ export const Sidebar = () => {
           ))}
         </nav>
       </div>
-    </motion.aside>
+    </MotionAside>
   );
 };
