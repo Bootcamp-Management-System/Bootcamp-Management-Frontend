@@ -272,18 +272,6 @@ export const authService = {
     return normalizeAuthResponse(response);
   },
 
-  async resendOtp({ email }) {
-    await ensureValidEmail(email);
-
-    try {
-      const response = await api.post('/auth/resend-otp', { email });
-      return response.data;
-    } catch (error) {
-      const message = error?.response?.data?.message || error?.message || 'Failed to resend OTP.';
-      return fail(message, error?.response?.status || 400);
-    }
-  },
-
   async googleLogin() {
     const users = getUsers();
     const user = users.find((item) => item.email === 'member@bms.com') || users[0];
@@ -309,41 +297,29 @@ export const authService = {
   async forgotPassword({ email }) {
     await ensureValidEmail(email);
 
-    const users = getUsers();
     const normalizedEmail = normalizeEmail(email);
-    const user = users.find((item) => item.email.toLowerCase() === normalizedEmail);
 
-    if (!user) {
-      return fail('Account not found for this email.', 404);
+    try {
+      const response = await api.post('/auth/forgot-password', { email: normalizedEmail });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to send password reset code.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    upsertOtpSession({ email: normalizedEmail, purpose: 'forgot-password' });
-
-    const response = await makeResponse({
-      message: 'Reset code sent successfully.',
-      email: normalizedEmail,
-    });
-
-    return response.data;
   },
 
-  async resendOtp({ email, purpose }) {
+  async resendOtp({ email }) {
     await ensureValidEmail(email);
 
-    if (!purpose) {
-      return fail('OTP purpose is required.', 400);
-    }
-
     const normalizedEmail = normalizeEmail(email);
-    upsertOtpSession({ email: normalizedEmail, purpose });
 
-    const response = await makeResponse({
-      message: 'OTP resent successfully.',
-      email: normalizedEmail,
-      purpose,
-    });
-
-    return response.data;
+    try {
+      const response = await api.post('/auth/resend-otp', { email: normalizedEmail });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to resend OTP.';
+      return fail(message, error?.response?.status || 400);
+    }
   },
 
   async verifyOtp({ email, otp, purpose }) {
@@ -463,37 +439,27 @@ export const authService = {
     }
   },
 
-  async resetPassword({ email, password }) {
+  async resetPassword({ email, otp, newPassword }) {
     await ensureValidEmail(email);
-    await ensureStrongPassword(password);
+    await ensureStrongPassword(newPassword);
 
     const normalizedEmail = normalizeEmail(email);
-    const session = getOtpSession({ email: normalizedEmail, purpose: 'forgot-password' });
 
-    if (!session || !session.isVerified) {
-      return fail('Reset session is invalid. Verify OTP again.', 410);
+    if (!String(otp || '').trim()) {
+      return fail('OTP is required.', 422);
     }
 
-    const users = getUsers();
-    const userIndex = users.findIndex((item) => item.email.toLowerCase() === normalizedEmail);
-
-    if (userIndex === -1) {
-      return fail('Account not found for this email.', 404);
+    try {
+      const response = await api.post('/auth/reset-password', {
+        email: normalizedEmail,
+        otp,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to reset password.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    users[userIndex] = {
-      ...users[userIndex],
-      password,
-      requiresPasswordChange: false,
-    };
-    saveUsers(users);
-    clearOtpSession({ email: normalizedEmail, purpose: 'forgot-password' });
-
-    const response = await makeResponse({
-      message: 'Password reset successful. You can login now.',
-      user: publicUser(users[userIndex]),
-    });
-    return response.data;
   },
   
   async completeOnboarding(onboardingData) {

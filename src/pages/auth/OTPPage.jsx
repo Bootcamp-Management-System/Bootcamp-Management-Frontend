@@ -9,7 +9,7 @@ export const OTPPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');  const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState('');  const { verifyOTP, resendOtp, user } = useAuth();
+  const [resendMessage, setResendMessage] = useState('');  const { verifyOTP, resendOtp, forgotPassword, resetPassword, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
@@ -99,11 +99,18 @@ export const OTPPage = () => {
     }
 
     try {
-      await verifyOTP({ 
-        email, 
-        otp: otp.join(''), 
-        newPassword: purpose === 'forgot-password' ? newPassword : undefined 
-      });
+      if (purpose === 'forgot-password') {
+        await resetPassword({
+          email,
+          otp: otp.join(''),
+          newPassword,
+        });
+      } else {
+        await verifyOTP({
+          email,
+          otp: otp.join(''),
+        });
+      }
       
       // Clear dev OTP
       localStorage.removeItem('dev_otp');
@@ -130,7 +137,11 @@ export const OTPPage = () => {
     setResendMessage('');
 
     try {
-      await resendOtp({ email });
+      if (purpose === 'forgot-password') {
+        await forgotPassword(email);
+      } else {
+        await resendOtp({ email });
+      }
       setResendMessage('OTP sent successfully! Check your email.');
     } catch (err) {
       setError(err?.message || 'Failed to resend OTP');

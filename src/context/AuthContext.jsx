@@ -312,8 +312,8 @@ export const AuthProvider = ({ children }) => {
     return await authService.forgotPassword({ email });
   };
 
-  const resetPassword = async (_otp, _newPassword) => {
-    // Simulate password reset
+  const resetPassword = async ({ email, otp, newPassword }) => {
+    return await authService.resetPassword({ email, otp, newPassword });
   };
 
   const updateProfile = async (updates) => {
