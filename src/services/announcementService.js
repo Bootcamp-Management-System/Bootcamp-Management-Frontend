@@ -7,6 +7,9 @@ export const announcementService = {
   createAnnouncement: async (data) => {
     return await api.post('/announcements', data);
   },
+  updateAnnouncement: async (id, data) => {
+    return await api.put(`/announcements/${id}`, data);
+  },
   deleteAnnouncement: async (id) => {
     return await api.delete(`/announcements/${id}`);
   }

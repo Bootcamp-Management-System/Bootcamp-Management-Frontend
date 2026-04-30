@@ -15,6 +15,7 @@ const audienceOptions = [
 export function Announcements() {
   const [selectedAudience, setSelectedAudience] = useState('All');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newAnnouncement, setNewAnnouncement] = useState({
@@ -49,9 +50,15 @@ export function Announcements() {
       return toast.error("Title and content are required");
     }
     try {
-      await announcementService.createAnnouncement(newAnnouncement);
-      toast.success('Announcement created and sent successfully');
+      if (editingId) {
+        await announcementService.updateAnnouncement(editingId, newAnnouncement);
+        toast.success('Announcement updated successfully');
+      } else {
+        await announcementService.createAnnouncement(newAnnouncement);
+        toast.success('Announcement created and sent successfully');
+      }
       setCreateDialogOpen(false);
+      setEditingId(null);
       setNewAnnouncement({
         title: '',
         content: '',
@@ -60,8 +67,19 @@ export function Announcements() {
       });
       fetchAnnouncements();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to create announcement');
+      toast.error(error.response?.data?.error || (editingId ? 'Failed to update announcement' : 'Failed to create announcement'));
     }
+  };
+
+  const openEditModal = (announcement: any) => {
+    setEditingId(announcement._id);
+    setNewAnnouncement({
+      title: announcement.title,
+      content: announcement.content,
+      audience: announcement.audience,
+      division: announcement.division || ''
+    });
+    setCreateDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -95,7 +113,11 @@ export function Announcements() {
           <p className="text-[#57606a] dark:text-[#8b949e]">Broadcast important messages to users, instructors, admins, or specific divisions.</p>
         </div>
         <button 
-          onClick={() => setCreateDialogOpen(true)}
+          onClick={() => {
+            setEditingId(null);
+            setNewAnnouncement({ title: '', content: '', audience: 'All Users', division: '' });
+            setCreateDialogOpen(true);
+          }}
           className="flex items-center gap-2 px-3 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
@@ -167,7 +189,10 @@ export function Announcements() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 text-[#0969da] dark:text-[#58a6ff] hover:bg-[#ddf4ff] dark:hover:bg-[#2f81f7]/20 rounded-md transition-colors">
+                <button 
+                  onClick={() => openEditModal(announcement)}
+                  className="p-2 text-[#0969da] dark:text-[#58a6ff] hover:bg-[#ddf4ff] dark:hover:bg-[#2f81f7]/20 rounded-md transition-colors"
+                >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button 
@@ -201,7 +226,7 @@ export function Announcements() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9]">
-                  Create New Announcement
+                  {editingId ? 'Edit Announcement' : 'Create New Announcement'}
                 </h2>
                 <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
                   Broadcast an important message to your selected audience.
@@ -279,7 +304,10 @@ export function Announcements() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
-                  onClick={() => setCreateDialogOpen(false)}
+                  onClick={() => {
+                    setCreateDialogOpen(false);
+                    setEditingId(null);
+                  }}
                   className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
                 >
                   Cancel
@@ -289,7 +317,7 @@ export function Announcements() {
                   className="px-3 py-2 rounded-md bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-semibold flex items-center gap-2"
                 >
                   <Send className="w-4 h-4" />
-                  Send Announcement
+                  {editingId ? 'Save Changes' : 'Send Announcement'}
                 </button>
               </div>
             </div>

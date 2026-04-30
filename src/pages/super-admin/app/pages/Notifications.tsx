@@ -1,39 +1,83 @@
-import React, { useState } from 'react';
-import { Bell, Check, CheckCheck, Trash2, ArrowUpCircle, UserPlus, FileCheck, Calendar, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, Check, CheckCheck, Trash2, ArrowUpCircle, UserPlus, FileCheck, Calendar, X, Megaphone, Info } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
+import { notificationService } from '../../../../services/notificationService';
 
-const mockNotifications: any[] = [];
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'ANNOUNCEMENT': return Megaphone;
+    case 'SESSION': return Calendar;
+    case 'ASSIGNMENT': return FileCheck;
+    case 'TASK': return CheckCircle;
+    case 'MEMBERSHIP': return UserPlus;
+    default: return Info;
+  }
+};
+
+const getNotificationColor = (type: string) => {
+  switch (type) {
+    case 'ANNOUNCEMENT': return 'bg-[#ddf4ff] dark:bg-[#2f81f7]/20 text-[#0969da] dark:text-[#58a6ff]';
+    case 'SESSION': return 'bg-[#e6ffed] dark:bg-[#238636]/20 text-[#1a7f37] dark:text-[#3fb950]';
+    case 'ASSIGNMENT': return 'bg-[#fff8c5] dark:bg-[#d29922]/20 text-[#9a6700] dark:text-[#d29922]';
+    default: return 'bg-[#f6f8fa] dark:bg-[#30363d] text-[#57606a] dark:text-[#8b949e]';
+  }
+};
 
 export function Notifications() {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationService.getNotifications();
+      setNotifications(res.data?.data || []);
+    } catch (error) {
+      toast.error('Failed to load notifications');
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
   const filteredNotifications = filter === 'unread' 
-    ? notifications.filter(n => !n.read)
+    ? notifications.filter(n => !n.isRead)
     : notifications;
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationService.markAsRead(id);
+      fetchNotifications();
+    } catch (error) {
+      toast.error('Failed to mark as read');
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    toast.success('All notifications marked as read');
+  const markAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      toast.success('All notifications marked as read');
+      fetchNotifications();
+    } catch (error) {
+      toast.error('Failed to mark all as read');
+    }
   };
 
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-    toast.success('Notification deleted');
+  const deleteNotification = async (id: string) => {
+    try {
+      await notificationService.deleteNotification(id);
+      toast.success('Notification deleted');
+      fetchNotifications();
+    } catch (error) {
+      toast.error('Failed to delete notification');
+    }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
-    toast.success('All notifications cleared');
+  const clearAll = async () => {
+    await markAllAsRead();
   };
 
   return (
@@ -102,19 +146,19 @@ export function Notifications() {
       {/* Notifications List */}
       <div className="space-y-3">
         {filteredNotifications.map((notification) => {
-          const Icon = notification.icon;
+          const Icon = getNotificationIcon(notification.type);
           return (
             <div 
-              key={notification.id}
+              key={notification._id}
               className={cn(
                 "bg-white dark:bg-[#161b22] border rounded-xl p-5 shadow-sm transition-all group",
-                notification.read 
+                notification.isRead 
                   ? "border-[#d0d7de] dark:border-[#30363d] opacity-75 hover:opacity-100" 
                   : "border-[#0969da] dark:border-[#2f81f7] shadow-md"
               )}
             >
               <div className="flex items-start gap-4">
-                <div className={cn("p-2.5 rounded-lg shrink-0", notification.color)}>
+                <div className={cn("p-2.5 rounded-lg shrink-0", getNotificationColor(notification.type))}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -123,9 +167,9 @@ export function Notifications() {
                       {notification.title}
                     </h3>
                     <div className="flex items-center gap-2 shrink-0">
-                      {!notification.read && (
+                      {!notification.isRead && (
                         <button
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={() => markAsRead(notification._id)}
                           className="p-1.5 text-[#0969da] dark:text-[#58a6ff] hover:bg-[#ddf4ff] dark:hover:bg-[#2f81f7]/20 rounded-md transition-colors"
                           title="Mark as read"
                         >
@@ -133,7 +177,7 @@ export function Notifications() {
                         </button>
                       )}
                       <button
-                        onClick={() => deleteNotification(notification.id)}
+                        onClick={() => deleteNotification(notification._id)}
                         className="p-1.5 text-[#cf222e] dark:text-[#ff7b72] hover:bg-[#ffebe9] dark:hover:bg-[#f85149]/20 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                         title="Delete"
                       >
@@ -146,9 +190,9 @@ export function Notifications() {
                   </p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[#57606a] dark:text-[#8b949e]">
-                      {notification.time}
+                      {new Date(notification.createdAt).toLocaleString()}
                     </span>
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#0969da] text-white">
                         New
                       </span>
