@@ -5,6 +5,8 @@ import {
   BadgeCheck, 
   Mail, 
   Lock, 
+  Eye,
+  EyeOff,
   User, 
   UserPlus, 
   ArrowLeft, 
@@ -30,6 +32,8 @@ const signupSchema = z.object({
 export const SignupPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [bootcampId] = useState(() => new URLSearchParams(window.location.search).get('bootcampId'));
   const navigate = useNavigate();
   const { signup, isAuthenticated, user } = useAuth();
@@ -87,6 +91,7 @@ export const SignupPage = () => {
   });
 
   const inputClass = "w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-white/10 transition-all placeholder:text-portal-text-muted/40";
+  const passwordInputClass = "w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-white/10 transition-all placeholder:text-portal-text-muted/40";
   const labelClass = "block text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] mb-2 ml-1";
 
   return (
@@ -182,13 +187,22 @@ export const SignupPage = () => {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     {...formik.getFieldProps('password')}
                     placeholder="••••••••"
-                    className={inputClass}
+                    className={passwordInputClass}
                   />
-                  {formik.touched.password && formik.errors.password && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.password}</p>}
+                  <button
+                    type="button"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent focus:outline-none focus:ring-2 focus:ring-portal-accent/40"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
+                {formik.touched.password && formik.errors.password && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.password}</p>}
               </div>
               <div className="space-y-2">
                 <label className={labelClass}>Confirm</label>
@@ -196,13 +210,22 @@ export const SignupPage = () => {
                   <BadgeCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     {...formik.getFieldProps('confirmPassword')}
                     placeholder="••••••••"
-                    className={inputClass}
+                    className={passwordInputClass}
                   />
-                  {formik.touched.confirmPassword && formik.errors.confirmPassword && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.confirmPassword}</p>}
+                  <button
+                    type="button"
+                    aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
+                    title={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
+                    onClick={() => setShowConfirmPassword((current) => !current)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent focus:outline-none focus:ring-2 focus:ring-portal-accent/40"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
+                {formik.touched.confirmPassword && formik.errors.confirmPassword && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.confirmPassword}</p>}
               </div>
             </div>
 

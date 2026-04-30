@@ -179,12 +179,6 @@ export const Navbar = () => {
                     >
                       <User className="w-4 h-4" /> My Profile
                     </button>
-                    <button 
-                      onClick={() => { navigate('/settings'); setShowProfileDropdown(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-text hover:bg-portal-accent/10 hover:text-portal-accent transition-all text-left"
-                    >
-                      <Settings className="w-4 h-4" /> Settings
-                    </button>
                     {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
                       <button 
                         onClick={() => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, 
@@ -18,12 +18,27 @@ import {
   BarChart3
 } from 'lucide-react';
 import { bootcampService } from '../services/bootcampService';
+import { useAuth } from '../context/AuthContext';
+
+const getHomePath = (role) => {
+  const normalizedRole =
+    role === 'super-admin' || role === 'super admin'
+      ? 'super_admin'
+      : role === 'student'
+        ? 'member'
+        : role;
+
+  if (normalizedRole === 'super_admin') return '/super-admin/dashboard';
+  if (normalizedRole === 'admin') return '/admin';
+  if (normalizedRole === 'instructor') return '/instructor';
+  return '/dashboard';
+};
 
 export const LandingPage = () => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const navigate = useNavigate();
+  const { isAuthenticated, user, isLoading } = useAuth();
 
   useEffect(() => {
     const fetchPublicData = async () => {
@@ -40,6 +55,18 @@ export const LandingPage = () => {
   }, []);
 
   const displayedBootcamps = showAll ? bootcamps : bootcamps.slice(0, 3);
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-portal-bg">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-portal-accent"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    return <Navigate to={getHomePath(user.role)} replace />;
+  }
 
   return (
     <div className="min-h-screen bg-portal-bg text-portal-text overflow-x-hidden">

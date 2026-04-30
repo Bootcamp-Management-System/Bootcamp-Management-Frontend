@@ -33,7 +33,6 @@ export function Settings() {
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'security', label: 'Security & Password', icon: KeyRound },
-    { id: 'general', label: 'System Settings', icon: Globe },
   ];
 
   const handleSaveProfile = () => {
@@ -51,10 +50,6 @@ export function Settings() {
     }
     toast.success('Password changed successfully');
     setPasswords({ current: '', new: '', confirm: '' });
-  };
-
-  const handleSaveSettings = () => {
-    toast.success('Settings saved successfully');
   };
 
   const handleLogout = () => {
@@ -271,73 +266,6 @@ export function Settings() {
                   <Button onClick={handleChangePassword} className="gap-2">
                     <Shield className="w-4 h-4" />
                     Change Password
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* General Settings Tab */}
-            {activeTab === 'general' && (
-              <>
-                <div>
-                  <h2 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9] mb-4 border-b border-[#d0d7de] dark:border-[#30363d] pb-2">Platform Settings</h2>
-                  
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-1">Platform Name</label>
-                      <input
-                        type="text"
-                        defaultValue="Bootcamp Management System"
-                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] max-w-md"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-1">Support Email</label>
-                      <input
-                        type="email"
-                        defaultValue="support@bms.edu"
-                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] max-w-md"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-1">Default Division Capacity</label>
-                      <input
-                        type="number"
-                        defaultValue="150"
-                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] max-w-[150px]"
-                      />
-                      <p className="text-xs text-[#57606a] dark:text-[#8b949e] mt-1">Maximum students per division by default.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h2 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9] mb-4 border-b border-[#d0d7de] dark:border-[#30363d] pb-2">Business Rules</h2>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <input type="checkbox" id="overlap" className="w-4 h-4 rounded border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] accent-[#0969da] dark:accent-[#2f81f7] cursor-pointer" />
-                      <label htmlFor="overlap" className="text-sm text-[#24292f] dark:text-[#c9d1d9] font-medium cursor-pointer">Allow instructor double-booking</label>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <input type="checkbox" id="late" defaultChecked className="w-4 h-4 rounded border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] accent-[#0969da] dark:accent-[#2f81f7] cursor-pointer" />
-                      <label htmlFor="late" className="text-sm text-[#24292f] dark:text-[#c9d1d9] font-medium cursor-pointer">Mark attendance "Late" after 10 minutes automatically</label>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <input type="checkbox" id="applications" defaultChecked className="w-4 h-4 rounded border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#0d1117] accent-[#0969da] dark:accent-[#2f81f7] cursor-pointer" />
-                      <label htmlFor="applications" className="text-sm text-[#24292f] dark:text-[#c9d1d9] font-medium cursor-pointer">Enable Waiting List loop for rejected applications</label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <Button onClick={handleSaveSettings} className="gap-2">
-                    <Save className="w-4 h-4" />
-                    Save Changes
                   </Button>
                 </div>
               </>
