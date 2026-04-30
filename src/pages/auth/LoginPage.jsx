@@ -8,6 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -81,7 +82,7 @@ export const LoginPage = () => {
           <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
         </div>
         <h1 className="text-3xl font-bold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
-        <p className="text-portal-text-muted text-sm mt-2 font-medium">Log in to your specialized learning environment</p>
+        <p className="text-portal-text-muted text-sm mt-2 font-medium">{t('auth.login_title')}</p>
       </motion.div>
 
       {/* Main Login Card */}
@@ -93,7 +94,7 @@ export const LoginPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">Email / ID</label>
+            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">{t('auth.email_id')}</label>
             <div className="relative group">
               <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
@@ -108,7 +109,7 @@ export const LoginPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">Password</label>
+            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">{t('auth.password')}</label>
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
@@ -148,29 +149,30 @@ export const LoginPage = () => {
             type="submit"
             className="group w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-bold text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            Login
+            {t('nav.login')}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
-            Forgot password?
+            {t('auth.forgot_password')}
           </Link>
         </div>
 
 
         <div className="mt-8 pt-8 border-t border-white/5 text-center">
           <p className="text-sm text-portal-text-muted">
-            New applicant? {' '}
+            {t('auth.new_applicant')} {' '}
             <Link to="/signup" className="text-portal-accent font-bold hover:underline underline-offset-4 decoration-2">
-              Create an Account
+              {t('auth.create_account')}
             </Link>
           </p>
         </div>
       </motion.div>
 
-      {/* Theme Toggle Button */}
-      <div className="absolute bottom-8 right-8">
+      {/* Theme & Language Switcher */}
+      <div className="absolute bottom-8 right-8 flex items-center gap-3">
+        <LanguageSwitcher />
         <ThemeSwitcher />
       </div>
     </div>

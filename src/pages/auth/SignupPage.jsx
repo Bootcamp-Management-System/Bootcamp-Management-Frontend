@@ -32,6 +32,7 @@ const signupSchema = z.object({
 });
 
 export const SignupPage = () => {
+  const { t } = useTranslation();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -122,8 +123,8 @@ export const SignupPage = () => {
             <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
           </motion.div>
           <div className="space-y-4">
-            <h1 className="text-5xl font-bold text-white leading-tight">Join the <br /> <span className="text-portal-accent">Next Gen</span>.</h1>
-            <p className="text-portal-text-muted text-lg leading-relaxed">Create your specialized profile in seconds and start applying for the top bootcamps at ASTU.</p>
+            <h1 className="text-5xl font-bold text-white leading-tight">{t('auth.signup_title')}</h1>
+            <p className="text-portal-text-muted text-lg leading-relaxed">{t('auth.signup_subtitle')}</p>
           </div>
           <div className="space-y-4 pt-8">
             {['Global Developer Network', 'Accelerated Learning', 'Secure Certification'].map((item) => (
@@ -148,13 +149,13 @@ export const SignupPage = () => {
               <Sparkles className="w-5 h-5 text-portal-accent animate-pulse" />
               <span className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.3em]">Quick Onboarding</span>
             </div>
-            <h2 className="text-4xl font-bold text-white mb-2">Create Account</h2>
-            <p className="text-portal-text-muted">Fill in your basic details to get started.</p>
+            <h2 className="text-4xl font-bold text-white mb-2">{t('auth.create_account')}</h2>
+            <p className="text-portal-text-muted">{t('auth.login_title')}</p>
           </div>
 
           <form onSubmit={formik.handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className={labelClass}>Full Name</label>
+              <label className={labelClass}>{t('auth.full_name')}</label>
               <div className="relative group">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input
@@ -169,7 +170,7 @@ export const SignupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>Email Address</label>
+              <label className={labelClass}>{t('auth.email_id')}</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input
@@ -185,7 +186,7 @@ export const SignupPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className={labelClass}>Password</label>
+                <label className={labelClass}>{t('auth.password')}</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
@@ -208,7 +209,7 @@ export const SignupPage = () => {
                 {formik.touched.password && formik.errors.password && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.password}</p>}
               </div>
               <div className="space-y-2">
-                <label className={labelClass}>Confirm</label>
+                <label className={labelClass}>{t('auth.confirm_password')}</label>
                 <div className="relative group">
                   <BadgeCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
@@ -246,17 +247,18 @@ export const SignupPage = () => {
 
             <div className="mt-8 text-center">
               <p className="text-sm text-portal-text-muted">
-                Already have an account? {' '}
+                {t('auth.already_have_account')} {' '}
                 <Link to="/login" className="text-portal-accent font-bold hover:underline underline-offset-4">
-                  Log in here
+                  {t('nav.login')}
                 </Link>
               </p>
             </div>
           </form>
         </motion.div>
       </div>
-      {/* Theme Toggle Button */}
-      <div className="absolute bottom-8 right-8">
+      {/* Theme & Language Switcher */}
+      <div className="absolute bottom-8 right-8 flex items-center gap-3">
+        <LanguageSwitcher />
         <ThemeSwitcher />
       </div>
     </div>
