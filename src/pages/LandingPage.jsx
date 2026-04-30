@@ -6,6 +6,8 @@ import { ArrowRight, Code2, Globe, Users, Star, CheckCircle2, Rocket, ShieldChec
 import { bootcampService } from '../services/bootcampService';
 import { useAuth } from '../context/AuthContext';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 const Styles = () => (
   <style>{`
@@ -42,6 +44,7 @@ const getHomePath = r => {
 const TICKS = ['React','Node.js','Python','Cyber Security','Data Science','Algorithms','Machine Learning','Full‑Stack','ICPC','Cloud','DevOps','AI'];
 
 export const LandingPage = () => {
+  const { t } = useTranslation();
   const [bootcamps,setBootcamps]=useState([]);
   const [loading,setLoading]=useState(true);
   const [showAll,setShowAll]=useState(false);
@@ -70,9 +73,10 @@ export const LandingPage = () => {
             <span className="text-xl font-extrabold tracking-tight">CSEC ASTU</span>
           </div>
           <div className="flex items-center gap-6">
+            <LanguageSwitcher />
             <ThemeSwitcher />
-            <Link to="/login" className="text-sm font-semibold text-portal-text-muted hover:text-portal-accent transition-colors">Login</Link>
-            <Link to="/signup" className="px-5 py-2.5 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-portal-accent/25">Join Academy</Link>
+            <Link to="/login" className="text-sm font-semibold text-portal-text-muted hover:text-portal-accent transition-colors">{t('nav.login')}</Link>
+            <Link to="/signup" className="px-5 py-2.5 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-portal-accent/25">{t('nav.join')}</Link>
           </div>
         </div>
       </nav>
@@ -91,34 +95,47 @@ export const LandingPage = () => {
         </div>
 
         <div className="relative z-10 text-center max-w-5xl mx-auto">
-          <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.1}}>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-portal-accent/10 border border-portal-accent/25 rounded-full text-portal-accent text-[11px] font-bold uppercase tracking-widest mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-portal-accent animate-pulse"/>Now Recruiting · Cohort 2026
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-portal-accent/5 border border-portal-accent/20 text-portal-accent text-xs font-black tracking-widest uppercase mb-8"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-portal-accent opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-portal-accent"></span>
             </span>
+            {t('hero.badge')}
           </motion.div>
 
-          <motion.h1 initial={{opacity:0,y:24}} animate={{opacity:1,y:0}} transition={{delay:.2,duration:.8}}
-            className="text-7xl md:text-[96px] font-extrabold leading-[1] tracking-tighter mb-6">
-            Build the<br/>
-            Future of<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-portal-accent via-cyan-300 to-blue-400">Technology.</span>
-          </motion.h1>
+          <h1 className="text-5xl md:text-8xl lg:text-[100px] font-black leading-[0.9] tracking-tighter text-white mb-8">
+            {t('hero.title_part1')} <br />
+            {t('hero.title_part2')} <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-portal-accent to-blue-400">
+              {t('hero.title_accent')}
+            </span>
+          </h1>
 
-          <motion.p initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.38,duration:.7}}
-            className="text-lg text-portal-text-muted max-w-xl mx-auto leading-relaxed mb-10">
-            Join the most elite tech community at ASTU. Master industry-standard stacks,
-            contribute to real-world projects, and launch your career.
-          </motion.p>
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-portal-text-muted font-medium mb-12 leading-relaxed">
+            {t('hero.subtitle')}
+          </p>
 
-          <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.52}}
-            className="flex flex-wrap items-center justify-center gap-4">
-            <a href="#bootcamps" className="px-9 py-4 bg-portal-accent text-portal-bg rounded-2xl font-extrabold text-base shadow-2xl shadow-portal-accent/30 hover:scale-105 hover:shadow-portal-accent/50 transition-all">
-              Explore Bootcamps
-            </a>
-            <Link to="/signup" className="px-9 py-4 bg-white/[0.05] border border-portal-border rounded-2xl font-bold text-base hover:bg-white/10 hover:border-portal-accent/30 transition-all backdrop-blur">
-              Create Account →
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20">
+            <Link 
+              to="/bootcamps"
+              className="group relative px-10 py-5 bg-portal-accent text-portal-bg rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-2xl shadow-portal-accent/40 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+              <span className="relative flex items-center gap-2">
+                {t('hero.cta_explore')} <ArrowRight className="w-6 h-6" />
+              </span>
             </Link>
-          </motion.div>
+            <Link 
+              to="/signup"
+              className="px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-lg hover:bg-white/10 transition-all flex items-center gap-2"
+            >
+              {t('hero.cta_signup')} <ChevronRight className="w-6 h-6" />
+            </Link>
+          </div>
 
           {/* stats */}
           <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.7}}
