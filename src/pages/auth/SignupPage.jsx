@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { z } from 'zod';
 
 // Define the schema using Zod
@@ -37,6 +39,7 @@ export const SignupPage = () => {
   const [bootcampId] = useState(() => new URLSearchParams(window.location.search).get('bootcampId'));
   const navigate = useNavigate();
   const { signup, isAuthenticated, user } = useAuth();
+  const { theme } = useTheme();
 
   const getHomePath = (role) => (
     role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard'
@@ -95,7 +98,7 @@ export const SignupPage = () => {
   const labelClass = "block text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] mb-2 ml-1";
 
   return (
-    <div className="min-h-screen bg-[#020617] flex font-outfit relative overflow-hidden">
+    <div className="min-h-screen bg-portal-bg flex font-sans relative overflow-hidden transition-colors duration-500">
       <Link
         to={dashboardPath}
         className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
@@ -251,6 +254,10 @@ export const SignupPage = () => {
             </div>
           </form>
         </motion.div>
+      </div>
+      {/* Theme Toggle Button */}
+      <div className="absolute bottom-8 right-8">
+        <ThemeSwitcher />
       </div>
     </div>
   );

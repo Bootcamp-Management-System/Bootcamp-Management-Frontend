@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Code2, Globe, Users, Star, CheckCircle2, Rocket, ShieldCheck, Zap, ChevronRight, BarChart3 } from 'lucide-react';
 import { bootcampService } from '../services/bootcampService';
 import { useAuth } from '../context/AuthContext';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 
 const Styles = () => (
   <style>{`
@@ -69,6 +70,7 @@ export const LandingPage = () => {
             <span className="text-xl font-extrabold tracking-tight">CSEC ASTU</span>
           </div>
           <div className="flex items-center gap-6">
+            <ThemeSwitcher />
             <Link to="/login" className="text-sm font-semibold text-portal-text-muted hover:text-portal-accent transition-colors">Login</Link>
             <Link to="/signup" className="px-5 py-2.5 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-portal-accent/25">Join Academy</Link>
           </div>

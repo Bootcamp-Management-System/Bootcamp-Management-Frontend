@@ -6,10 +6,11 @@ import { notificationService } from '../services/notificationService';
 import { Bell, Search, Sun, Moon, User, Settings, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { ThemeSwitcher } from './ThemeSwitcher';
 
 export const Navbar = () => {
   const { user, selectedDivision, setGlobalDivision, logout, switchRole } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -112,13 +113,7 @@ export const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <button
-          onClick={toggleTheme}
-          className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all focus:outline-none"
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
+        <ThemeSwitcher />
 
         <button
           onClick={() => navigate('/notifications')}

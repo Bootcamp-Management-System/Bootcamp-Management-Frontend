@@ -3,8 +3,9 @@ import csecLogo from '../../assets/csec-logo.jpg';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, IdCard, Lock, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, IdCard, Lock } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 export const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
@@ -12,7 +13,7 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, isAuthenticated, user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const fromPath = location.state?.from?.pathname;
@@ -57,7 +58,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#020617] relative overflow-hidden p-6 font-outfit">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-portal-bg relative overflow-hidden p-6 font-sans transition-colors duration-500">
       <Link
         to={dashboardPath}
         className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
@@ -169,12 +170,9 @@ export const LoginPage = () => {
       </motion.div>
 
       {/* Theme Toggle Button */}
-      <button 
-        onClick={toggleTheme}
-        className="absolute bottom-8 right-8 p-3 bg-white/5 border border-white/5 rounded-full text-portal-text-muted hover:text-portal-accent transition-all"
-      >
-        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-      </button>
+      <div className="absolute bottom-8 right-8">
+        <ThemeSwitcher />
+      </div>
     </div>
   );
 };

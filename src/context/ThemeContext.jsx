@@ -5,26 +5,34 @@ const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('portal-theme') || 'default';
+  });
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('portal-theme');
-    if (savedTheme) {
-      setTheme(savedTheme);
+    // Apply theme to html element
+    const root = window.document.documentElement;
+    
+    // Remove previous theme classes/attributes if any
+    root.removeAttribute('data-theme');
+    
+    if (theme !== 'default') {
+      root.setAttribute('data-theme', theme);
     }
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Save to local storage
     localStorage.setItem('portal-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+  const themes = [
+    { id: 'default', name: 'Dark Teal', color: '#2ab1c2' },
+    { id: 'dark-red', name: 'Dark Red', color: '#ef4444' },
+    { id: 'black', name: 'Pure Black', color: '#ffffff' },
+    { id: 'light', name: 'Light Mode', color: '#71717a' },
+  ];
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, themes }}>
       {children}
     </ThemeContext.Provider>
   );
