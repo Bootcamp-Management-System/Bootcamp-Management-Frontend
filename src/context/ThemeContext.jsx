@@ -19,7 +19,9 @@ export const ThemeProvider = ({ children }) => {
     if (theme !== 'default') {
       root.setAttribute('data-theme', theme);
     }
-    
+  }, [theme]);
+
+  useEffect(() => {
     // Save to local storage
     localStorage.setItem('portal-theme', theme);
   }, [theme]);

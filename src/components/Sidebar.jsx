@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import csecLogo from '../assets/csec logo.jpg';
+import { useTranslation } from 'react-i18next';
+import csecLogo from '../assets/csec-logo.jpg';
 import {
   LayoutDashboard,
   Users,
@@ -26,6 +27,7 @@ const MotionDiv = motion.div;
 
 export const Sidebar = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -34,57 +36,57 @@ export const Sidebar = () => {
     
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       const adminItems = [
-        { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? 'Global Dashboard' : 'Dashboard', path: '/admin/dashboard' },
-        { id: 'admin-recruitment', icon: TrendingUp, label: 'Recruitment Hub', path: '/admin/recruitment' },
-        { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
-        { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
-        { id: 'admin-sessions', icon: Calendar, label: 'Sessions', path: '/admin/sessions' },
+        { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? t('sidebar.workspace') : t('sidebar.dashboard'), path: '/admin/dashboard' },
+        { id: 'admin-recruitment', icon: TrendingUp, label: t('sidebar.recruitment'), path: '/admin/recruitment' },
+        { id: 'admin-members', icon: Users, label: t('sidebar.members'), path: '/admin/members' },
+        { id: 'admin-instructors', icon: UserCheck, label: t('sidebar.instructors'), path: '/admin/instructors' },
+        { id: 'admin-sessions', icon: Calendar, label: t('sidebar.sessions'), path: '/admin/sessions' },
       ];
 
       if (user.role === 'super_admin') {
-        adminItems.push({ id: 'admin-admins', icon: Shield, label: 'Admins', path: '/admin/admins' });
-        adminItems.push({ id: 'super-admin-workspace', icon: GraduationCap, label: 'Super Admin Workspace', path: '/super-admin/dashboard' });
+        adminItems.push({ id: 'admin-admins', icon: Shield, label: t('sidebar.admins'), path: '/admin/admins' });
+        adminItems.push({ id: 'super-admin-workspace', icon: GraduationCap, label: t('sidebar.workspace'), path: '/super-admin/dashboard' });
       }
 
-      return [{ title: 'Admin', items: adminItems }];
+      return [{ title: t('sidebar.admin_sec'), items: adminItems }];
     }
 
     if (user?.role === 'instructor') {
       return [{
-        title: 'Instructor',
+        title: t('sidebar.instructor_sec'),
         items: [
-          { id: 'dashboard', icon: LayoutDashboard, label: 'Panel', path: '/instructor' },
-          { id: 'sessions', icon: Calendar, label: 'Sessions', path: '/instructor/sessions' },
+          { id: 'dashboard', icon: LayoutDashboard, label: t('sidebar.panel'), path: '/instructor' },
+          { id: 'sessions', icon: Calendar, label: t('sidebar.sessions'), path: '/instructor/sessions' },
         ]
       }];
     }
 
     const studentSections = [
       {
-        title: 'Main',
+        title: t('sidebar.main_sec'),
         items: [
-          { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: dashboardPath },
+          { id: 'dashboard', icon: LayoutDashboard, label: t('sidebar.dashboard'), path: dashboardPath },
         ]
       },
       {
-        title: 'Academy',
+        title: t('sidebar.academy_sec'),
         items: [
-          { id: 'explore-bootcamps', icon: Globe, label: 'Explore Bootcamps', path: '/bootcamps' },
-          { id: 'enrollments', icon: ShieldCheck, label: 'My Enrollments', path: '/enrollments' },
+          { id: 'explore-bootcamps', icon: Globe, label: t('sidebar.explore'), path: '/bootcamps' },
+          { id: 'enrollments', icon: ShieldCheck, label: t('sidebar.enrollments'), path: '/enrollments' },
         ]
       },
       {
-        title: 'Tracking',
+        title: t('sidebar.tracking_sec'),
         items: [
-          { id: 'applications', icon: BookOpen, label: 'My Applications', path: '/applications' },
-          { id: 'progress', icon: TrendingUp, label: 'Weekly Progress', path: '/progress' },
+          { id: 'applications', icon: BookOpen, label: t('sidebar.applications'), path: '/applications' },
+          { id: 'progress', icon: TrendingUp, label: t('sidebar.progress'), path: '/progress' },
         ]
       }
     ];
 
     const isMember = user?.is_Member || (user?.memberships && user.memberships.some(m => m.isMember));
     if (isMember) {
-      studentSections[1].items.unshift({ id: 'member-hub', icon: LayersIcon, label: 'Member Hub', path: '/member-hub' });
+      studentSections[1].items.unshift({ id: 'member-hub', icon: LayersIcon, label: t('sidebar.member_hub'), path: '/member-hub' });
     }
 
     return studentSections;

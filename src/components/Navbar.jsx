@@ -1,15 +1,87 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { divisionService } from '../services/divisionService';
 import { notificationService } from '../services/notificationService';
-import { Bell, Search, User, LogOut, ChevronDown, RefreshCw } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown, RefreshCw, Globe, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { ThemeSwitcher } from './ThemeSwitcher';
+import csecLogo from '../assets/csec-logo.jpg';
 
 const MotionDiv = motion.div;
 
+const LanguageSwitcher = () => {
+  const { i18n, t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'am', name: 'አማርኛ', flag: '🇪🇹' },
+    { code: 'om', name: 'Oromo', flag: '🇪🇹' },
+    { code: 'ti', name: 'Tigrinya', flag: '🇪🇹' },
+    { code: 'so', name: 'Somali', flag: '🇸🇴' }
+  ];
+
+  const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-portal-border hover:bg-white/10 transition-all group"
+        title="Change Language"
+      >
+        <Globe className="w-5 h-5 text-portal-accent group-hover:scale-110 transition-transform" />
+        <span className="text-[10px] font-bold text-portal-text uppercase hidden sm:inline">{currentLanguage.code}</span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute right-0 mt-3 w-48 bg-portal-card border border-portal-border rounded-2xl shadow-2xl z-50 p-2 overflow-hidden backdrop-blur-xl"
+            >
+              <div className="px-3 py-2 mb-1 border-b border-portal-border/50">
+                <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest">{t('nav.switch_to', 'Switch Language')}</p>
+              </div>
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    i18n.changeLanguage(lang.code);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all ${
+                    i18n.language === lang.code 
+                    ? 'bg-portal-accent/10 text-portal-accent font-bold' 
+                    : 'text-portal-text-muted hover:text-portal-text hover:bg-white/5'
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-base">{lang.flag}</span>
+                    {lang.name}
+                  </span>
+                  {i18n.language === lang.code && <div className="w-1.5 h-1.5 rounded-full bg-portal-accent" />}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export const Navbar = () => {
   const { user, selectedDivision, setGlobalDivision, logout, switchRole } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -21,6 +93,10 @@ export const Navbar = () => {
     CPD: 'CP (Competitive Programming)',
   };
   const divisionButtons = ['All', 'Development', 'Cyber', 'DataScience', 'CPD'];
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'default' : 'light');
+  };
 
   React.useEffect(() => {
     const loadDivisions = async () => {
@@ -86,7 +162,7 @@ export const Navbar = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
           <input 
             type="text" 
-            placeholder="Search..." 
+            placeholder={t('nav.search', 'Search...')}
             className="w-full bg-portal-input border border-portal-border rounded-xl py-2 pl-11 pr-4 text-xs text-portal-text focus:outline-none focus:border-portal-accent transition-colors"
           />
         </div>
@@ -116,10 +192,22 @@ export const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Theme Toggle & Switcher */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all focus:outline-none"
+          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+        </button>
+        
+        <ThemeSwitcher />
+        <LanguageSwitcher />
+
         <button
           onClick={() => navigate('/notifications')}
           className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all relative"
-          title="Notifications"
+          title={t('nav.notifications', 'Notifications')}
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
@@ -161,10 +249,10 @@ export const Navbar = () => {
                   initial={{ opacity: 0, scale: 0.95, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  className="absolute right-0 mt-3 w-64 bg-portal-card border border-portal-border rounded-2xl shadow-2xl z-50 p-2 overflow-hidden ring-1 ring-black/10"
+                  className="absolute right-0 mt-3 w-64 bg-portal-card border border-portal-border rounded-2xl shadow-2xl z-50 p-2 overflow-hidden ring-1 ring-black/10 backdrop-blur-xl"
                 >
                   <div className="px-4 py-3 mb-2 border-b border-portal-border/50">
-                    <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest mb-1">My Profile ({user?.role})</p>
+                    <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-1">{t('nav.profile', 'My Profile')} ({user?.role})</p>
                     <p className="text-sm font-bold text-portal-text truncate">{user?.email}</p>
                   </div>
                   
@@ -173,12 +261,12 @@ export const Navbar = () => {
                       onClick={() => { navigate('/profile'); setShowProfileDropdown(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-text hover:bg-portal-accent/10 hover:text-portal-accent transition-all text-left"
                     >
-                      <User className="w-4 h-4" /> My Profile
+                      <User className="w-4 h-4" /> {t('nav.profile', 'My Profile')}
                     </button>
                     {/* Role Switcher */}
                     {['super_admin', 'admin', 'instructor'].includes(user?.originalRole || user?.role) && (
                       <div className="pt-2 mt-2 border-t border-portal-border/50">
-                        <p className="px-4 text-[10px] font-bold text-portal-text-muted uppercase tracking-widest mb-1">View Portal As</p>
+                        <p className="px-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-1">View Portal As</p>
                         {['super_admin', 'admin'].includes(user?.originalRole || user?.role) && (
                           <button 
                             onClick={() => { switchRole('admin'); navigate('/admin/dashboard'); setShowProfileDropdown(false); }}
@@ -209,7 +297,7 @@ export const Navbar = () => {
                     onClick={() => { logout(); setShowProfileDropdown(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black text-red-400 hover:bg-red-400/10 transition-all text-left"
                   >
-                    <LogOut className="w-4 h-4" /> Logout
+                    <LogOut className="w-4 h-4" /> {t('nav.logout', 'Logout')}
                   </button>
                 </MotionDiv>
               </>

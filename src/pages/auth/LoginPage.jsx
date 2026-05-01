@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, IdCard, Lock, ShieldCheck } from 'lucide-react';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import csecLogo from '../../assets/csec logo.jpg';
 
 const MotionDiv = motion.div;
 const MotionP = motion.p;
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,8 +33,6 @@ export const LoginPage = () => {
       navigate(target, { replace: true });
     }
   }, [isAuthenticated, user, navigate, fromPath]);
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,13 +59,13 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#020617] relative overflow-hidden p-6 font-outfit">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-portal-bg relative overflow-hidden p-6 font-sans transition-colors duration-500">
       <Link
         to={dashboardPath}
         className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Dashboard
+        {t('nav.back', 'Back')}
       </Link>
 
       {/* Dynamic Background Elements */}
@@ -76,11 +78,11 @@ export const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 text-center relative z-10 flex flex-col items-center"
       >
-        <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mb-4 border border-portal-accent/20 shadow-lg shadow-portal-accent/5">
-          <ShieldCheck className="w-8 h-8 text-portal-accent" />
+        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 border border-portal-border shadow-lg shadow-portal-accent/10 overflow-hidden ring-1 ring-white/20">
+          <img src={csecLogo} alt="Logo" className="w-full h-full object-cover" />
         </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
-        <p className="text-portal-text-muted text-sm mt-2 font-medium">Log in to your specialized learning environment</p>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
+        <p className="text-portal-text-muted text-sm mt-2 font-medium">{t('auth.login_title')}</p>
       </MotionDiv>
 
       {/* Main Login Card */}
@@ -88,11 +90,11 @@ export const LoginPage = () => {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className="max-w-md w-full bg-portal-card/40 backdrop-blur-3xl border border-white/5 rounded-[40px] p-8 md:p-10 shadow-2xl relative z-10"
+        className="max-w-md w-full bg-portal-card border border-portal-border rounded-[40px] p-8 md:p-10 shadow-2xl relative z-10"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">Email / ID</label>
+            <label className="block text-[10px] font-black text-portal-accent uppercase tracking-[0.2em] ml-1">{t('auth.email_id')}</label>
             <div className="relative group">
               <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
@@ -100,14 +102,14 @@ export const LoginPage = () => {
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="Email or Campus ID"
-                className="w-full bg-portal-bg/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-portal-bg transition-all placeholder:text-portal-text-muted/50"
+                placeholder={t('auth.email_id')}
+                className="w-full bg-portal-bg border border-portal-border rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 transition-all placeholder:text-portal-text-muted/50"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-portal-accent uppercase tracking-widest ml-1">Password</label>
+            <label className="block text-[10px] font-black text-portal-accent uppercase tracking-[0.2em] ml-1">{t('auth.password')}</label>
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
@@ -116,14 +118,12 @@ export const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-portal-bg/50 border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-portal-bg transition-all"
+                className="w-full bg-portal-bg border border-portal-border rounded-2xl py-4 pl-12 pr-12 text-white text-sm focus:outline-none focus:border-portal-accent/50 transition-all"
               />
               <button
                 type="button"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                title={showPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPassword((current) => !current)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent focus:outline-none focus:ring-2 focus:ring-portal-accent/40"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -145,28 +145,33 @@ export const LoginPage = () => {
 
           <button 
             type="submit"
-            className="group w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-bold text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            className="group w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-black text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all active:scale-[0.98] uppercase tracking-widest"
           >
-            Login
+            {t('nav.login')}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
-            Forgot password?
+            {t('auth.forgot_password')}
           </Link>
         </div>
 
 
-        <div className="mt-8 pt-8 border-t border-white/5 text-center">
-          <p className="text-sm text-portal-text-muted">
-            New applicant? {' '}
-            <Link to="/signup" className="text-portal-accent font-bold hover:underline underline-offset-4 decoration-2">
-              Create an Account
+        <div className="mt-8 pt-8 border-t border-portal-border text-center">
+          <p className="text-sm text-portal-text-muted font-medium">
+            {t('auth.new_applicant')} {' '}
+            <Link to="/signup" className="text-portal-accent font-black hover:underline underline-offset-4 decoration-2">
+              {t('auth.create_account')}
             </Link>
           </p>
         </div>
       </MotionDiv>
+
+      {/* Theme Switcher at bottom right */}
+      <div className="absolute bottom-8 right-8">
+        <ThemeSwitcher />
+      </div>
     </div>
   );
 };

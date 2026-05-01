@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import csecLogo from '../../assets/csec-logo.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
+import { useTranslation } from 'react-i18next';
 import { 
   BadgeCheck, 
   Mail, 
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { z } from 'zod';
 
 const MotionDiv = motion.div;
@@ -32,6 +34,7 @@ const signupSchema = z.object({
 });
 
 export const SignupPage = () => {
+  const { t } = useTranslation();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -76,7 +79,7 @@ export const SignupPage = () => {
           password: values.password,
           role: 'student'
         });
-        setSuccess('Account created successfully! Redirecting to verification...');
+        setSuccess('Account created successfully!');
         setTimeout(() => navigate('/otp', { 
           state: { 
             email: values.email.trim().toLowerCase(), 
@@ -92,9 +95,9 @@ export const SignupPage = () => {
     },
   });
 
-  const inputClass = "w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-white/10 transition-all placeholder:text-portal-text-muted/40";
-  const passwordInputClass = "w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white text-sm focus:outline-none focus:border-portal-accent/50 focus:bg-white/10 transition-all placeholder:text-portal-text-muted/40";
-  const labelClass = "block text-[10px] font-bold text-portal-accent uppercase tracking-[0.2em] mb-2 ml-1";
+  const inputClass = "w-full bg-portal-bg border border-portal-border rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 transition-all placeholder:text-portal-text-muted/40 font-medium";
+  const passwordInputClass = "w-full bg-portal-bg border border-portal-border rounded-2xl py-4 pl-12 pr-12 text-white text-sm focus:outline-none focus:border-portal-accent/50 transition-all placeholder:text-portal-text-muted/40 font-medium";
+  const labelClass = "block text-[10px] font-black text-portal-accent uppercase tracking-[0.2em] mb-2 ml-1";
 
   return (
     <div className="min-h-screen bg-portal-bg flex font-sans relative overflow-hidden transition-colors duration-500">
@@ -103,7 +106,7 @@ export const SignupPage = () => {
         className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Dashboard
+        {t('nav.back', 'Back')}
       </Link>
 
       {/* Background Orbs */}
@@ -111,7 +114,7 @@ export const SignupPage = () => {
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" />
 
       {/* Left Column: Visual Branding */}
-      <div className="hidden lg:flex w-2/5 relative items-center justify-center p-12 border-r border-white/5">
+      <div className="hidden lg:flex w-2/5 relative items-center justify-center p-12 border-r border-portal-border">
         <div className="max-w-sm space-y-8 relative z-10">
           <MotionDiv 
             initial={{ opacity: 0, x: -20 }}
@@ -121,12 +124,12 @@ export const SignupPage = () => {
             <img src={csecLogo} alt="CSEC ASTU" className="w-full h-full object-cover" />
           </MotionDiv>
           <div className="space-y-4">
-            <h1 className="text-5xl font-bold text-white leading-tight">Join the Next Gen.</h1>
-            <p className="text-portal-text-muted text-lg leading-relaxed">Create your specialized profile in seconds and start applying for the top bootcamps at ASTU.</p>
+            <h1 className="text-5xl font-extrabold text-white leading-[1.1] tracking-tight">{t('auth.signup_title')}</h1>
+            <p className="text-portal-text-muted text-lg leading-relaxed font-medium">{t('auth.signup_subtitle')}</p>
           </div>
           <div className="space-y-4 pt-8">
             {['Global Developer Network', 'Accelerated Learning', 'Secure Certification'].map((item) => (
-              <div key={item} className="flex items-center gap-3 text-white/60 font-medium">
+              <div key={item} className="flex items-center gap-3 text-white/60 font-black text-xs uppercase tracking-widest italic">
                 <CheckCircle2 className="w-5 h-5 text-portal-accent" />
                 {item}
               </div>
@@ -145,15 +148,15 @@ export const SignupPage = () => {
           <div className="mb-10 text-center lg:text-left">
             <div className="flex items-center gap-3 mb-2 justify-center lg:justify-start">
               <Sparkles className="w-5 h-5 text-portal-accent animate-pulse" />
-              <span className="text-[10px] font-bold text-portal-accent uppercase tracking-[0.3em]">Quick Onboarding</span>
+              <span className="text-[10px] font-black text-portal-accent uppercase tracking-[0.3em]">Quick Onboarding</span>
             </div>
-            <h2 className="text-4xl font-bold text-white mb-2">Create an Account</h2>
-            <p className="text-portal-text-muted">Log in to your specialized learning environment</p>
+            <h2 className="text-4xl font-extrabold text-white mb-2 tracking-tight">{t('auth.create_account')}</h2>
+            <p className="text-portal-text-muted font-medium">{t('auth.login_title')}</p>
           </div>
 
           <form onSubmit={formik.handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className={labelClass}>Full Name</label>
+              <label className={labelClass}>{t('auth.full_name')}</label>
               <div className="relative group">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input
@@ -168,7 +171,7 @@ export const SignupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>Email / ID</label>
+              <label className={labelClass}>{t('auth.email_id')}</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input
@@ -184,7 +187,7 @@ export const SignupPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className={labelClass}>Password</label>
+                <label className={labelClass}>{t('auth.password')}</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
@@ -196,10 +199,8 @@ export const SignupPage = () => {
                   />
                   <button
                     type="button"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    title={showPassword ? 'Hide password' : 'Show password'}
                     onClick={() => setShowPassword((current) => !current)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent focus:outline-none focus:ring-2 focus:ring-portal-accent/40"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -207,7 +208,7 @@ export const SignupPage = () => {
                 {formik.touched.password && formik.errors.password && <p className="text-[10px] text-red-400 mt-1 ml-1">{formik.errors.password}</p>}
               </div>
               <div className="space-y-2">
-                <label className={labelClass}>Confirm</label>
+                <label className={labelClass}>{t('auth.confirm_password')}</label>
                 <div className="relative group">
                   <BadgeCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                   <input
@@ -219,10 +220,8 @@ export const SignupPage = () => {
                   />
                   <button
                     type="button"
-                    aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
-                    title={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
                     onClick={() => setShowConfirmPassword((current) => !current)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent focus:outline-none focus:ring-2 focus:ring-portal-accent/40"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent"
                   >
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -237,22 +236,27 @@ export const SignupPage = () => {
             <button
               type="submit"
               disabled={formik.isSubmitting}
-              className="w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-bold text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-black text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest"
             >
               <UserPlus className="w-5 h-5" />
               {formik.isSubmitting ? 'Creating Profile...' : 'Complete Signup'}
             </button>
 
             <div className="mt-8 text-center">
-              <p className="text-sm text-portal-text-muted">
-                Already have an account?{' '}
-                <Link to="/login" className="text-portal-accent font-bold hover:underline underline-offset-4">
-                  Login
+              <p className="text-sm text-portal-text-muted font-medium">
+                {t('auth.already_have_account')}{' '}
+                <Link to="/login" className="text-portal-accent font-black hover:underline underline-offset-4 decoration-2">
+                  {t('nav.login')}
                 </Link>
               </p>
             </div>
           </form>
         </MotionDiv>
+      </div>
+
+      {/* Theme Switcher at bottom right */}
+      <div className="absolute bottom-8 right-8">
+        <ThemeSwitcher />
       </div>
     </div>
   );
