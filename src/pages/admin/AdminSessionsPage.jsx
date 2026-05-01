@@ -418,7 +418,7 @@ export const AdminSessionsPage = () => {
         </div>
         <button
           onClick={() => { setSelectedSession(null); setIsModalOpen(true); }}
-          className="bg-portal-accent text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg hover:shadow-portal-accent/30 transition-all hover:scale-105 active:scale-95"
+          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg hover:shadow-portal-accent/30 transition-all hover:scale-105 active:scale-95"
         >
           <Plus className="w-5 h-5" />
           Schedule Session
@@ -734,7 +734,7 @@ export const AdminSessionsPage = () => {
 
           <div className="flex justify-end pt-4 gap-4">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 font-bold text-portal-text-muted hover:text-portal-text transition-colors">Abort</button>
-            <button type="submit" className="bg-portal-accent text-white px-12 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center gap-3 group">
+            <button type="submit" className="bg-portal-accent text-portal-bg px-12 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center gap-3 group">
               {selectedSession ? 'Commit Changes' : 'Broadcast Node'}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>

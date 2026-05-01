@@ -502,7 +502,7 @@ export const InstructorSessionsPage = () => {
                 <input value={details.meetingLink} onChange={(event) => setDetails((current) => ({ ...current, meetingLink: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none focus:border-portal-accent" placeholder="https://meet.google.com/..." />
               </div>
             )}
-            <button disabled={saving} onClick={saveDetails} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60 transition-colors">
+            <button disabled={saving} onClick={saveDetails} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-portal-bg px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60 transition-colors">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : savedDetails ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
               {saving ? 'Saving...' : savedDetails ? 'Saved!' : 'Save Details'}
             </button>
@@ -516,7 +516,7 @@ export const InstructorSessionsPage = () => {
 
       <nav className="flex flex-wrap gap-2 bg-portal-card border border-portal-border rounded-2xl p-2">
         {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-portal-accent text-white' : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-input'}`}>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-portal-accent text-portal-bg' : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-input'}`}>
             <tab.icon className="w-4 h-4" /> {tab.label}
           </button>
         ))}
@@ -533,7 +533,7 @@ export const InstructorSessionsPage = () => {
                 { id: 'file', label: 'File' },
                 { id: 'link', label: 'Link' },
               ].map((option) => (
-                <button key={option.id} type="button" onClick={() => setResourceForm((current) => ({ ...current, type: option.id }))} className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${resourceForm.type === option.id ? 'bg-portal-accent text-white' : 'text-portal-text-muted hover:text-portal-text'}`}>
+                <button key={option.id} type="button" onClick={() => setResourceForm((current) => ({ ...current, type: option.id }))} className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${resourceForm.type === option.id ? 'bg-portal-accent text-portal-bg' : 'text-portal-text-muted hover:text-portal-text'}`}>
                   {option.label}
                 </button>
               ))}
@@ -543,7 +543,7 @@ export const InstructorSessionsPage = () => {
             ) : (
               <input type="url" value={resourceForm.url} onChange={(event) => setResourceForm((current) => ({ ...current, url: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" placeholder="https://notion.so/... or https://docs.google.com/..." />
             )}
-            <button disabled={uploading} type="submit" className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60 transition-colors">
+            <button disabled={uploading} type="submit" className="w-full flex items-center justify-center gap-2 bg-portal-accent text-portal-bg px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60 transition-colors">
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : uploaded ? <CheckCircle2 className="w-4 h-4" /> : <FileUp className="w-4 h-4" />}
               {uploading ? 'Uploading...' : uploaded ? 'Uploaded!' : 'Upload Resource'}
             </button>
@@ -592,7 +592,7 @@ export const InstructorSessionsPage = () => {
             </div>
             {session.status !== 'completed' && (
               <>
-                <button onClick={generateQr} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm"><QrCode className="w-4 h-4" /> Generate QR Token</button>
+                <button onClick={generateQr} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-portal-bg px-4 py-3 rounded-xl font-bold text-sm"><QrCode className="w-4 h-4" /> Generate QR Token</button>
                 {qrToken && <div className="break-all rounded-xl bg-portal-input border border-portal-border p-4 text-xs font-mono text-portal-text">{qrToken}</div>}
               </>
             )}
@@ -609,7 +609,7 @@ export const InstructorSessionsPage = () => {
                 <button type="button" disabled={isAttendanceLocked(session)} onClick={saveAttendanceDraft} className="px-4 py-2 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input text-sm font-bold disabled:opacity-50">
                   Save Draft
                 </button>
-                <button type="button" disabled={isAttendanceLocked(session) || submittingAttendance} onClick={submitAttendance} className="px-4 py-2 rounded-xl bg-portal-accent text-white text-sm font-bold hover:bg-portal-accent-hover disabled:opacity-50">
+                <button type="button" disabled={isAttendanceLocked(session) || submittingAttendance} onClick={submitAttendance} className="px-4 py-2 rounded-xl bg-portal-accent text-portal-bg text-sm font-bold hover:bg-portal-accent-hover disabled:opacity-50">
                   {submittingAttendance ? 'Submitting...' : 'Submit'}
                 </button>
               </div>
@@ -623,7 +623,7 @@ export const InstructorSessionsPage = () => {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {ATTENDANCE_STATUSES.map((status) => (
-                      <button key={status} type="button" disabled={isAttendanceLocked(session)} onClick={() => setDraftAttendance(student._id, status)} className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-colors disabled:opacity-50 ${currentStatus === status ? 'bg-portal-accent text-white border-portal-accent' : 'border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input'}`}>
+                      <button key={status} type="button" disabled={isAttendanceLocked(session)} onClick={() => setDraftAttendance(student._id, status)} className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-colors disabled:opacity-50 ${currentStatus === status ? 'bg-portal-accent text-portal-bg border-portal-accent' : 'border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input'}`}>
                         {status}
                       </button>
                     ))}
@@ -644,7 +644,7 @@ export const InstructorSessionsPage = () => {
             <input type="datetime-local" value={taskForm.startTime} onChange={(event) => setTaskForm((current) => ({ ...current, startTime: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" />
             <input type="datetime-local" value={taskForm.endTime} onChange={(event) => setTaskForm((current) => ({ ...current, endTime: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" />
             <input type="datetime-local" value={taskForm.deadline} onChange={(event) => setTaskForm((current) => ({ ...current, deadline: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" />
-            <button className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm"><Plus className="w-4 h-4" /> Create Task</button>
+            <button className="w-full flex items-center justify-center gap-2 bg-portal-accent text-portal-bg px-4 py-3 rounded-xl font-bold text-sm"><Plus className="w-4 h-4" /> Create Task</button>
           </form>
           <div className="space-y-3">
             {tasks.length === 0 ? <EmptyState text="No tasks created for this session yet." /> : tasks.map((task) => (

@@ -61,7 +61,7 @@ export const InstructorPanel = () => {
         </div>
         <button
           onClick={() => navigate('/instructor/sessions')}
-          className="bg-portal-accent text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          className="bg-portal-accent text-portal-bg px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Calendar className="w-5 h-5" />
           Open Sessions
@@ -130,7 +130,7 @@ export const InstructorPanel = () => {
                   {sub.status === 'pending' && (
                     <button
                       onClick={() => navigate('/instructor/tasks')}
-                      className="bg-portal-accent text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all"
+                      className="bg-portal-accent text-portal-bg px-4 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all"
                     >
                       Grade
                     </button>

@@ -149,7 +149,7 @@ export const AdminGroupsPage = () => {
             setFormData({ name: '', bootcamp: '', instructor: '', description: '', members: [] });
             setIsModalOpen(true);
           }}
-          className="bg-portal-accent text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg hover:shadow-portal-accent/30 transition-all"
+          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg hover:shadow-portal-accent/30 transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Group
@@ -235,7 +235,7 @@ export const AdminGroupsPage = () => {
 
           <div className="flex justify-end pt-6 gap-4">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted">Cancel</button>
-            <button type="submit" className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold transition-all hover:scale-[1.02]">
+            <button type="submit" className="bg-portal-accent text-portal-bg px-10 py-3 rounded-xl font-bold transition-all hover:scale-[1.02]">
               {selectedGroup ? 'Update Group' : 'Create Group'}
             </button>
           </div>

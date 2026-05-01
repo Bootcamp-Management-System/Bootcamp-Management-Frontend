@@ -268,7 +268,7 @@ export const AdminMembersPage = () => {
             setSelectedMember(null);
             setIsModalOpen(true);
           }}
-          className="bg-portal-accent text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-95"
+          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-95"
         >
           <UserPlus className="w-5 h-5" />
           Add New Member
@@ -355,7 +355,7 @@ export const AdminMembersPage = () => {
 
           <div className="flex justify-end pt-6 gap-4">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60">
+            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-portal-bg px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60">
               {selectedMember ? 'Update Student' : 'Create Student'}
             </button>
           </div>

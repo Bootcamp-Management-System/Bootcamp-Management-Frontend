@@ -409,7 +409,7 @@ export const LandingPage = () => {
           </div>
         </div>
         <div className="space-y-4">
-          <p className="text-portal-text-muted text-xs font-medium tracking-widest uppercase opacity-50">
+          <p className="text-portal-text-muted text-xs font-medium tracking-widest uppercase opacity-80">
             © 2026 CSEC ASTU • INTELLIGENCE REIMAGINED
           </p>
           <div className="w-12 h-1 bg-portal-accent/20 mx-auto rounded-full" />

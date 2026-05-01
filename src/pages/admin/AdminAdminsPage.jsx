@@ -213,7 +213,7 @@ export const AdminAdminsPage = () => {
             setSelectedAdmin(null);
             setIsModalOpen(true);
           }}
-          className="bg-portal-accent text-white px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-portal-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3"
+          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-portal-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3"
         >
           <UserPlus className="w-5 h-5" />
           Provision Admin
@@ -299,7 +299,7 @@ export const AdminAdminsPage = () => {
 
           <div className="flex justify-end gap-4 pt-4 border-t border-portal-border">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 text-sm font-bold text-portal-text-muted hover:text-portal-text transition-colors uppercase tracking-widest">Abort</button>
-            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-white px-12 py-3 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-portal-accent/20 flex items-center gap-3 disabled:opacity-60">
+            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-portal-bg px-12 py-3 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-portal-accent/20 flex items-center gap-3 disabled:opacity-60">
               <CheckCircle2 className="w-4 h-4" /> {selectedAdmin ? 'Update Core' : 'Execute Provision'}
             </button>
           </div>

@@ -244,7 +244,7 @@ export const StudentSessionsPage = ({ bootcampId, embedded = false }) => {
               <button
                 type="submit"
                 disabled={isSubmittingFeedback || !feedbackForm.rating}
-                className="px-6 py-3 bg-portal-accent text-white rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-50 transition-colors"
+                className="px-6 py-3 bg-portal-accent text-portal-bg rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-50 transition-colors"
               >
                 {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
               </button>

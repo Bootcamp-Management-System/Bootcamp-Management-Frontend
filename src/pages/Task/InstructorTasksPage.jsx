@@ -124,7 +124,7 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-white font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-portal-bg font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               {loading ? 'Creating…' : 'Create Task'}
@@ -220,7 +220,7 @@ const ReviewModal = ({ submission, onClose, onReview }) => {
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-border transition-colors text-sm font-semibold">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-white font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60">
+            <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-portal-bg font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
               {loading ? 'Saving…' : 'Submit Review'}
             </button>
@@ -338,7 +338,7 @@ const TaskCard = ({ task, onDelete, onReviewSubmission }) => {
                         <div className="flex items-center gap-3 shrink-0">
                           <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${statusColor(sub.status)}`}>{sub.status}</span>
                           {sub.status === 'pending' && (
-                            <button onClick={() => setReviewTarget(sub)} className="bg-portal-accent text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-portal-accent-hover transition-all shadow-md shadow-portal-accent/20">
+                            <button onClick={() => setReviewTarget(sub)} className="bg-portal-accent text-portal-bg px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-portal-accent-hover transition-all shadow-md shadow-portal-accent/20">
                               Grade
                             </button>
                           )}
@@ -448,7 +448,7 @@ export const InstructorTasksPage = () => {
                 }
                 setShowCreate(true);
               }}
-              className="flex items-center gap-2 bg-portal-accent text-white px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 bg-portal-accent text-portal-bg px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" /> Create Task
             </button>

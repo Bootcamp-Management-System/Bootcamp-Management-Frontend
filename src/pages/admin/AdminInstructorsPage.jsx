@@ -348,7 +348,7 @@ export const AdminInstructorsPage = () => {
         </div>
         <button 
           onClick={() => { setIsSelectMemberModalOpen(true); }}
-          className="bg-portal-accent text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all"
+          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all"
         >
           <UserPlus className="w-5 h-5" />
           Assign Instructor
@@ -450,7 +450,7 @@ export const AdminInstructorsPage = () => {
             <div className="flex justify-end pt-4">
               <button 
                 onClick={() => setIsInfoModalOpen(false)}
-                className="bg-portal-accent text-white px-8 py-3 rounded-xl font-bold hover:bg-portal-accent-hover transition-colors shadow-lg shadow-portal-accent/20"
+                className="bg-portal-accent text-portal-bg px-8 py-3 rounded-xl font-bold hover:bg-portal-accent-hover transition-colors shadow-lg shadow-portal-accent/20"
               >
                 Deactivate View
               </button>
@@ -526,7 +526,7 @@ export const AdminInstructorsPage = () => {
 
           <div className="flex justify-end pt-6 gap-4">
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 disabled:opacity-60">
+            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-portal-bg px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 disabled:opacity-60">
               {selectedInstructor ? 'Update Specialist' : 'Confirm Registration'}
             </button>
           </div>
@@ -749,7 +749,7 @@ export const AdminInstructorsPage = () => {
 
           <div className="flex justify-end pt-6 gap-4 border-t border-portal-border">
             <button type="button" onClick={() => setIsPromoteModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
-            <button type="submit" disabled={isPromoting || promoteSuccess} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 flex items-center gap-2">
+            <button type="submit" disabled={isPromoting || promoteSuccess} className="bg-portal-accent text-portal-bg px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 flex items-center gap-2">
               <ArrowUpRight className="w-5 h-5" />
               Confirm Promotion
             </button>

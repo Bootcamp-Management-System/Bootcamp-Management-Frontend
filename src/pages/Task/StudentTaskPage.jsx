@@ -146,7 +146,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-white font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-portal-bg font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 {loading ? 'Submitting…' : existingSubmission ? 'Update Submission' : 'Submit Task'}
@@ -223,7 +223,7 @@ const TaskNode = ({ task, index, mySubmission, onClick }) => {
         </div>
 
         {!isDone && !isOverdueTask && (
-          <button className="mt-2 bg-portal-accent text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all">
+          <button className="mt-2 bg-portal-accent text-portal-bg px-4 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all">
             Start Task →
           </button>
         )}

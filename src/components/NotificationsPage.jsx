@@ -207,7 +207,7 @@ export const NotificationsPage = ({
             className={cx(
               'px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors',
               typeFilter === type
-                ? 'bg-portal-accent text-white border-portal-accent'
+                ? 'bg-portal-accent text-portal-bg border-portal-accent'
                 : 'bg-white dark:bg-[#161b22] text-[#57606a] dark:text-[#8b949e] border-[#d0d7de] dark:border-[#30363d] hover:text-[#24292f] dark:hover:text-[#c9d1d9]',
             )}
           >

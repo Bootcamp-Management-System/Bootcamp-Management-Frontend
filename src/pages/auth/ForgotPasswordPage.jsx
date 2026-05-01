@@ -62,7 +62,7 @@ export const ForgotPasswordPage = () => {
 
             <button 
               type="submit"
-              className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
+              className="w-full bg-portal-accent text-portal-bg py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
             >
               Send Reset Code
               <Send className="w-4 h-4" />
@@ -70,7 +70,7 @@ export const ForgotPasswordPage = () => {
           </form>
         ) : (
           <div className="text-center py-8">
-            <div className="w-12 h-12 bg-portal-accent text-white rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <div className="w-12 h-12 bg-portal-accent text-portal-bg rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
               <Send className="w-6 h-6" />
             </div>
             <p className="font-bold text-portal-text">Check your inbox!</p>

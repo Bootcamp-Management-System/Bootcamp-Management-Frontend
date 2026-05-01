@@ -419,7 +419,7 @@ export function Users() {
                       {error ? (
                         <button 
                           onClick={fetchData}
-                          className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-portal-accent text-white rounded-lg font-bold text-sm shadow-lg shadow-portal-accent/20"
+                          className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-portal-accent text-portal-bg rounded-lg font-bold text-sm shadow-lg shadow-portal-accent/20"
                         >
                           Retry Connection
                         </button>
@@ -521,7 +521,7 @@ export function Users() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPromoteOpen(false)}>Cancel</Button>
-            <Button onClick={confirmPromotion} className="bg-portal-accent text-white">Confirm Promotion</Button>
+            <Button onClick={confirmPromotion} className="bg-portal-accent text-portal-bg">Confirm Promotion</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

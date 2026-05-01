@@ -288,7 +288,7 @@ export const OTPPage = () => {
 
             <button
               type="submit"
-              className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
+              className="w-full bg-portal-accent text-portal-bg py-4 rounded-xl font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
             >
               {isPasswordReset && resetStep === 'password' ? 'Reset Password' : 'Verify & Continue'}
               <ArrowRight className="w-4 h-4" />

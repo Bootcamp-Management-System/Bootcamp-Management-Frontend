@@ -205,7 +205,7 @@ export const ProfilePage = () => {
                       <div className="w-24 h-24 rounded-full border-4 border-portal-accent/30 flex items-center justify-center bg-portal-input overflow-hidden">
                         <User className="w-12 h-12 text-portal-accent/50" />
                       </div>
-                      <button className="absolute bottom-0 right-0 p-1.5 bg-portal-accent text-white rounded-full shadow-lg hover:scale-110 transition-transform">
+                      <button className="absolute bottom-0 right-0 p-1.5 bg-portal-accent text-portal-bg rounded-full shadow-lg hover:scale-110 transition-transform">
                         <Edit3 className="w-3 h-3" />
                       </button>
                     </div>
@@ -306,7 +306,7 @@ export const ProfilePage = () => {
                       <div className="flex justify-end pt-2">
                         <button 
                           type="submit"
-                          className="bg-portal-accent text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98]"
+                          className="bg-portal-accent text-portal-bg px-6 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98]"
                         >
                           <Save className="w-4 h-4" />
                           Save Bio Changes
@@ -335,7 +335,7 @@ export const ProfilePage = () => {
                           switchRole();
                           showNotification(`Switched to ${user.role === 'instructor' ? 'Student' : 'Instructor'} View`, 'success');
                         }}
-                        className="bg-portal-accent text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all whitespace-nowrap w-full sm:w-auto justify-center"
+                        className="bg-portal-accent text-portal-bg px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all whitespace-nowrap w-full sm:w-auto justify-center"
                       >
                         <ArrowRight className="w-4 h-4" />
                         Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}
@@ -468,7 +468,7 @@ export const ProfilePage = () => {
                       <button
                         type="submit"
                         disabled={isChangingPassword}
-                        className="inline-flex items-center gap-2 bg-portal-accent text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 bg-portal-accent text-portal-bg px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         <KeyRound className="w-4 h-4" />
                         {isChangingPassword ? 'Updating Password...' : 'Update Password'}

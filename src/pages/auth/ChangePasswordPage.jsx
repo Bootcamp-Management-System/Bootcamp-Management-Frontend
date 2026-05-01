@@ -115,7 +115,7 @@ export const ChangePasswordPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] mt-2"
+            className="w-full bg-portal-accent text-portal-bg py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] mt-2"
           >
             Update Password
           </button>

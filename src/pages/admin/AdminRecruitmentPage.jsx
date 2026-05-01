@@ -189,7 +189,7 @@ export const AdminRecruitmentPage = () => {
         </div>
         <button 
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-portal-accent text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="bg-portal-accent text-portal-bg px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           <Plus className="w-4 h-4" />
           Create Bootcamp
@@ -431,7 +431,7 @@ export const AdminRecruitmentPage = () => {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="bg-portal-accent text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+              className="bg-portal-accent text-portal-bg px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {isSubmitting ? (editBootcamp ? 'Saving...' : 'Creating...') : (editBootcamp ? 'Save Changes' : 'Create Bootcamp')}
             </button>

@@ -179,7 +179,7 @@ export const Navbar = () => {
                 className={`
                   px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all
                   ${isActive 
-                    ? 'bg-portal-accent text-white shadow-lg shadow-portal-accent/20' 
+                    ? 'bg-portal-accent text-portal-bg shadow-lg shadow-portal-accent/20' 
                     : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-text/5'
                   }
                 `}
