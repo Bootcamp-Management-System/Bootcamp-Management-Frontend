@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
-import { 
-  Users, 
+import {
   UserPlus, 
   Edit2, 
   Trash2, 
-  ShieldCheck, 
   Mail, 
-  IdCard,
   Layers,
-  Eye,
-  Calendar,
-  Clock,
-  Briefcase,
-  ArrowUpRight
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -39,17 +31,9 @@ export const AdminMembersPage = () => {
   
   const [members, setMembers] = React.useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [infoMember, setInfoMember] = useState(null);
 
-  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
-  const [promoteToRole, setPromoteToRole] = useState('instructor');
-  const [isPromoting, setIsPromoting] = useState(false);
-  const [promoteError, setPromoteError] = useState('');
-  const [promoteSuccess, setPromoteSuccess] = useState(null);
-
-  const buildDisplayUser = (user) => {
+  const buildDisplayUser = React.useCallback((user) => {
     const email = user?.email || '';
     const nameSource = user?.name || email.split('@')[0] || 'User';
     const cleanName = nameSource.replace(/[._-]+/g, ' ').trim();
@@ -87,13 +71,11 @@ export const AdminMembersPage = () => {
       divisionId,
       divisions: divisionName ? [divisionName] : [],
       assignedDivisions: assignedNames,
-      status: user?.verified ? 'Active' : 'Pending',
-      attendance: 'N/A',
       idNo: user?.campusId || user?.idNo || (user?._id ? user._id.slice(-6).toUpperCase() : 'N/A'),
     };
-  };
+  }, [divisions]);
 
-  const loadUsers = async () => {
+  const loadUsers = React.useCallback(async () => {
     setIsLoadingUsers(true);
     setLoadError('');
     try {
@@ -116,7 +98,7 @@ export const AdminMembersPage = () => {
     } finally {
       setIsLoadingUsers(false);
     }
-  };
+  }, [admin?.role, adminDivisionId, selectedDivision]);
 
   React.useEffect(() => {
     const loadDivisions = async () => {
@@ -131,7 +113,7 @@ export const AdminMembersPage = () => {
 
     loadDivisions();
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   React.useEffect(() => {
     const filtered = users
@@ -142,7 +124,7 @@ export const AdminMembersPage = () => {
         (user.assignedDivisions && user.assignedDivisions.includes(currentDivision))
       );
     setMembers(filtered);
-  }, [currentDivision, users]);
+  }, [buildDisplayUser, currentDivision, users]);
 
   const resolveDivisionId = (divisionValue) => {
     if (!divisionValue) return null;
@@ -163,7 +145,6 @@ export const AdminMembersPage = () => {
     const form = new FormData(event.currentTarget);
     const email = String(form.get('email') || '').trim();
     const role = String(form.get('role') || 'student').trim();
-    const selectedDivisionValue = form.get('division');
 
     if (!email) {
       setFormError('Email is required.');
@@ -186,48 +167,6 @@ export const AdminMembersPage = () => {
       setFormError(error?.response?.data?.message || error?.message || 'Failed to create user.');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handlePromoteUser = async (event) => {
-    event.preventDefault();
-    setPromoteError('');
-    setIsPromoting(true);
-    setPromoteSuccess(null);
-
-    const form = new FormData(event.currentTarget);
-    const reason = String(form.get('reason') || '').trim();
-    const selectedDivisionValue = form.get('division');
-
-    const divisionId = adminDivisionId;
-
-    if (!infoMember?.id) {
-      setPromoteError('No member selected.');
-      setIsPromoting(false);
-      return;
-    }
-
-    try {
-      const response = await userService.promoteUser(infoMember.id, {
-        newRole: promoteToRole,
-        divisionId: promoteToRole === 'admin' ? selectedDivisionValue : divisionId,
-        reason,
-      });
-
-      setPromoteSuccess({ tempPassword: response?.tempPassword || '' });
-      await loadUsers();
-      
-      // Close automatically only if there's no temp password to show
-      if (!response?.tempPassword) {
-        setTimeout(() => {
-          setIsPromoteModalOpen(false);
-          setIsInfoModalOpen(false);
-        }, 1500);
-      }
-    } catch (error) {
-      setPromoteError(error?.response?.data?.message || error?.message || 'Failed to promote member.');
-    } finally {
-      setIsPromoting(false);
     }
   };
 
@@ -290,37 +229,10 @@ export const AdminMembersPage = () => {
           </span>
         )
       )
-    },
-    { 
-      header: 'Attendance', 
-      render: (row) => (
-        <div className="flex items-center gap-2">
-           <span className="text-xs font-bold text-portal-text">{row.attendance}</span>
-           <button className="text-[10px] text-portal-accent hover:underline">Manual Update</button>
-        </div>
-      )
-    },
-    { 
-      header: 'Status', 
-      render: (row) => (
-        <span className={`text-[10px] font-bold uppercase tracking-widest ${
-          row.status === 'Active' ? 'text-green-400' : 'text-yellow-400'
-        }`}>
-          {row.status}
-        </span>
-      )
     }
   ];
 
   const actions = [
-    { 
-      label: 'View Information', 
-      icon: Eye, 
-      onClick: (member) => {
-        setInfoMember(member);
-        setIsInfoModalOpen(true);
-      }
-    },
     { 
       label: 'Edit', 
       icon: Edit2, 
@@ -376,127 +288,6 @@ export const AdminMembersPage = () => {
         actions={actions}
         searchPlaceholder="Search members by name, email or ID..."
       />
-
-      {/* Member Info Modal */}
-      <AdminModal 
-        isOpen={isInfoModalOpen} 
-        onClose={() => setIsInfoModalOpen(false)}
-        title="Dossier: Specialist Information"
-      >
-        {infoMember && (
-          <div className="space-y-8">
-            <div className="flex items-center gap-6 pb-6 border-b border-portal-border">
-              <div className="w-20 h-20 rounded-2xl bg-portal-accent/10 border border-portal-accent/20 flex items-center justify-center font-black text-3xl text-portal-accent">
-                {infoMember.name.charAt(0)}
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-bold text-portal-text">{infoMember.name}</h3>
-                <p className="text-sm font-mono text-portal-accent">{infoMember.idNo}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${
-                    infoMember.status === 'Active' ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'
-                  }`}>
-                    {infoMember.status}
-                  </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-portal-accent/10 text-portal-accent">
-                    {infoMember.role}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Digital Address</label>
-                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium">
-                    <Mail className="w-4 h-4 text-portal-accent" /> {infoMember.email}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Active Division</label>
-                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium">
-                    <Layers className="w-4 h-4 text-portal-accent" /> {infoMember.division}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Current Attendance</label>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 bg-portal-border rounded-full overflow-hidden">
-                       <div 
-                         className="h-full bg-portal-accent" 
-                         style={{ width: infoMember.attendance || '0%' }}
-                       />
-                    </div>
-                    <span className="text-sm font-black text-portal-text">{infoMember.attendance || '0%'}</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Specialist Tier</label>
-                  <p className="text-sm text-portal-text flex items-center gap-2 font-medium capitalize">
-                    <ShieldCheck className="w-4 h-4 text-portal-accent" /> Alpha Team
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-portal-input/20 border border-portal-border rounded-2xl p-6 flex flex-col gap-4">
-              <h4 className="text-xs font-bold text-portal-text uppercase tracking-widest flex items-center gap-2">
-                <Clock className="w-4 h-4 text-portal-accent" />
-                Recent Operational Logs
-              </h4>
-              <div className="space-y-3">
-                 <div className="text-[11px] text-portal-text-muted flex justify-between border-b border-portal-border/30 pb-2">
-                    <span>Synchronized division data</span>
-                    <span className="text-portal-text/40">2 hours ago</span>
-                 </div>
-                 <div className="text-[11px] text-portal-text-muted flex justify-between border-b border-portal-border/30 pb-2">
-                    <span>Submitted weekly pentest report</span>
-                    <span className="text-portal-text/40">Yesterday</span>
-                 </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4 gap-3 flex-wrap">
-              {(admin?.role === 'super-admin' || admin?.role === 'super_admin') && (
-                <button 
-                  onClick={() => {
-                    setPromoteToRole('admin');
-                    setPromoteSuccess(null);
-                    setPromoteError('');
-                    setIsPromoteModalOpen(true);
-                  }}
-                  className="bg-red-500/10 text-red-400 px-6 py-3 rounded-xl font-bold hover:bg-red-500/20 transition-colors border border-red-500/20 flex items-center gap-2 text-sm"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  Promote to Admin
-                </button>
-              )}
-              <button 
-                onClick={() => {
-                  setPromoteToRole('instructor');
-                  setPromoteSuccess(null);
-                  setPromoteError('');
-                  setIsPromoteModalOpen(true);
-                }}
-                className="bg-portal-accent/10 text-portal-accent px-6 py-3 rounded-xl font-bold hover:bg-portal-accent/20 transition-colors border border-portal-accent/20 flex items-center gap-2 text-sm"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-                Promote to Instructor
-              </button>
-              <button 
-                onClick={() => setIsInfoModalOpen(false)}
-                className="bg-portal-input text-portal-text-muted px-6 py-3 rounded-xl font-bold hover:bg-portal-border transition-colors border border-portal-border"
-              >
-                Close Dossier
-              </button>
-            </div>
-          </div>
-        )}
-      </AdminModal>
 
       <AdminModal 
         isOpen={isModalOpen} 
@@ -571,69 +362,6 @@ export const AdminMembersPage = () => {
         </form>
       </AdminModal>
 
-      {/* Promote Member Modal */}
-      <AdminModal 
-        isOpen={isPromoteModalOpen} 
-        onClose={() => setIsPromoteModalOpen(false)}
-        title={promoteToRole === 'admin' ? 'Promote to Division Admin' : 'Promote to Instructor'}
-      >
-        <form className="space-y-6" onSubmit={handlePromoteUser}>
-          <div className="space-y-4">
-            <p className="text-sm text-portal-text-muted">
-              You are about to promote <span className="font-bold text-portal-text">{infoMember?.name}</span> to an instructor role.
-            </p>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Target Division</label>
-              {(admin?.role === 'super-admin' || admin?.role === 'super_admin') ? (
-                <select 
-                  name="division"
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none"
-                  defaultValue={adminDivisionId}
-                >
-                  {divisions.map(div => (
-                    <option key={div._id} value={div._id}>{div.name}</option>
-                  ))}
-                </select>
-              ) : (
-                <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
-                  {adminDivisionName}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Reason for Promotion</label>
-              <input name="reason" type="text" placeholder="e.g. Demonstrated excellence in division" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" required />
-            </div>
-          </div>
-
-          {promoteSuccess ? (
-            <div className="bg-green-400/10 border border-green-400/30 rounded-xl px-4 py-3 text-sm text-green-400 flex flex-col gap-2">
-              <span className="font-bold">Promotion successful!</span>
-              {promoteSuccess.tempPassword && (
-                <span className="text-xs text-portal-text-muted">
-                  Temporary password for instructor: <span className="font-mono font-bold text-portal-text">{promoteSuccess.tempPassword}</span>
-                </span>
-              )}
-            </div>
-          ) : null}
-
-          {promoteError ? (
-            <div className="text-xs font-bold text-red-400">
-              {promoteError}
-            </div>
-          ) : null}
-
-          <div className="flex justify-end pt-6 gap-4">
-            <button type="button" onClick={() => setIsPromoteModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
-            <button type="submit" disabled={isPromoting || promoteSuccess} className="bg-portal-accent text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 flex items-center gap-2">
-              <ArrowUpRight className="w-5 h-5" />
-              Confirm Promotion
-            </button>
-          </div>
-        </form>
-      </AdminModal>
     </div>
   );
 };

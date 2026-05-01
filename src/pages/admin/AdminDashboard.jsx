@@ -2,49 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Shield,
   Users,
   BookOpen,
-  Activity,
   ArrowUpRight,
-  CheckCircle2,
-  Clock,
   ClipboardList,
   UserCheck,
-  Layers
 } from 'lucide-react';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell
-} from 'recharts';
 import { userService } from '../../services/userService';
 import { bootcampService } from '../../services/bootcampService';
 import { groupService } from '../../services/groupService';
-
-const growthData = [
-  { name: 'Mon', users: 4 },
-  { name: 'Tue', users: 7 },
-  { name: 'Wed', users: 5 },
-  { name: 'Thu', users: 12 },
-  { name: 'Fri', users: 9 },
-  { name: 'Sat', users: 15 },
-  { name: 'Sun', users: 20 },
-];
-
-const divisionDistribution = [
-  { name: 'Dev', value: 45, color: '#60a5fa' },
-  { name: 'Cyber', value: 30, color: '#f87171' },
-  { name: 'Data', value: 15, color: '#c084fc' },
-  { name: 'CP', value: 10, color: '#fb923c' },
-];
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -137,52 +103,6 @@ export const AdminDashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Growth Chart */}
-        <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
-              <Activity className="w-6 h-6 text-portal-accent" />
-              Recruitment Velocity
-            </h3>
-            <div className="text-[10px] font-bold text-portal-text-muted uppercase tracking-widest">Temporal Scale: 7D</div>
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-              <AreaChart data={growthData}>
-                <defs>
-                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1a2e3b" vertical={false} />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#06111a', border: '1px solid #1a2e3b', borderRadius: '12px' }} />
-                <Area type="monotone" dataKey="users" stroke="#2dd4bf" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-xl">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-xl font-bold text-portal-text flex items-center gap-3">
-            <Clock className="w-6 h-6 text-portal-accent" />
-            Operational Log
-          </h3>
-          <button className="text-[10px] font-bold text-portal-accent uppercase tracking-widest hover:text-portal-text transition-colors">Dossier Access</button>
-        </div>
-        <div className="space-y-4">
-          <div className="text-center py-10 text-portal-text-muted italic text-sm">
-            {loading ? 'Synchronizing logs...' : 'No recent operations logged for this division.'}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
