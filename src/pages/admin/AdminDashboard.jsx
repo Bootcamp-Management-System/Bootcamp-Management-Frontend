@@ -80,10 +80,10 @@ export const AdminDashboard = () => {
   }, [currentDivisionId]);
 
   const stats = [
-    { label: "Specialists", value: counts.students, icon: Users, color: "text-blue-400", sub: "Active Students" },
-    { label: "Mentors", value: counts.instructors, icon: UserCheck, color: "text-green-400", sub: "Assigned Staff" },
-    { label: "Operations", value: counts.operations, icon: BookOpen, color: "text-purple-400", sub: "Active Bootcamps" },
-    { label: "Clusters", value: counts.clusters, icon: ClipboardList, color: "text-orange-400", sub: "Research Nodes" },
+    { label: "Total Students", value: counts.students, icon: Users, color: "text-blue-400", sub: "Accepted Members" },
+    { label: "Total Instructors", value: counts.instructors, icon: UserCheck, color: "text-green-400", sub: "Division Staff" },
+    { label: "Bootcamp Sectors", value: counts.operations, icon: BookOpen, color: "text-purple-400", sub: "Active Operations" },
+    { label: "Specialized Groups", value: counts.clusters, icon: ClipboardList, color: "text-orange-400", sub: "Project Clusters" },
   ];
 
   return (
