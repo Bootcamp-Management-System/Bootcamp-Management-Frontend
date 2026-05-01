@@ -18,13 +18,13 @@ const submissionService = {
 
   // PATCH /api/v1/submissions/review/:id  — instructor grades submission
   async reviewSubmission(id, data) {
-    const response = await api.patch(`/submissions/review/${id}`, data);
+    const response = await api.patch(`/submissions/${id}/review`, data);
     return response.data;
   },
 
   // PUT /api/v1/submissions/:id  — student edits their submission
   async updateSubmission(id, data) {
-    const response = await api.put(`/submissions/${id}`, data);
+    const response = await api.patch(`/submissions/${id}`, data);
     return response.data;
   },
 };

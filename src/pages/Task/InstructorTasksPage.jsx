@@ -16,8 +16,10 @@ const fmt = (date) =>
 
 const statusColor = (status) => ({
   pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  approved: 'bg-green-500/20 text-green-400 border-green-500/30',
-  rejected: 'bg-red-500/20 text-red-400 border-red-500/30',
+  graded: 'bg-green-500/20 text-green-400 border-green-500/30',
+  returned: 'bg-red-500/20 text-red-400 border-red-500/30',
+  reviewed: 'bg-green-500/20 text-green-400 border-green-500/30',
+  resubmission_required: 'bg-red-500/20 text-red-400 border-red-500/30',
 }[status] || 'bg-slate-500/20 text-slate-400 border-slate-500/30');
 
 // ─── Create Task Modal ───────────────────────────────────────────────────────
@@ -25,9 +27,8 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
   const [form, setForm] = useState({
     title: '',
     description: '',
+    projectLink: '',
     session: '',
-    startTime: '',
-    endTime: '',
     deadline: '',
   });
   const [loading, setLoading] = useState(false);
@@ -38,12 +39,17 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.title || !form.description || !form.session || !form.startTime || !form.endTime || !form.deadline) {
-      return setError('All fields, including session, are required.');
+    if (!form.title || !form.description || !form.session || !form.deadline) {
+      return setError('Title, description, session, and deadline are required.');
     }
     setLoading(true);
     try {
-      await onCreate({ ...form, division: divisionId });
+      await onCreate({
+        ...form,
+        division: divisionId,
+        startTime: new Date().toISOString(),
+        endTime: form.deadline,
+      });
       onClose();
     } catch (err) {
       setError(err?.response?.data?.message || err.message || 'Failed to create task.');
@@ -92,6 +98,11 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
           </div>
 
           <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Project Details Link</label>
+            <input name="projectLink" type="url" value={form.projectLink} onChange={handleChange} placeholder="https://notion.so/... or https://docs.google.com/..." className={inputClass} />
+          </div>
+
+          <div>
             <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Target Session</label>
             <select name="session" value={form.session} onChange={handleChange} className={inputClass}>
               <option value="" disabled>Select a session you instruct</option>
@@ -99,17 +110,6 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
                 <option key={s._id} value={s._id}>{s.title} ({new Date(s.startTime).toLocaleDateString()})</option>
               ))}
             </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Start Time</label>
-              <input type="datetime-local" name="startTime" value={form.startTime} onChange={handleChange} className={inputClass} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">End Time</label>
-              <input type="datetime-local" name="endTime" value={form.endTime} onChange={handleChange} className={inputClass} />
-            </div>
           </div>
 
           <div>
@@ -137,8 +137,15 @@ const CreateTaskModal = ({ onClose, onCreate, divisionId, sessions }) => {
 };
 
 // ─── Review Modal ────────────────────────────────────────────────────────────
+const SubmissionLink = ({ label, href }) => (
+  <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-portal-accent hover:underline text-sm break-all">
+    <ExternalLink className="w-4 h-4 shrink-0" />
+    <span className="font-bold text-portal-text">{label}:</span> {href}
+  </a>
+);
+
 const ReviewModal = ({ submission, onClose, onReview }) => {
-  const [form, setForm] = useState({ status: 'approved', grade: '', feedback: '' });
+  const [form, setForm] = useState({ status: 'graded', grade: submission.grade || '', feedback: submission.feedback || '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -177,11 +184,13 @@ const ReviewModal = ({ submission, onClose, onReview }) => {
         </div>
 
         <div className="p-6 border-b border-portal-border">
-          <p className="text-xs font-bold text-portal-text-muted uppercase tracking-wider mb-2">Submission Link</p>
-          <a href={submission.contentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-portal-accent hover:underline text-sm break-all">
-            <ExternalLink className="w-4 h-4 shrink-0" />
-            {submission.contentUrl}
-          </a>
+          <p className="text-xs font-bold text-portal-text-muted uppercase tracking-wider mb-2">Submitted Work</p>
+          <div className="space-y-2">
+            {submission.contentUrl && <SubmissionLink label="Project" href={submission.contentUrl} />}
+            {submission.githubUrl && <SubmissionLink label="GitHub" href={submission.githubUrl} />}
+            {submission.driveUrl && <SubmissionLink label="Google Drive" href={submission.driveUrl} />}
+            {submission.fileUrl && <SubmissionLink label={submission.fileName || 'Uploaded file'} href={submission.fileUrl} />}
+          </div>
           {submission.comment && (
             <p className="mt-3 text-sm text-portal-text-muted italic">"{submission.comment}"</p>
           )}
@@ -197,20 +206,20 @@ const ReviewModal = ({ submission, onClose, onReview }) => {
           <div>
             <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Decision</label>
             <div className="grid grid-cols-2 gap-3">
-              {['approved', 'rejected'].map((s) => (
+              {['graded', 'returned'].map((s) => (
                 <button type="button" key={s} onClick={() => setForm(p => ({ ...p, status: s }))}
                   className={`py-3 rounded-xl border text-sm font-bold capitalize transition-all ${form.status === s
-                    ? s === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-red-500/20 border-red-500/50 text-red-400'
+                    ? s === 'graded' ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-red-500/20 border-red-500/50 text-red-400'
                     : 'border-portal-border text-portal-text-muted hover:bg-portal-border'}`}>
-                  {s === 'approved' ? '✓ Approve' : '✕ Reject'}
+                  {s === 'graded' ? 'Graded' : 'Returned'}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Grade (optional)</label>
-            <input type="number" min="0" max="100" placeholder="0–100" value={form.grade} onChange={e => setForm(p => ({ ...p, grade: e.target.value }))} className={inputClass} />
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Score</label>
+            <input type="number" min="0" max={submission.task?.maxScore || 100} placeholder={`0-${submission.task?.maxScore || 100}`} value={form.grade} onChange={e => setForm(p => ({ ...p, grade: e.target.value }))} className={inputClass} />
           </div>
 
           <div>

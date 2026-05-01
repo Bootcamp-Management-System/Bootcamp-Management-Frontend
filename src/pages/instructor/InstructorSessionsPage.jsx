@@ -50,8 +50,7 @@ const toDateTimeLocal = (value) => {
 const emptyTask = {
   title: '',
   description: '',
-  startTime: '',
-  endTime: '',
+  projectLink: '',
   deadline: '',
 };
 
@@ -311,6 +310,8 @@ export const InstructorSessionsPage = () => {
     event.preventDefault();
     await taskService.createTask({
       ...taskForm,
+      startTime: new Date().toISOString(),
+      endTime: taskForm.deadline,
       session: session._id,
       bootcamp: session.bootcamp?._id || session.bootcamp,
     });
@@ -677,8 +678,8 @@ export const InstructorSessionsPage = () => {
             <h2 className="text-lg font-black text-portal-text">Create Task</h2>
             <input value={taskForm.title} onChange={(event) => setTaskForm((current) => ({ ...current, title: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" placeholder="Task title" />
             <textarea value={taskForm.description} onChange={(event) => setTaskForm((current) => ({ ...current, description: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none resize-none" rows={3} placeholder="Task instructions" />
-            <input type="datetime-local" value={taskForm.startTime} onChange={(event) => setTaskForm((current) => ({ ...current, startTime: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" />
-            <input type="datetime-local" value={taskForm.endTime} onChange={(event) => setTaskForm((current) => ({ ...current, endTime: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" />
+            <input type="url" value={taskForm.projectLink} onChange={(event) => setTaskForm((current) => ({ ...current, projectLink: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" placeholder="Project details link (Notion, Docs, etc.)" />
+            <label className="block text-xs font-black uppercase tracking-widest text-portal-text-muted">Deadline</label>
             <input type="datetime-local" value={taskForm.deadline} onChange={(event) => setTaskForm((current) => ({ ...current, deadline: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" />
             <button className="w-full flex items-center justify-center gap-2 bg-portal-accent text-portal-bg px-4 py-3 rounded-xl font-bold text-sm"><Plus className="w-4 h-4" /> Create Task</button>
           </form>
@@ -687,6 +688,7 @@ export const InstructorSessionsPage = () => {
               <div key={task._id} className="bg-portal-card border border-portal-border rounded-2xl p-5">
                 <h3 className="font-bold text-portal-text">{task.title}</h3>
                 <p className="text-sm text-portal-text-muted mt-1">{task.description}</p>
+                {task.projectLink && <a href={task.projectLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-portal-accent hover:underline mt-3"><ExternalLink className="w-4 h-4" /> Project details</a>}
                 <p className="text-xs text-portal-text-muted mt-3">Deadline: {fmtDateTime(task.deadline || toDateTimeLocal(task.deadline))}</p>
               </div>
             ))}

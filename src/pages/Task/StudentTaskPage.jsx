@@ -27,19 +27,30 @@ const getTaskStatus = (task, mySubmission) => {
 // ─── Submit Modal ─────────────────────────────────────────────────────────────
 const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
   const [contentUrl, setContentUrl] = useState(existingSubmission?.contentUrl || '');
+  const [githubUrl, setGithubUrl] = useState(existingSubmission?.githubUrl || '');
+  const [driveUrl, setDriveUrl] = useState(existingSubmission?.driveUrl || '');
+  const [file, setFile] = useState(null);
   const [comment, setComment] = useState(existingSubmission?.comment || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const isReviewed = existingSubmission && existingSubmission.status !== 'pending';
+  const isGraded = existingSubmission?.status === 'graded' || existingSubmission?.status === 'reviewed';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!contentUrl.trim()) return setError('Please paste your submission link.');
+    if (!contentUrl.trim() && !githubUrl.trim() && !driveUrl.trim() && !file) {
+      return setError('Add a file, GitHub link, Google Drive link, or project link.');
+    }
     setLoading(true);
     try {
-      await onSubmit(task._id, { contentUrl, comment });
+      const payload = new FormData();
+      if (contentUrl.trim()) payload.append('contentUrl', contentUrl.trim());
+      if (githubUrl.trim()) payload.append('githubUrl', githubUrl.trim());
+      if (driveUrl.trim()) payload.append('driveUrl', driveUrl.trim());
+      if (comment.trim()) payload.append('comment', comment.trim());
+      if (file) payload.append('file', file);
+      await onSubmit(task._id, payload);
       onClose();
     } catch (err) {
       setError(err?.response?.data?.error || err?.response?.data?.message || err.message || 'Submission failed.');
@@ -53,8 +64,10 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
 
   const statusBadge = {
     pending: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-    approved: 'bg-green-500/15 text-green-400 border-green-500/30',
-    rejected: 'bg-red-500/15 text-red-400 border-red-500/30',
+    graded: 'bg-green-500/15 text-green-400 border-green-500/30',
+    returned: 'bg-red-500/15 text-red-400 border-red-500/30',
+    reviewed: 'bg-green-500/15 text-green-400 border-green-500/30',
+    resubmission_required: 'bg-red-500/15 text-red-400 border-red-500/30',
   };
 
   return (
@@ -88,14 +101,19 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
         {/* Task Description */}
         <div className="px-6 py-4 border-b border-portal-border">
           <p className="text-sm text-portal-text-muted leading-relaxed">{task.description}</p>
+          {task.projectLink && (
+            <a href={task.projectLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-portal-accent hover:underline mt-3">
+              <ExternalLink className="w-4 h-4" /> Project details
+            </a>
+          )}
         </div>
 
         {/* Review feedback if graded */}
-        {isReviewed && (
-          <div className={`mx-6 mt-4 p-4 rounded-xl border ${existingSubmission.status === 'approved' ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+        {existingSubmission?.status !== 'pending' && (
+          <div className={`mx-6 mt-4 p-4 rounded-xl border ${isGraded ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <p className="text-sm font-bold text-portal-text mb-1">
-              {existingSubmission.status === 'approved' ? '✓ Approved' : '✕ Rejected'}
-              {existingSubmission.grade != null ? ` — Grade: ${existingSubmission.grade}/100` : ''}
+              {isGraded ? 'Graded' : 'Returned for resubmission'}
+              {existingSubmission.grade != null ? ` - Score: ${existingSubmission.grade}/${task.maxScore || 100}` : ''}
             </p>
             {existingSubmission.feedback && (
               <p className="text-sm text-portal-text-muted italic">"{existingSubmission.feedback}"</p>
@@ -112,16 +130,61 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
 
           <div>
             <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
-              Submission Link <span className="text-red-400">*</span>
+              Project Link
             </label>
             <input
               type="url"
               value={contentUrl}
               onChange={e => setContentUrl(e.target.value)}
-              placeholder="https://github.com/you/your-repo"
+              placeholder="https://your-demo-or-notion-link"
               className={inputClass}
-              disabled={isReviewed}
+              disabled={isGraded}
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
+              GitHub Link
+            </label>
+            <input
+              type="url"
+              value={githubUrl}
+              onChange={e => setGithubUrl(e.target.value)}
+              placeholder="https://github.com/you/project"
+              className={inputClass}
+              disabled={isGraded}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
+              Google Drive File or Folder
+            </label>
+            <input
+              type="url"
+              value={driveUrl}
+              onChange={e => setDriveUrl(e.target.value)}
+              placeholder="https://drive.google.com/..."
+              className={inputClass}
+              disabled={isGraded}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
+              Upload File
+            </label>
+            <input
+              type="file"
+              onChange={e => setFile(e.target.files?.[0] || null)}
+              className="w-full text-sm text-portal-text-muted"
+              disabled={isGraded}
+            />
+            {existingSubmission?.fileUrl && (
+              <a href={existingSubmission.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs text-portal-accent hover:underline mt-2">
+                <ExternalLink className="w-3 h-3" /> Current file: {existingSubmission.fileName || 'submission file'}
+              </a>
+            )}
           </div>
 
           <div>
@@ -134,7 +197,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
               onChange={e => setComment(e.target.value)}
               placeholder="Anything you want to say to your instructor…"
               className={`${inputClass} resize-none`}
-              disabled={isReviewed}
+              disabled={isGraded}
             />
           </div>
 
@@ -142,14 +205,14 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
             <button type="button" onClick={onClose} className="flex-1 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-border transition-colors text-sm font-semibold">
               Close
             </button>
-            {!isReviewed && (
+            {!isGraded && (
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-portal-accent text-portal-bg font-bold text-sm shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all disabled:opacity-60"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {loading ? 'Submitting…' : existingSubmission ? 'Update Submission' : 'Submit Task'}
+                {loading ? 'Submitting...' : existingSubmission ? 'Resubmit Task' : 'Submit Task'}
               </button>
             )}
           </div>

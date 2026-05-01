@@ -25,7 +25,7 @@ const taskService = {
 
   // PUT /api/v1/tasks/:id
   async updateTask(id, data) {
-    const response = await api.put(`/tasks/${id}`, data);
+    const response = await api.patch(`/tasks/${id}`, data);
     return response.data;
   },
 
