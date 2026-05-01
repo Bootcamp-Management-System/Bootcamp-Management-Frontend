@@ -17,12 +17,12 @@ export const OTPPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  
+
   const [email, setEmail] = useState(
-    location.state?.email || 
-    queryParams.get('email') || 
-    user?.email || 
-    localStorage.getItem('pending_otp_email') || 
+    location.state?.email ||
+    queryParams.get('email') ||
+    user?.email ||
+    localStorage.getItem('pending_otp_email') ||
     ''
   );
   const purpose = location.state?.purpose || queryParams.get('purpose') || 'register';
@@ -68,14 +68,14 @@ export const OTPPage = () => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text/plain').trim();
     const pastedNumbers = pastedData.replace(/\D/g, '').slice(0, 6);
-    
+
     if (pastedNumbers) {
       const newOtp = [...otp];
       for (let i = 0; i < pastedNumbers.length; i++) {
         newOtp[i] = pastedNumbers[i];
       }
       setOtp(newOtp);
-      
+
       // Focus the last filled input or the next empty one
       const targetIndex = Math.min(pastedNumbers.length, 5);
       const inputs = document.querySelectorAll('input[name="otp-input"]');
@@ -92,7 +92,7 @@ export const OTPPage = () => {
       setError('Email is required. Please go back to login.');
       return;
     }
-    
+
     if (isPasswordReset && resetStep === 'otp') {
       if (otpValue.length !== 6) {
         setError('Enter the 6-digit reset code from your email.');
@@ -133,10 +133,10 @@ export const OTPPage = () => {
           otp: otpValue,
         });
       }
-      
+
       // Clear dev OTP
       localStorage.removeItem('dev_otp');
-      
+
       const targetBootcamp = location.state?.bootcampId;
       if (targetBootcamp) {
         navigate(`/apply/${targetBootcamp}`);
@@ -176,7 +176,7 @@ export const OTPPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-portal-bg relative overflow-hidden p-4">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-portal-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md w-full bg-portal-card border border-portal-border rounded-[32px] p-10 shadow-2xl relative z-10 text-center"
@@ -184,12 +184,12 @@ export const OTPPage = () => {
         <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
           <ShieldCheck className="w-8 h-8 text-portal-accent" />
         </div>
-        
+
         <h1 className="text-2xl font-bold text-portal-text">
           {isPasswordReset ? 'Reset Password' : 'Verify Identity'}
         </h1>
         <p className="text-portal-text-muted mt-2 mb-4">
-          {isPasswordReset 
+          {isPasswordReset
             ? resetStep === 'otp'
               ? 'Enter the reset code sent to your email'
               : 'Create your new password'
