@@ -223,20 +223,20 @@ export function Users() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Users Directory</h1>
-          <p className="text-[#57606a] dark:text-[#8b949e]">Manage CSEC members, bootcamp students, instructors, and division admins across the system.</p>
+          <h1 className="text-2xl font-black text-portal-text tracking-tight">Users Directory</h1>
+          <p className="text-portal-text-muted mt-1">Orchestrate system-wide access, roles, and memberships.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => setIsAddMemberOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+            className="flex items-center gap-2 px-6 py-2.5 bg-portal-accent hover:bg-portal-accent-hover text-white rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-portal-accent/20"
           >
             <UserPlus className="w-4 h-4" />
-            Add CSEC Member
+            Add Member
           </button>
         </div>
       </div>
@@ -244,202 +244,154 @@ export function Users() {
       {/* Top Statistic Cards acting as Tabs */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {[
-          { role: 'Member', label: 'CSEC Members', count: roleCounts.Member, icon: MembersIcon, color: 'border-[#0a7ea4] dark:border-[#56d4ff]', bg: 'bg-[#ddf4ff] dark:bg-[#042f3a]', text: 'text-[#0a7ea4] dark:text-[#56d4ff]' },
-          { role: 'Student', label: 'Total Students', count: roleCounts.Student, icon: BookOpen, color: 'border-[#0969da] dark:border-[#58a6ff]', bg: 'bg-[#ddf4ff] dark:bg-[#051d4d]', text: 'text-[#0969da] dark:text-[#58a6ff]' },
-          { role: 'Instructor', label: 'Total Instructors', count: roleCounts.Instructor, icon: GraduationCap, color: 'border-[#8250df] dark:border-[#d2a8ff]', bg: 'bg-[#f4ecff] dark:bg-[#3c1e70]', text: 'text-[#8250df] dark:text-[#d2a8ff]' },
-          { role: 'Admin', label: 'Division Admins', count: roleCounts.Admin, icon: ShieldAlert, color: 'border-[#cf222e] dark:border-[#ff7b72]', bg: 'bg-[#ffebe9] dark:bg-[#490202]', text: 'text-[#cf222e] dark:text-[#ff7b72]' }
+          { role: 'Member', label: 'CSEC Members', count: roleCounts.Member, icon: MembersIcon, accent: 'border-blue-500', bg: 'bg-blue-500/10', text: 'text-blue-500' },
+          { role: 'Student', label: 'Total Students', count: roleCounts.Student, icon: BookOpen, accent: 'border-cyan-500', bg: 'bg-cyan-500/10', text: 'text-cyan-500' },
+          { role: 'Instructor', label: 'Total Instructors', count: roleCounts.Instructor, icon: GraduationCap, accent: 'border-purple-500', bg: 'bg-purple-500/10', text: 'text-purple-500' },
+          { role: 'Admin', label: 'Division Admins', count: roleCounts.Admin, icon: ShieldAlert, accent: 'border-red-500', bg: 'bg-red-500/10', text: 'text-red-500' }
         ].map((stat) => (
           <div 
             key={stat.role}
             onClick={() => setActiveTab(stat.role)}
             className={cn(
-              "bg-white dark:bg-[#161b22] border rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden",
-              activeTab === stat.role ? `border-2 ${stat.color}` : "border-[#d0d7de] dark:border-[#30363d] hover:border-[#8b949e]"
+              "bg-portal-card border rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer relative overflow-hidden group",
+              activeTab === stat.role ? `border-2 ${stat.accent}` : "border-portal-border hover:border-portal-accent/50"
             )}
           >
-            {activeTab === stat.role && (
-              <div className={cn("absolute top-0 left-0 w-1 h-full", stat.bg)}></div>
-            )}
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start relative z-10">
               <div>
-                <p className="text-sm font-medium text-[#57606a] dark:text-[#8b949e] mb-1">{stat.label}</p>
-                <h3 className="text-3xl font-bold text-[#24292f] dark:text-[#c9d1d9]">{stat.count}</h3>
+                <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
+                <h3 className="text-4xl font-black text-portal-text">{stat.count}</h3>
               </div>
-              <div className={cn("p-2.5 rounded-lg", stat.bg, stat.text)}>
-                <stat.icon className="w-5 h-5" />
+              <div className={cn("p-3 rounded-xl", stat.bg, stat.text)}>
+                <stat.icon className="w-6 h-6" />
               </div>
             </div>
+            {/* Background Decorative Icon */}
+            <stat.icon className="absolute -right-4 -bottom-4 w-24 h-24 text-portal-text/5 -rotate-12 group-hover:scale-110 transition-transform" />
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main List Section */}
-        <div className="lg:col-span-3 bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl overflow-hidden shadow-sm flex flex-col min-h-[600px]">
+        <div className="lg:col-span-3 bg-portal-card border border-portal-border rounded-2xl overflow-hidden shadow-sm flex flex-col min-h-[600px]">
           {/* List Header & Filters */}
-          <div className="p-4 border-b border-[#d0d7de] dark:border-[#30363d] flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#f6f8fa] dark:bg-[#0d1117]">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#57606a] dark:text-[#8b949e]" />
+          <div className="p-4 border-b border-portal-border flex flex-col sm:flex-row gap-4 justify-between items-center bg-portal-card/50 backdrop-blur-sm sticky top-0 z-10">
+            <div className="relative w-full sm:w-80 group">
+              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
                 type="text" 
                 placeholder={activeTab === 'Member' ? 'Search members...' : `Search ${activeTab.toLowerCase()}s...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-sm bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9]"
+                className="w-full pl-12 pr-4 py-2.5 text-sm bg-portal-input border border-portal-border rounded-xl focus:outline-none focus:border-portal-accent text-portal-text transition-all"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <Filter className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
-              <select
-                value={selectedDivision}
-                onChange={(e) => setSelectedDivision(e.target.value)}
-                className="bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] appearance-none"
-              >
-                <option value="All Divisions">All Divisions</option>
-                {divisions.map((div) => (
-                  <option key={div._id} value={div._id}>
-                    {div.name}
-                  </option>
-                ))}
-              </select>
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-2 px-3 py-2 bg-portal-input border border-portal-border rounded-xl">
+                <Filter className="w-4 h-4 text-portal-text-muted" />
+                <select
+                  value={selectedDivision}
+                  onChange={(e) => setSelectedDivision(e.target.value)}
+                  className="bg-transparent text-xs font-black text-portal-text-muted uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
+                >
+                  <option value="All Divisions">All Divisions</option>
+                  {divisions.map((div) => (
+                    <option key={div._id} value={div._id}>
+                      {div.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto flex-1">
+          <div className="overflow-x-auto flex-1 custom-scrollbar">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-white dark:bg-[#161b22] text-[#57606a] dark:text-[#8b949e] border-b border-[#d0d7de] dark:border-[#30363d] sticky top-0 z-10">
-                <tr>
-                  <th className="px-6 py-3 font-medium">Name & Email</th>
-                  <th className="px-6 py-3 font-medium">Division</th>
-                  <th className="px-6 py-3 font-medium">Role</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 font-medium text-right">Actions</th>
+              <thead>
+                <tr className="border-b border-portal-border">
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest">Identiy</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest">Division</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest">Role</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest">Status</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d0d7de] dark:divide-[#30363d]">
+              <tbody className="divide-y divide-portal-border/50">
                 {loading ? (
-                   <tr><td colSpan={5} className="px-6 py-12 text-center">Loading users...</td></tr>
+                   <tr><td colSpan={5} className="px-8 py-20 text-center"><div className="w-8 h-8 border-2 border-portal-accent border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
                 ) : filteredUsers.map((user) => (
                   <tr 
                     key={user._id} 
-                    className="hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors cursor-pointer"
+                    className="hover:bg-portal-bg transition-colors cursor-pointer group"
                     onClick={() => navigate(`/super-admin/users/${user._id}`)}
                   >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#f6f8fa] dark:bg-[#30363d] border border-[#d0d7de] dark:border-[#21262d] flex items-center justify-center font-bold text-[#24292f] dark:text-[#c9d1d9] shadow-sm">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-portal-accent/10 border border-portal-accent/20 flex items-center justify-center font-black text-portal-accent shadow-sm group-hover:scale-110 transition-transform">
                           {user.name?.charAt(0) || '?'}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-semibold text-[#0969da] dark:text-[#58a6ff] group-hover:underline">{user.name}</span>
-                          <span className="text-xs text-[#57606a] dark:text-[#8b949e]">{user.email}</span>
+                          <span className="font-bold text-portal-text group-hover:text-portal-accent transition-colors">{user.name}</span>
+                          <span className="text-xs text-portal-text-muted">{user.email}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                       <span className="text-xs text-[#57606a] dark:text-[#c9d1d9]">
+                    <td className="px-8 py-5">
+                       <span className="text-xs font-bold text-portal-text-muted uppercase tracking-wider">
                          {user.division?.name || user.memberships?.[0]?.division?.name || 'Unassigned'}
                        </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="capitalize text-xs font-medium px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                    <td className="px-8 py-5">
+                      <span className="capitalize text-[10px] font-black px-3 py-1 rounded-full bg-portal-bg border border-portal-border text-portal-text-muted group-hover:text-portal-text transition-colors">
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-8 py-5">
                       <span className={cn(
-                        "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border",
-                        user.verified ? "bg-[#dafbe1] text-[#1a7f37] dark:bg-[#238636]/20 dark:text-[#3fb950] border-[#1a7f37]/20 dark:border-[#2ea043]/30" : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                        "inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                        user.verified ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-orange-500/10 text-orange-500 border-orange-500/20"
                       )}>
                         {user.verified ? 'Verified' : 'Pending'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right actions-cell">
-                      <div className="flex items-center justify-end gap-3">
+                    <td className="px-8 py-5 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         {user.role === 'student' && (
                           <div className="flex gap-2">
                             <button 
                               onClick={(event) => handlePromoteAction(event, user, 'admin')}
-                              className="flex items-center gap-1 text-[#cf222e] dark:text-[#f85149] hover:bg-[#ffebe9] dark:hover:bg-[#490202] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#cf222e]/20" 
-                              title="Promote to Division Admin"
+                              className="p-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                              title="Promote to Admin"
                             >
-                              <ShieldAlert className="w-3 h-3" /> Admin
+                              <ShieldAlert className="w-4 h-4" />
                             </button>
                             <button 
                               onClick={(event) => handlePromoteAction(event, user, 'instructor')}
-                              className="flex items-center gap-1 text-[#8250df] dark:text-[#d2a8ff] hover:bg-[#f4ecff] dark:hover:bg-[#26104d] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#8250df]/20" 
+                              className="p-2 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/20 hover:bg-purple-500 hover:text-white transition-all shadow-sm"
                               title="Promote to Instructor"
                             >
-                              <GraduationCap className="w-3 h-3" /> Instr.
+                              <GraduationCap className="w-4 h-4" />
                             </button>
                           </div>
-                        )}
-                        {user.role === 'instructor' && (
-                          <button 
-                            onClick={(event) => handlePromoteAction(event, user, 'admin')}
-                            className="flex items-center gap-1 text-[#cf222e] dark:text-[#f85149] hover:bg-[#ffebe9] dark:hover:bg-[#490202] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#cf222e]/20" 
-                            title="Promote to Division Admin"
-                          >
-                            <ShieldAlert className="w-3 h-3" /> Promote to Admin
-                          </button>
                         )}
                         {user.role === 'admin' && (
                           <button 
                             onClick={(event) => handleDemoteAction(event, user, 'instructor')}
-                            className="flex items-center gap-1 text-[#da3633] dark:text-[#f85149] hover:bg-[#ffebe9] dark:hover:bg-[#490202] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#da3633]/20" 
+                            className="p-2 rounded-lg bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all shadow-sm"
                             title="Demote to Instructor"
                           >
-                            <ArrowDownCircle className="w-3 h-3" /> Demote
+                            <ArrowDownCircle className="w-4 h-4" />
                           </button>
                         )}
-                        {user.role === 'instructor' && (
-                          <button 
-                            onClick={(event) => handleDemoteAction(event, user, 'student')}
-                            className="flex items-center gap-1 text-[#d29922] dark:text-[#d29922] hover:bg-[#fff3cd] dark:hover:bg-[#2d231a] p-1.5 rounded transition-colors text-[10px] font-bold uppercase border border-[#d29922]/20" 
-                            title="Demote to Student"
-                          >
-                            <ArrowDownCircle className="w-3 h-3" /> Demote
-                          </button>
-                        )}
-                        <button className="p-1.5 text-[#57606a] hover:text-[#24292f] dark:text-[#8b949e] dark:hover:text-[#c9d1d9] rounded hover:bg-[#f6f8fa] dark:hover:bg-[#30363d] transition-colors">
+                        <button className="p-2 text-portal-text-muted hover:text-portal-text rounded-lg hover:bg-portal-bg transition-colors">
                           <MoreVertical className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {!loading && filteredUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-20 text-center">
-                      <MembersIcon className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-700 mb-4 opacity-50" />
-                      <h3 className="text-lg font-medium text-[#24292f] dark:text-[#c9d1d9]">
-                        {error ? 'Data synchronization error' : 'No users found'}
-                      </h3>
-                      <p className="text-sm text-[#57606a] dark:text-[#8b949e] max-w-xs mx-auto mt-1">
-                        {error ? error : `We couldn't find any users in the "${activeTab}" tab matching your current filters.`}
-                      </p>
-                      {error ? (
-                        <button 
-                          onClick={fetchData}
-                          className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-portal-accent text-portal-bg rounded-lg font-bold text-sm shadow-lg shadow-portal-accent/20"
-                        >
-                          Retry Connection
-                        </button>
-                      ) : (searchQuery || selectedDivision !== 'All Divisions') && (
-                        <button 
-                          onClick={() => {
-                            setSearchQuery('');
-                            setSelectedDivision('All Divisions');
-                          }}
-                          className="mt-4 text-portal-accent hover:underline text-sm font-semibold"
-                        >
-                          Clear all filters
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
@@ -447,10 +399,10 @@ export function Users() {
 
         {/* Analytics Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] flex items-center gap-2 mb-4">
-              <BarChart3 className="w-4 h-4 text-[#0969da] dark:text-[#58a6ff]" />
-              System Status Overview
+          <div className="bg-portal-card border border-portal-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-xs font-black text-portal-text uppercase tracking-widest flex items-center gap-2 mb-6">
+              <BarChart3 className="w-4 h-4 text-portal-accent" />
+              Verification Status
             </h3>
             <div className="h-48 w-full flex items-center justify-center relative">
               <ResponsiveContainer width="100%" height="100%">
@@ -461,7 +413,7 @@ export function Users() {
                     cy="50%"
                     innerRadius={55}
                     outerRadius={75}
-                    paddingAngle={2}
+                    paddingAngle={8}
                     dataKey="value"
                     stroke="none"
                   >
@@ -470,14 +422,20 @@ export function Users() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', color: '#c9d1d9', borderRadius: '8px', fontSize: '12px' }}
-                    itemStyle={{ color: '#c9d1d9' }}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--portal-card)', 
+                      borderColor: 'var(--portal-border)', 
+                      borderRadius: '16px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      color: 'var(--portal-text)'
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-bold text-[#24292f] dark:text-[#c9d1d9]">{users.length}</span>
-                <span className="text-[10px] text-[#57606a] dark:text-[#8b949e] uppercase tracking-wider font-semibold">Total Users</span>
+                <span className="text-3xl font-black text-portal-text">{users.length}</span>
+                <span className="text-[10px] text-portal-text-muted uppercase tracking-widest font-black">Total</span>
               </div>
             </div>
           </div>

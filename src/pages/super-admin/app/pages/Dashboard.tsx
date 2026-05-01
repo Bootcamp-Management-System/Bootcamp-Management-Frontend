@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Download, TrendingUp, Users, Calendar, FileText, GraduationCap, BookOpen, ArrowUpCircle, Filter } from 'lucide-react';
+import { Download, TrendingUp, Users, Calendar, FileText, GraduationCap, BookOpen, ArrowUpCircle, Filter, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -109,8 +109,8 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Dashboard Overview</h1>
-          <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">Real-time data from CSEC BMS database</p>
+          <h1 className="text-2xl font-black text-portal-text">Dashboard Overview</h1>
+          <p className="text-sm text-portal-text-muted mt-1">Real-time data from CSEC BMS database</p>
         </div>
         <div className="flex items-center gap-3">
           <Button onClick={generatePDF} className="flex items-center gap-2">
@@ -121,43 +121,79 @@ export function Dashboard() {
       </div>
       
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {metrics.map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className={cn("p-2.5 rounded-lg", stat.color, stat.textColor)}>
-                <stat.icon className="w-5 h-5" />
+          <div key={i} className="bg-portal-card border border-portal-border rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className={cn("p-3 rounded-xl", stat.color, stat.textColor)}>
+                <stat.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-[#57606a] dark:text-[#8b949e] text-sm font-medium mb-1">{stat.label}</h3>
-            <div className="text-3xl font-bold text-[#24292f] dark:text-[#c9d1d9]">
-              {loading ? '...' : stat.value}
+            <h3 className="text-portal-text-muted text-[10px] font-black uppercase tracking-[0.2em] mb-1 relative z-10">{stat.label}</h3>
+            <div className="text-4xl font-black text-portal-text relative z-10">
+              {loading ? (
+                <div className="w-16 h-8 bg-portal-text/10 animate-pulse rounded-md" />
+              ) : stat.value}
             </div>
+            
+            {/* Background Decorative Icon */}
+            <stat.icon className="absolute -right-4 -bottom-4 w-24 h-24 text-portal-text/5 -rotate-12 group-hover:scale-110 transition-transform" />
           </div>
         ))}
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-[#24292f] dark:text-[#c9d1d9]">Division Enrollment Breakdown</h3>
+        <div className="bg-portal-card border border-portal-border rounded-2xl p-8 shadow-sm">
+          <h3 className="text-lg font-black text-portal-text mb-6 uppercase tracking-widest flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-portal-accent" />
+            Division Enrollment
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={divisionBreakdown}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#30363d" />
-              <XAxis dataKey="name" stroke="#8b949e" />
-              <YAxis stroke="#8b949e" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', borderRadius: '8px' }}
-                labelStyle={{ color: '#c9d1d9' }}
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--portal-border)" vertical={false} />
+              <XAxis 
+                dataKey="name" 
+                stroke="var(--portal-text-muted)" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false} 
+                tick={{ fontWeight: 800 }}
               />
-              <Legend />
-              <Bar dataKey="students" fill="#0969da" name="Verified Members" />
+              <YAxis 
+                stroke="var(--portal-text-muted)" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false} 
+                tick={{ fontWeight: 800 }}
+              />
+              <Tooltip 
+                cursor={{ fill: 'var(--portal-accent)', opacity: 0.05 }}
+                contentStyle={{ 
+                  backgroundColor: 'var(--portal-card)', 
+                  borderColor: 'var(--portal-border)', 
+                  borderRadius: '16px',
+                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                  border: '1px solid var(--portal-border)'
+                }}
+                itemStyle={{ color: 'var(--portal-text)', fontSize: '12px', fontWeight: 'bold' }}
+                labelStyle={{ color: 'var(--portal-text-muted)', fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase', marginBottom: '4px' }}
+              />
+              <Bar 
+                dataKey="students" 
+                fill="var(--portal-accent)" 
+                radius={[6, 6, 0, 0]} 
+                name="Verified Members" 
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-[#24292f] dark:text-[#c9d1d9]">Resource Distribution</h3>
+        <div className="bg-portal-card border border-portal-border rounded-2xl p-8 shadow-sm">
+          <h3 className="text-lg font-black text-portal-text mb-6 uppercase tracking-widest flex items-center gap-2">
+            <PieChartIcon className="w-5 h-5 text-portal-accent" />
+            Resource Distribution
+          </h3>
           <div className="h-[300px] w-full flex items-center justify-center relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -165,21 +201,37 @@ export function Dashboard() {
                   data={divisionBreakdown}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
-                  paddingAngle={3}
+                  innerRadius={80}
+                  outerRadius={110}
+                  paddingAngle={8}
                   dataKey="students"
                   nameKey="name"
                 >
                   {divisionBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={['#238636', '#0969da', '#cf222e', '#8250df'][index % 4]} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={['#2ab1c2', '#8b5cf6', '#ef4444', '#10b981'][index % 4]} 
+                      stroke="transparent"
+                    />
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', color: '#c9d1d9', borderRadius: '8px' }}
+                  contentStyle={{ 
+                    backgroundColor: 'var(--portal-card)', 
+                    borderColor: 'var(--portal-border)', 
+                    borderRadius: '16px',
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    border: '1px solid var(--portal-border)'
+                  }}
+                  itemStyle={{ color: 'var(--portal-text)', fontSize: '12px', fontWeight: 'bold' }}
                 />
               </PieChart>
             </ResponsiveContainer>
+            
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest">Total</p>
+              <p className="text-3xl font-black text-portal-text">{stats.totalStudents}</p>
+            </div>
           </div>
         </div>
       </div>

@@ -73,12 +73,12 @@ export function Divisions() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Divisions</h1>
-          <p className="text-[#57606a] dark:text-[#8b949e]">Manage bootcamp divisions, head admins, and monitor overall performance.</p>
+          <h1 className="text-2xl font-black text-portal-text">Divisions Hub</h1>
+          <p className="text-portal-text-muted mt-1">Orchestrate and monitor system-wide educational divisions.</p>
         </div>
         <button
           onClick={() => {
@@ -87,7 +87,7 @@ export function Divisions() {
             setCreateDescription('');
             setIsCreateOpen(true);
           }}
-          className="flex items-center gap-2 px-3 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+          className="flex items-center gap-2 px-6 py-2.5 bg-portal-accent hover:bg-portal-accent-hover text-white rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-portal-accent/20"
         >
           <Plus className="w-4 h-4" />
           Create Division
@@ -95,74 +95,72 @@ export function Divisions() {
       </div>
 
       {isCreateOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             onClick={() => {
               if (isWorking) return;
               setIsCreateOpen(false);
             }}
           />
-          <div className="relative w-full max-w-xl rounded-xl border border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
+          <div className="relative w-full max-w-xl rounded-3xl border border-portal-border bg-portal-card p-8 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9]">
-                  Create Division
+                <h2 className="text-2xl font-black text-portal-text tracking-tight">
+                  New Division
                 </h2>
-                <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
-                  Create a new division for organizing bootcamps and members.
+                <p className="text-xs font-bold text-portal-text-muted uppercase tracking-widest mt-1">
+                  Architecting new training branches
                 </p>
               </div>
               <button
                 disabled={isWorking}
-                onClick={() => {
-                  setIsCreateOpen(false);
-                }}
-                className="text-sm font-bold text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9]"
+                onClick={() => setIsCreateOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-portal-bg border border-portal-border text-portal-text-muted hover:text-portal-text transition-colors"
               >
                 ✕
               </button>
             </div>
 
             {actionError && (
-              <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+              <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-500">
                 {actionError}
               </div>
             )}
 
-            <div className="mt-5 space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Division name</label>
+                <label className="block text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em] mb-2">Division Identity</label>
                 <input
                   value={createName}
                   onChange={(e) => setCreateName(e.target.value)}
-                  className="w-full rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
-                  placeholder="e.g. Development"
+                  className="w-full rounded-xl border border-portal-border bg-portal-input px-4 py-3 text-sm text-portal-text focus:outline-none focus:ring-2 focus:ring-portal-accent transition-all"
+                  placeholder="e.g. Development, Cyber Security"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-1">Description (optional)</label>
+                <label className="block text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em] mb-2">Architectural Notes</label>
                 <textarea
                   value={createDescription}
                   onChange={(e) => setCreateDescription(e.target.value)}
-                  className="w-full min-h-24 rounded-md border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] px-3 py-2 text-sm text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7]"
-                  placeholder="Short description..."
+                  className="w-full min-h-24 rounded-xl border border-portal-border bg-portal-input px-4 py-3 text-sm text-portal-text focus:outline-none focus:ring-2 focus:ring-portal-accent transition-all resize-none"
+                  placeholder="What is the primary focus of this division?"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-3 pt-4">
                 <button
                   disabled={isWorking}
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-3 py-2 rounded-md border border-[#d0d7de] dark:border-[#30363d] text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]"
+                  className="px-6 py-2.5 rounded-xl border border-portal-border text-xs font-black uppercase tracking-widest text-portal-text-muted hover:text-portal-text hover:bg-portal-bg transition-all"
                 >
-                  Cancel
+                  Abort
                 </button>
                 <button
                   disabled={isWorking || !createName.trim()}
                   onClick={handleCreateDivision}
-                  className="px-3 py-2 rounded-md bg-[#238636] hover:bg-[#2ea043] disabled:opacity-60 text-white text-sm font-semibold"
+                  className="px-6 py-2.5 rounded-xl bg-portal-accent hover:bg-portal-accent-hover disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-portal-accent/20"
                 >
-                  {isWorking ? 'Creating...' : 'Create Division'}
+                  {isWorking ? 'Deploying...' : 'Initialize Division'}
                 </button>
               </div>
             </div>
@@ -170,128 +168,148 @@ export function Divisions() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-[#161b22] p-4 rounded-xl border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#57606a] dark:text-[#8b949e]" />
+      {/* Filters Control Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-portal-card/50 backdrop-blur-sm p-4 rounded-2xl border border-portal-border sticky top-0 z-10">
+        <div className="relative w-full sm:w-80 group">
+          <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
           <input 
             type="text" 
             placeholder="Search divisions or admins..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-sm bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] transition-all"
+            className="w-full pl-12 pr-4 py-2.5 text-sm bg-portal-input border border-portal-border rounded-xl focus:outline-none focus:border-portal-accent text-portal-text transition-all"
           />
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
-          <select 
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] appearance-none transition-all cursor-pointer"
-          >
-            <option value="All">All Years</option>
-            <option value="2024">2024 Cohort</option>
-            <option value="2025">2025 Cohort</option>
-            <option value="2026">2026 Cohort</option>
-          </select>
-          <Filter className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
-          <select 
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] appearance-none transition-all cursor-pointer"
-          >
-            <option value="All">All Categories</option>
-            {uniqueCategories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 px-3 py-2 bg-portal-input border border-portal-border rounded-xl">
+            <Filter className="w-4 h-4 text-portal-text-muted" />
+            <select 
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="bg-transparent text-xs font-black text-portal-text-muted uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
+            >
+              <option value="All">All Years</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+            </select>
+          </div>
+          
+          <div className="flex items-center gap-2 px-3 py-2 bg-portal-input border border-portal-border rounded-xl">
+            <Building2 className="w-4 h-4 text-portal-text-muted" />
+            <select 
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-transparent text-xs font-black text-portal-text-muted uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
+            >
+              <option value="All">All Categories</option>
+              {uniqueCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
+      {/* Division Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          <div className="col-span-full py-20 text-center text-portal-text-muted">
-            Analyzing division architectures...
+          <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 border-4 border-portal-accent border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-sm font-bold text-portal-text-muted uppercase tracking-widest animate-pulse">Syncing Division Architectures...</p>
           </div>
         ) : filteredDivisions.map((division) => (
           <div 
             key={division._id || division.id} 
             onClick={() => navigate(`/super-admin/divisions/${division._id || division.id}`)}
-            className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 shadow-sm hover:shadow-md hover:border-[#0969da] dark:hover:border-[#58a6ff] transition-all cursor-pointer group flex flex-col h-full"
+            className="bg-portal-card border border-portal-border rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-portal-accent transition-all cursor-pointer group flex flex-col h-full relative overflow-hidden"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#ddf4ff] dark:bg-[#051d4d] flex items-center justify-center text-[#0969da] dark:text-[#2f81f7] group-hover:scale-110 transition-transform">
-                  <Building2 className="w-5 h-5" />
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-portal-accent/10 border border-portal-accent/20 flex items-center justify-center text-portal-accent group-hover:scale-110 transition-transform">
+                  <Building2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-base text-[#24292f] dark:text-[#c9d1d9] group-hover:text-[#0969da] dark:group-hover:text-[#58a6ff] transition-colors">{division.name}</h3>
-                  <span className="text-xs font-medium text-[#57606a] dark:text-[#8b949e]">Batch {division.year}</span>
+                  <h3 className="font-bold text-lg text-portal-text group-hover:text-portal-accent transition-colors tracking-tight">{division.name}</h3>
+                  <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em] mt-0.5">Cohort {division.year || '2026'}</p>
                 </div>
               </div>
               <span className={cn(
-                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border",
-                division.status === 'Active' ? "bg-[#dafbe1] text-[#1a7f37] dark:bg-[#238636]/20 dark:text-[#3fb950] border-[#1a7f37]/20 dark:border-[#2ea043]/30" : "bg-[#fff8c5] text-[#9a6700] dark:bg-[#d29922]/20 dark:text-[#e3b341] border-[#d4a72c]/20 dark:border-[#d29922]/30"
+                "inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                division.status === 'Active' 
+                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                  : "bg-orange-500/10 text-orange-500 border-orange-500/20"
               )}>
-                {division.status}
+                {division.status || 'Active'}
               </span>
             </div>
 
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-5 relative z-10">
               <div>
-                <p className="text-xs text-[#57606a] dark:text-[#8b949e] mb-1">Head Admin</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[#f6f8fa] dark:bg-[#30363d] border border-[#d0d7de] dark:border-[#21262d] flex items-center justify-center text-xs font-bold text-[#24292f] dark:text-[#c9d1d9]">
+                <p className="text-[9px] font-black text-portal-text-muted uppercase tracking-widest mb-2">Head Admin</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-portal-bg border border-portal-border flex items-center justify-center text-xs font-bold text-portal-text">
                     {(division.headAdmin?.name || 'U').charAt(0)}
                   </div>
-                  <span className="text-sm font-medium text-[#24292f] dark:text-[#c9d1d9]">{division.headAdmin?.name || 'Unassigned'}</span>
+                  <span className="text-sm font-bold text-portal-text">{division.headAdmin?.name || 'Unassigned'}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#d0d7de] dark:border-[#30363d]">
+              <div className="grid grid-cols-2 gap-6 pt-5 border-t border-portal-border/50">
                 <div>
-                  <div className="flex items-center gap-1.5 text-[#57606a] dark:text-[#8b949e] mb-1">
+                  <div className="flex items-center gap-2 text-portal-text-muted mb-1">
                     <Users className="w-3.5 h-3.5" />
-                    <span className="text-xs">Students</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Enrolled</span>
                   </div>
-                  <p className="text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9]">{division.students || 0} <span className="text-[#57606a] dark:text-[#8b949e] font-normal text-xs">/ {division.capacity || 100}</span></p>
+                  <p className="text-base font-black text-portal-text">
+                    {division.students || 0} 
+                    <span className="text-portal-text-muted font-bold text-[10px] ml-1 uppercase">/ {division.capacity || 100}</span>
+                  </p>
                 </div>
-
               </div>
             </div>
             
-            <div className="mt-4 pt-3 border-t border-[#d0d7de] dark:border-[#30363d] w-full">
-              <div className="w-full bg-[#eaeef2] dark:bg-[#21262d] rounded-full h-1.5 mb-1 overflow-hidden">
-                <div className="bg-[#1a7f37] dark:bg-[#238636] h-1.5 rounded-full transition-all" style={{ width: `${((division.students || 0) / (division.capacity || 100)) * 100}%` }}></div>
+            {/* Progress Visualization */}
+            <div className="mt-6 pt-4 border-t border-portal-border/50 w-full">
+              <div className="w-full bg-portal-bg rounded-full h-1.5 mb-2 overflow-hidden">
+                <div 
+                  className="bg-portal-accent h-full rounded-full transition-all duration-1000 ease-out" 
+                  style={{ width: `${Math.min(100, ((division.students || 0) / (division.capacity || 100)) * 100)}%` }}
+                />
               </div>
-              <p className="text-[10px] text-right text-[#57606a] dark:text-[#8b949e]">{Math.round(((division.students || 0) / (division.capacity || 100)) * 100)}% capacity</p>
+              <div className="flex justify-between items-center">
+                <p className="text-[9px] font-black text-portal-text-muted uppercase tracking-widest">Capacity Level</p>
+                <p className="text-[10px] font-black text-portal-accent">
+                  {Math.round(((division.students || 0) / (division.capacity || 100)) * 100)}%
+                </p>
+              </div>
             </div>
+
+            {/* Decorative background accent */}
+            <Building2 className="absolute -right-8 -bottom-8 w-32 h-32 text-portal-text/5 -rotate-12 group-hover:scale-110 transition-transform" />
           </div>
         ))}
-        {filteredDivisions.length === 0 && (
-          <div className="col-span-full py-12 text-center bg-white dark:bg-[#161b22] border border-dashed border-[#d0d7de] dark:border-[#30363d] rounded-xl">
-            <Building2 className="w-8 h-8 mx-auto text-[#57606a] dark:text-[#8b949e] mb-3 opacity-50" />
-            <h3 className="text-base font-medium text-[#24292f] dark:text-[#c9d1d9]">No divisions found</h3>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1 mb-4">Try adjusting your filters or search query.</p>
+        
+        {!isLoading && filteredDivisions.length === 0 && (
+          <div className="col-span-full py-20 text-center bg-portal-card border-2 border-dashed border-portal-border rounded-3xl">
+            <Building2 className="w-16 h-16 mx-auto text-portal-text/10 mb-4" />
+            <h3 className="text-xl font-bold text-portal-text tracking-tight">No Divisions Found</h3>
+            <p className="text-sm text-portal-text-muted mt-2 mb-6 max-w-xs mx-auto">Try adjusting your filters or create a new branch for the system.</p>
             <button
               onClick={() => {
                 setActionError('');
                 setCreateName('');
                 setCreateDescription('');
-                setCreatedDivisionId(null);
-                setSelectedMemberId('');
                 setIsCreateOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-sm font-medium transition-colors shadow-sm mx-auto"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-portal-bg hover:bg-portal-card border border-portal-border text-portal-text font-black text-xs uppercase tracking-widest rounded-xl transition-all"
             >
               <Plus className="w-4 h-4" />
-              Create Your First Division
+              Initialize First Division
             </button>
           </div>
         )}
       </div>
-
-
     </div>
   );
 }

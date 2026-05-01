@@ -1,6 +1,6 @@
 import api from '../api/api';
 
-const sessionService = {
+export const sessionService = {
   // GET /api/v1/sessions
   async getSessions(filters = {}) {
     const params = new URLSearchParams();

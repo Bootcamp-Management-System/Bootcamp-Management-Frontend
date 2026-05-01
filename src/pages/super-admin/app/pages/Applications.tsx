@@ -57,158 +57,175 @@ export function Applications() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-8 pb-10">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">Applications Management</h1>
-          <p className="text-[#57606a] dark:text-[#8b949e]">Review and manage student applications across all divisions.</p>
+          <h1 className="text-3xl font-black text-portal-text tracking-tight">Applications Management</h1>
+          <p className="text-portal-text-muted mt-1 uppercase tracking-widest text-[10px] font-black">Candidate Review & Division Orchestration</p>
         </div>
         {selectedDivision && (
           <button 
             onClick={() => setSelectedDivision(null)}
-            className="text-sm text-[#0969da] dark:text-[#58a6ff] hover:underline font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-portal-card border border-portal-border rounded-xl text-[10px] font-black text-portal-accent uppercase tracking-widest hover:bg-portal-accent/10 transition-all"
           >
-            ← Back to All Divisions
+            ← Global Overview
           </button>
         )}
       </div>
 
       {!selectedDivision ? (
         // Division Overview Cards
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {divisionStats.map((division) => (
             <div
               key={division.name}
               onClick={() => setSelectedDivision(division.name)}
-              className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              className="bg-portal-card border border-portal-border rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-[#ddf4ff] dark:bg-[#2f81f7]/20 text-[#0969da] dark:text-[#58a6ff]">
-                    <Layers className="w-5 h-5" />
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-2xl bg-portal-accent/10 text-portal-accent border border-portal-accent/20 group-hover:scale-110 transition-transform">
+                    <Layers className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#24292f] dark:text-[#c9d1d9]">{division.name}</h3>
+                  <h3 className="text-xl font-black text-portal-text tracking-tight uppercase">{division.name}</h3>
                 </div>
-                <ChevronRight className="w-5 h-5 text-[#57606a] dark:text-[#8b949e] group-hover:text-[#0969da] dark:group-hover:text-[#58a6ff] transition-colors" />
+                <ChevronRight className="w-6 h-6 text-portal-text-muted group-hover:text-portal-accent group-hover:translate-x-1 transition-all" />
               </div>
               
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-[#f6f8fa] dark:bg-[#0d1117] rounded-lg p-3">
-                  <p className="text-xs text-[#57606a] dark:text-[#8b949e] mb-1">Total Applications</p>
-                  <p className="text-2xl font-bold text-[#24292f] dark:text-[#c9d1d9]">{division.total}</p>
+              <div className="grid grid-cols-2 gap-6 mb-8 relative z-10">
+                <div className="bg-portal-bg border border-portal-border rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-2">Aggregate Demand</p>
+                  <p className="text-3xl font-black text-portal-text">{division.total}</p>
                 </div>
-                <div className="bg-[#fff8c5] dark:bg-[#d29922]/20 rounded-lg p-3">
-                  <p className="text-xs text-[#9a6700] dark:text-[#e3b341] mb-1">Pending</p>
-                  <p className="text-2xl font-bold text-[#9a6700] dark:text-[#e3b341]">{division.pending}</p>
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Pending Review</p>
+                  <p className="text-3xl font-black text-orange-500">{division.pending}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center p-2 bg-[#dafbe1] dark:bg-[#238636]/20 rounded">
-                  <p className="text-xs text-[#1a7f37] dark:text-[#3fb950] font-medium">Accepted</p>
-                  <p className="text-lg font-bold text-[#1a7f37] dark:text-[#3fb950]">{division.accepted}</p>
+              <div className="grid grid-cols-3 gap-4 relative z-10">
+                <div className="text-center p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                  <p className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter mb-1">Accepted</p>
+                  <p className="text-xl font-black text-emerald-500">{division.accepted}</p>
                 </div>
-                <div className="text-center p-2 bg-[#ffebe9] dark:bg-[#f85149]/20 rounded">
-                  <p className="text-xs text-[#cf222e] dark:text-[#ff7b72] font-medium">Rejected</p>
-                  <p className="text-lg font-bold text-[#cf222e] dark:text-[#ff7b72]">{division.rejected}</p>
+                <div className="text-center p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                  <p className="text-[9px] font-black text-red-500 uppercase tracking-tighter mb-1">Rejected</p>
+                  <p className="text-xl font-black text-red-500">{division.rejected}</p>
                 </div>
-                <div className="text-center p-2 bg-[#ddf4ff] dark:bg-[#2f81f7]/20 rounded">
-                  <p className="text-xs text-[#0969da] dark:text-[#58a6ff] font-medium">Waiting</p>
-                  <p className="text-lg font-bold text-[#0969da] dark:text-[#58a6ff]">{division.waiting}</p>
+                <div className="text-center p-3 bg-portal-accent/10 border border-portal-accent/20 rounded-2xl">
+                  <p className="text-[9px] font-black text-portal-accent uppercase tracking-tighter mb-1">Waiting</p>
+                  <p className="text-xl font-black text-portal-accent">{division.waiting}</p>
                 </div>
               </div>
+
+              <Layers className="absolute -right-8 -bottom-8 w-40 h-40 text-portal-text/5 -rotate-12 group-hover:scale-110 transition-transform" />
             </div>
           ))}
         </div>
       ) : (
         // Applications Table for Selected Division
-        <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-[#ddf4ff] dark:bg-[#2f81f7]/20 text-[#0969da] dark:text-[#58a6ff]">
+        <div className="bg-portal-card border border-portal-border rounded-3xl overflow-hidden shadow-sm flex flex-col min-h-[600px]">
+          <div className="p-6 border-b border-portal-border bg-portal-card/50 backdrop-blur-sm sticky top-0 z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-2xl bg-portal-accent/10 text-portal-accent border border-portal-accent/20">
                 <Layers className="w-5 h-5" />
               </div>
-              <h2 className="text-xl font-semibold text-[#24292f] dark:text-[#c9d1d9]">{selectedDivision} Applications</h2>
+              <h2 className="text-2xl font-black text-portal-text tracking-tight">{selectedDivision} Pipeline</h2>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-              <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#57606a] dark:text-[#8b949e]" />
+            <div className="flex flex-col sm:flex-row gap-6 justify-between items-center">
+              <div className="relative w-full sm:w-96 group">
+                <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
                 <input 
                   type="text" 
-                  placeholder="Search applications..."
+                  placeholder="Filter by applicant name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-sm bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9]"
+                  className="w-full pl-12 pr-4 py-3 text-sm bg-portal-input border border-portal-border rounded-2xl focus:outline-none focus:border-portal-accent text-portal-text transition-all"
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <Filter className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
+              <div className="flex items-center gap-3 bg-portal-input border border-portal-border px-4 py-2 rounded-2xl">
+                <Filter className="w-4 h-4 text-portal-text-muted" />
                 <select 
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#0969da] dark:focus:ring-[#2f81f7] text-[#24292f] dark:text-[#c9d1d9] appearance-none"
+                  className="bg-transparent text-[10px] font-black text-portal-text-muted uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Round 1">Round 1</option>
-                  <option value="Waiting List">Waiting List</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Rejected">Rejected</option>
+                  <option value="All">All Pipelines</option>
+                  <option value="Pending">Pending Review</option>
+                  <option value="Round 1">Interview Phase</option>
+                  <option value="Waiting List">Reserve List</option>
+                  <option value="Accepted">Approved</option>
+                  <option value="Rejected">Terminated</option>
                 </select>
               </div>
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto flex-1 custom-scrollbar">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-[#f6f8fa] dark:bg-[#161b22] text-[#57606a] dark:text-[#8b949e] border-b border-[#d0d7de] dark:border-[#30363d]">
-                <tr>
-                  <th className="px-6 py-3 font-medium">Applicant Details</th>
-                  <th className="px-6 py-3 font-medium">Department</th>
-                  <th className="px-6 py-3 font-medium">Applied Date</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 font-medium text-right">Actions</th>
+              <thead>
+                <tr className="border-b border-portal-border/50">
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em]">Applicant Details</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em]">Departmental Sync</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em]">Applied Epoch</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em]">Current State</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em] text-right">Orchestration</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d0d7de] dark:divide-[#30363d]">
+              <tbody className="divide-y divide-portal-border/50">
                 {filteredApps.map((app) => (
-                  <tr key={app.id} className="hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-[#24292f] dark:text-[#c9d1d9]">{app.name}</span>
-                        <span className="text-xs text-[#57606a] dark:text-[#8b949e]">{app.id}</span>
+                  <tr key={app.id} className="hover:bg-portal-bg transition-colors cursor-pointer group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-portal-accent/10 border border-portal-accent/20 flex items-center justify-center font-black text-portal-accent">
+                          {app.name.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-portal-text group-hover:text-portal-accent transition-colors">{app.name}</span>
+                          <span className="text-[10px] font-black text-portal-text-muted uppercase tracking-tighter">{app.id}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-[#24292f] dark:text-[#c9d1d9]">
+                    <td className="px-8 py-6">
                       <div className="flex flex-col">
-                        <span>{app.department}</span>
-                        <span className="text-xs text-[#57606a] dark:text-[#8b949e]">Year: {app.year}</span>
+                        <span className="font-bold text-portal-text leading-tight">{app.department}</span>
+                        <span className="text-[10px] font-black text-portal-text-muted uppercase mt-1">Batch {app.year}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-[#57606a] dark:text-[#8b949e]">{app.date}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-8 py-6">
+                       <span className="text-xs font-bold text-portal-text-muted">{new Date(app.date).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
+                    </td>
+                    <td className="px-8 py-6">
                       <span className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
+                        "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
                         getStatusBg(app.status)
                       )}>
                         {getStatusIcon(app.status)}
                         {app.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-[#0969da] dark:text-[#2f81f7] hover:underline text-sm font-medium mr-4">
-                        Review
-                      </button>
-                      <button className="text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#c9d1d9] text-sm font-medium">
-                        Details
-                      </button>
+                    <td className="px-8 py-6 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                        <button className="px-4 py-1.5 bg-portal-accent text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-portal-accent/20 hover:scale-105 transition-all">
+                          Review
+                        </button>
+                        <button className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-bg rounded-lg transition-colors">
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
                 {filteredApps.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-[#57606a] dark:text-[#8b949e]">
-                      No applications found.
+                    <td colSpan={5} className="px-8 py-32 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4 text-portal-text-muted">
+                        <Search className="w-16 h-16 opacity-10" />
+                        <div>
+                          <p className="text-lg font-black uppercase tracking-widest">No Applications Tracked</p>
+                          <p className="text-sm font-medium mt-1">Adjust your filters to scan broader ranges of the pipeline.</p>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 )}

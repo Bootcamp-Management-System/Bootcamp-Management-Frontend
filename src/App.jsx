@@ -45,6 +45,7 @@ import { Users as SuperAdminUsers } from "./pages/super-admin/app/pages/Users";
 import { UserDetails as SuperAdminUserDetails } from "./pages/super-admin/app/pages/UserDetails";
 import { Students as SuperAdminStudents } from "./pages/super-admin/app/pages/Students";
 import { Applications as SuperAdminApplications } from "./pages/super-admin/app/pages/Applications";
+import { Bootcamps as SuperAdminBootcamps } from "./pages/super-admin/app/pages/Bootcamps";
 import { Announcements as SuperAdminAnnouncements } from "./pages/super-admin/app/pages/Announcements";
 import { Notifications as SuperAdminNotifications } from "./pages/super-admin/app/pages/Notifications";
 import { Attendance as SuperAdminAttendance } from "./pages/super-admin/app/pages/Attendance";
@@ -438,6 +439,7 @@ export default function App() {
                   path="applications"
                   element={<SuperAdminApplications />}
                 />
+                <Route path="bootcamps" element={<SuperAdminBootcamps />} />
                 <Route
                   path="announcements"
                   element={<SuperAdminAnnouncements />}

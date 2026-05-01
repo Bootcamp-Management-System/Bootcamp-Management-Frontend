@@ -45,6 +45,7 @@ export const Sidebar = () => {
       }
 
       if (user.role === 'super_admin') {
+        adminItems.push({ id: 'admin-bootcamps', icon: GraduationCap, label: t('sidebar.bootcamps', 'Bootcamps'), path: '/super-admin/bootcamps' });
         adminItems.push({ id: 'admin-divisions', icon: LayersIcon, label: t('sidebar.divisions', 'Divisions'), path: '/super-admin/divisions' });
         adminItems.push({ id: 'admin-users', icon: Users, label: t('sidebar.users', 'Users'), path: '/super-admin/users' });
         adminItems.push({ id: 'admin-announcements', icon: BookOpen, label: t('sidebar.announcements', 'Announcements'), path: '/super-admin/announcements' });
