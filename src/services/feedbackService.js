@@ -7,12 +7,12 @@ const submitFeedback = async (data) => {
 
 const getFeedback = async (params) => {
   const response = await api.get('/feedback', { params });
-  return response.data;
+  return response.data?.data || [];
 };
 
 const getSessionStats = async (sessionId) => {
-  const response = await api.get(`/feedback/session/${sessionId}/stats`);
-  return response.data;
+  const response = await api.get(`/feedback/stats/${sessionId}`);
+  return response.data?.data || { averageRating: 0, totalFeedbacks: 0 };
 };
 
 export default {

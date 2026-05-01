@@ -4,7 +4,20 @@ import { ArrowLeft, BookOpen, Calendar, ExternalLink, FileText, Loader2, MapPin,
 import sessionService from '../../services/sessionService';
 import resourceService from '../../services/resourceService';
 import feedbackService from '../../services/feedbackService';
-import { Star } from 'lucide-react';
+import { Star, FileVideo, FileArchive, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+
+const getResourceIcon = (type) => {
+  switch (type) {
+    case 'pdf': return FileText;
+    case 'video': return FileVideo;
+    case 'image': return ImageIcon;
+    case 'zip': return FileArchive;
+    case 'link': return LinkIcon;
+    case 'docx': return FileText;
+    case 'pptx': return Monitor;
+    default: return FileText;
+  }
+};
 
 const fmtDateTime = (value) =>
   value ? new Date(value).toLocaleString('en-US', {
@@ -49,13 +62,11 @@ export const StudentSessionsPage = ({ bootcampId, embedded = false }) => {
       const [sessionResponse, resourceResponse, feedbackResponse] = await Promise.all([
         sessionService.getSessionById(sessionId),
         resourceService.getResourcesBySession(sessionId),
-        feedbackService.getFeedback({ session: sessionId }).catch(() => ({ data: [] })),
+        feedbackService.getFeedback({ session: sessionId }).catch(() => []),
       ]);
       setSession(sessionResponse.data);
-      setResources(resourceResponse.data || []);
-      if (feedbackResponse.data && feedbackResponse.data.length > 0) {
-        setFeedbackSubmitted(true);
-      }
+      setResources(resourceResponse || []);
+      setFeedbackSubmitted(feedbackResponse.length > 0);
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load this session.');
     } finally {
@@ -83,6 +94,7 @@ export const StudentSessionsPage = ({ bootcampId, embedded = false }) => {
         comment: feedbackForm.comment,
       });
       setFeedbackSubmitted(true);
+      setFeedbackForm({ rating: 0, comment: '' });
       setToast({ type: 'success', message: 'Feedback submitted anonymously.' });
       setTimeout(() => setToast(null), 3000);
     } catch (err) {
@@ -126,7 +138,14 @@ export const StudentSessionsPage = ({ bootcampId, embedded = false }) => {
                 to={bootcampId ? `/enrollments/${bootcampId}/sessions/${item._id}` : `/sessions/${item._id}`}
                 className="bg-portal-card border border-portal-border rounded-2xl p-6 hover:border-portal-accent transition-all"
               >
-                <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent w-fit mb-4"><BookOpen className="w-5 h-5" /></div>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent w-fit"><BookOpen className="w-5 h-5" /></div>
+                  {item.status === 'completed' && (
+                    <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20">
+                      Session ended
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-lg font-black text-portal-text mb-2 line-clamp-1">{item.title}</h3>
                 <p className="text-sm text-portal-text-muted line-clamp-2 mb-4">{item.description || 'Session details are not published yet.'}</p>
                 <div className="space-y-2 text-xs text-portal-text-muted">
@@ -193,18 +212,30 @@ export const StudentSessionsPage = ({ bootcampId, embedded = false }) => {
             <div className="bg-portal-input border border-portal-border rounded-xl p-8 text-center text-sm text-portal-text-muted">
               No resources uploaded for this session yet.
             </div>
-          ) : resources.map((resource) => (
-            <button key={resource._id} type="button" onClick={() => resourceService.openResource(resource)} className="w-full text-left bg-portal-input border border-portal-border rounded-xl p-4 flex items-center justify-between gap-4 hover:border-portal-accent transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2.5 rounded-lg bg-portal-accent/10 text-portal-accent"><FileText className="w-5 h-5" /></div>
-                <div>
-                  <h3 className="font-bold text-portal-text text-sm mb-0.5">{resource.title}</h3>
-                  <p className="text-xs text-portal-text-muted">{resource.description || (resource.resource_type === 'link' ? 'External link' : 'File document')}</p>
+          ) : resources.map((resource) => {
+            const Icon = getResourceIcon(resource.file_type || (resource.resource_type === 'link' ? 'link' : 'file'));
+            return (
+              <button key={resource._id} type="button" onClick={() => resourceService.openResource(resource)} className="w-full text-left bg-portal-input border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4 group hover:border-portal-accent transition-all">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent group-hover:bg-portal-accent group-hover:text-white transition-colors">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-portal-text group-hover:text-portal-accent transition-colors text-sm mb-0.5">{resource.title}</h3>
+                    <p className="text-xs text-portal-text-muted">{resource.description || (resource.resource_type === 'link' ? 'External resource link' : 'Resource document')}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-portal-card border border-portal-border text-portal-text-muted">
+                        {resource.resource_type === 'link' ? 'Link' : resource.file_type?.toUpperCase() || 'File'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <ExternalLink className="w-4 h-4 text-portal-accent" />
-            </button>
-          ))}
+                <div className="p-2 rounded-lg bg-portal-accent/5 text-portal-accent group-hover:bg-portal-accent/20 transition-colors">
+                  <ExternalLink className="w-4 h-4" />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 

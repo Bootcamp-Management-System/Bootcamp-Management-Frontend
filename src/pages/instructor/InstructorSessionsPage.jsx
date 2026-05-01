@@ -17,6 +17,10 @@ import {
   Save,
   Trash2,
   Users,
+  Image as ImageIcon,
+  FileVideo,
+  FileArchive,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import sessionService from '../../services/sessionService';
@@ -56,6 +60,19 @@ const ATTENDANCE_STATUSES = ['Present', 'Absent', 'Late', 'Excused'];
 const isAttendanceLocked = (session) => {
   if (!session?.endTime) return false;
   return Date.now() - new Date(session.endTime).getTime() > 24 * 60 * 60 * 1000;
+};
+
+const getResourceIcon = (type) => {
+  switch (type) {
+    case 'pdf': return FileText;
+    case 'video': return FileVideo;
+    case 'image': return ImageIcon;
+    case 'zip': return FileArchive;
+    case 'link': return LinkIcon;
+    case 'docx': return FileText;
+    case 'pptx': return Monitor;
+    default: return FileText;
+  }
 };
 
 export const InstructorSessionsPage = () => {
@@ -110,8 +127,8 @@ export const InstructorSessionsPage = () => {
         resourceService.getResourcesBySession(sessionId),
         attendanceService.getAttendance(sessionId),
         taskService.getTasks({ session: sessionId }),
-        feedbackService.getSessionStats(sessionId).catch(() => ({ data: { averageRating: 0, totalFeedbacks: 0 } })),
-        feedbackService.getFeedback({ session: sessionId }).catch(() => ({ data: [] })),
+        feedbackService.getSessionStats(sessionId).catch(() => ({ averageRating: 0, totalFeedbacks: 0 })),
+        feedbackService.getFeedback({ session: sessionId }).catch(() => []),
       ]);
 
       const currentSession = sessionResponse.data;
@@ -121,7 +138,7 @@ export const InstructorSessionsPage = () => {
         location: currentSession.location || 'Lab 1',
         meetingLink: currentSession.meetingLink || '',
       });
-      setResources(resourceResponse.data || []);
+      setResources(resourceResponse || []);
       setAttendance(attendanceResponse.data || []);
       setAttendanceStudents(attendanceResponse.students || []);
       const savedDraft = JSON.parse(localStorage.getItem(`attendance-draft:${sessionId}`) || '{}');
@@ -132,8 +149,8 @@ export const InstructorSessionsPage = () => {
       }, {});
       setAttendanceDraft({ ...existingDraft, ...savedDraft });
       setTasks(taskResponse.data || []);
-      setFeedbackStats(feedbackStatsResponse.data || { averageRating: 0, totalFeedbacks: 0 });
-      setFeedbacks((feedbackResponse.data || []).filter(f => f.session?._id === sessionId || f.session === sessionId));
+      setFeedbackStats(feedbackStatsResponse || { averageRating: 0, totalFeedbacks: 0 });
+      setFeedbacks((feedbackResponse || []).filter(f => f.session?._id === sessionId || f.session === sessionId));
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load session workspace.');
     } finally {
@@ -229,11 +246,16 @@ export const InstructorSessionsPage = () => {
   };
 
   const endSession = async () => {
-    if (!window.confirm('End this session now? Students will be notified.')) return;
     setSaving(true);
     try {
-      const response = await sessionService.updateSession(session._id, { status: 'completed' });
+      const response = await sessionService.updateSession(session._id, { status: 'completed', notifyStudents: true });
       setSession(response.data);
+      setActiveTab('feedback');
+      setToast({ type: 'success', message: 'Session ended. Students can now submit feedback.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to end session.' });
+      window.setTimeout(() => setToast(null), 3000);
     } finally {
       setSaving(false);
     }
@@ -273,7 +295,7 @@ export const InstructorSessionsPage = () => {
       await resourceService.uploadResource(data);
       setResourceForm({ title: '', description: '', type: 'file', url: '', file: null });
       const response = await resourceService.getResourcesBySession(session._id);
-      setResources(response.data || []);
+      setResources(response || []);
       setUploaded(true);
       setToast({ type: 'success', message: 'Resource uploaded successfully.' });
       window.setTimeout(() => { setToast(null); setUploaded(false); }, 3000);
@@ -549,24 +571,38 @@ export const InstructorSessionsPage = () => {
             </button>
           </form>
           <div className="space-y-3">
-            {resources.length === 0 ? <EmptyState text="No resources uploaded for this session yet." /> : resources.map((resource) => (
-              <div key={resource._id} className="bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-portal-accent/10 text-portal-accent"><FileText className="w-4 h-4" /></div>
-                  <div>
-                  <h3 className="font-bold text-portal-text">{resource.title}</h3>
-                  <p className="text-sm text-portal-text-muted">{resource.description || (resource.resource_type === 'link' ? 'External resource link' : 'Resource file')}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-portal-text-muted mt-2">
-                    {resource.resource_type === 'link' ? 'External link' : resource.file_type || 'File'} - {resource.download_count || 0} opens
-                  </p>
+            {resources.length === 0 ? <EmptyState text="No resources uploaded for this session yet." /> : resources.map((resource) => {
+              const Icon = getResourceIcon(resource.file_type || (resource.resource_type === 'link' ? 'link' : 'file'));
+              return (
+                <div key={resource._id} className="bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4 group hover:border-portal-accent transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-portal-accent/10 text-portal-accent group-hover:bg-portal-accent group-hover:text-white transition-colors">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-portal-text group-hover:text-portal-accent transition-colors">{resource.title}</h3>
+                      <p className="text-sm text-portal-text-muted mt-0.5 line-clamp-1">{resource.description || (resource.resource_type === 'link' ? 'External resource link' : 'Resource file')}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-portal-input border border-portal-border text-portal-text-muted">
+                          {resource.resource_type === 'link' ? 'Link' : resource.file_type?.toUpperCase() || 'File'}
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-portal-text-muted">
+                          {resource.download_count || 0} {resource.resource_type === 'link' ? 'clicks' : 'downloads'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => resourceService.openResource(resource)} className="p-2.5 rounded-xl text-portal-accent hover:bg-portal-accent/10 transition-colors" title="Open Resource">
+                      <ExternalLink className="w-5 h-5" />
+                    </button>
+                    <button onClick={async () => { if(window.confirm('Delete this resource?')) { await resourceService.deleteResource(resource._id); setResources((current) => current.filter((item) => item._id !== resource._id)); } }} className="p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors" title="Delete Resource">
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => resourceService.openResource(resource)} className="p-2 rounded-lg text-portal-accent hover:bg-portal-accent/10"><ExternalLink className="w-4 h-4" /></button>
-                  <button onClick={async () => { await resourceService.deleteResource(resource._id); setResources((current) => current.filter((item) => item._id !== resource._id)); }} className="p-2 rounded-lg text-red-400 hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

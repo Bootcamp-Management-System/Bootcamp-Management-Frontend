@@ -3,13 +3,12 @@ import api from '../api/api';
 const resourceService = {
   async getResourcesBySession(sessionId) {
     const response = await api.get(`/resources/session/${sessionId}`);
-    return response.data;
+    // API now returns { success:true, data:[resources] }
+    return response.data?.data || [];
   },
 
   async uploadResource(data) {
-    const response = await api.post('/resources/upload', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/resources/upload', data);
     return response.data;
   },
 
