@@ -82,6 +82,7 @@ export const InstructorSessionsPage = () => {
   const [uploaded, setUploaded] = useState(false);
   const [savedDetails, setSavedDetails] = useState(false);
   const [notifying, setNotifying] = useState(false);
+  const [notified, setNotified] = useState(false);
   const [taskForm, setTaskForm] = useState(emptyTask);
   const [feedbacks, setFeedbacks] = useState([]);
   const [feedbackStats, setFeedbackStats] = useState({ averageRating: 0, totalFeedbacks: 0 });
@@ -213,10 +214,12 @@ export const InstructorSessionsPage = () => {
 
   const notifyStudents = async () => {
     setNotifying(true);
+    setNotified(false);
     try {
       await sessionService.updateSession(session._id, { notifyStudents: true });
+      setNotified(true);
       setToast({ type: 'success', message: 'Students notified successfully.' });
-      window.setTimeout(() => setToast(null), 3000);
+      window.setTimeout(() => { setToast(null); setNotified(false); }, 3000);
     } catch (err) {
       setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to notify students.' });
       window.setTimeout(() => setToast(null), 3000);
@@ -504,8 +507,8 @@ export const InstructorSessionsPage = () => {
               {saving ? 'Saving...' : savedDetails ? 'Saved!' : 'Save Details'}
             </button>
             <button disabled={notifying} onClick={notifyStudents} className="w-full flex items-center justify-center gap-2 border border-portal-accent text-portal-accent px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent/10 disabled:opacity-60 transition-colors">
-              {notifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-              {notifying ? 'Notifying...' : 'Notify Students of Updates'}
+              {notifying ? <Loader2 className="w-4 h-4 animate-spin" /> : notified ? <CheckCircle2 className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+              {notifying ? 'Notifying...' : notified ? 'Notified!' : 'Notify Students of Updates'}
             </button>
           </div>
         </div>
