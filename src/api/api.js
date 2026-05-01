@@ -15,6 +15,18 @@ api.interceptors.request.use((config) => {
       ...config.headers,
       Authorization: `Bearer ${token}`,
     };
+    
+    try {
+      const userStr = localStorage.getItem('auth_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user.originalRole && user.role !== user.originalRole) {
+          config.headers['X-View-Role'] = user.role;
+        }
+      }
+    } catch (e) {
+      // ignore JSON parse errors
+    }
   }
   return config;
 });

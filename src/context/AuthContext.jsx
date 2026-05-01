@@ -350,18 +350,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const switchRole = () => {
+  const switchRole = (targetRole) => {
     if (state.user) {
       const originalRole = state.user.originalRole || state.user.role;
-      if (originalRole === 'instructor') {
-        const newRole = state.user.role === 'instructor' ? 'student' : 'instructor';
-        const updatedUser = { 
-          ...state.user, 
-          role: newRole,
-          originalRole: originalRole
-        };
-        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
-        setState(prev => ({ ...prev, user: updatedUser }));
+      const allowedOriginals = ['super_admin', 'admin', 'instructor'];
+      
+      if (allowedOriginals.includes(originalRole)) {
+        let newRole = targetRole;
+        if (!newRole && originalRole === 'instructor') {
+          newRole = state.user.role === 'instructor' ? 'student' : 'instructor';
+        }
+
+        if (newRole) {
+          const updatedUser = { 
+            ...state.user, 
+            role: newRole,
+            originalRole: originalRole
+          };
+          localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+          setState(prev => ({ ...prev, user: updatedUser }));
+        }
       }
     }
   };

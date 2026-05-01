@@ -175,17 +175,31 @@ export const Navbar = () => {
                     >
                       <User className="w-4 h-4" /> My Profile
                     </button>
-                    {(user?.originalRole === 'instructor' || (user?.role === 'instructor' && !user?.originalRole)) && (
-                      <button 
-                        onClick={() => {
-                          switchRole();
-                          navigate(user.role === 'instructor' ? '/dashboard' : '/instructor');
-                          setShowProfileDropdown(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-portal-accent hover:bg-portal-accent/10 transition-all text-left"
-                    >
-                        <RefreshCw className="w-4 h-4" /> Switch to {user.role === 'instructor' ? 'Student' : 'Instructor'}
-                      </button>
+                    {/* Role Switcher */}
+                    {['super_admin', 'admin', 'instructor'].includes(user?.originalRole || user?.role) && (
+                      <div className="pt-2 mt-2 border-t border-portal-border/50">
+                        <p className="px-4 text-[10px] font-bold text-portal-text-muted uppercase tracking-widest mb-1">View Portal As</p>
+                        {['super_admin', 'admin'].includes(user?.originalRole || user?.role) && (
+                          <button 
+                            onClick={() => { switchRole('admin'); navigate('/admin/dashboard'); setShowProfileDropdown(false); }}
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left ${user?.role === 'admin' || user?.role === 'super_admin' ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text hover:bg-portal-text/5'}`}
+                          >
+                            <RefreshCw className="w-4 h-4" /> Admin
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => { switchRole('instructor'); navigate('/instructor'); setShowProfileDropdown(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left ${user?.role === 'instructor' ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text hover:bg-portal-text/5'}`}
+                        >
+                          <RefreshCw className="w-4 h-4" /> Instructor
+                        </button>
+                        <button 
+                          onClick={() => { switchRole('student'); navigate('/dashboard'); setShowProfileDropdown(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left ${user?.role === 'student' || user?.role === 'member' ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text hover:bg-portal-text/5'}`}
+                        >
+                          <RefreshCw className="w-4 h-4" /> Student
+                        </button>
+                      </div>
                     )}
                   </div>
                   
