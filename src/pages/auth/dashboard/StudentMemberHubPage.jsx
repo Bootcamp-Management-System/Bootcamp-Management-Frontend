@@ -3,15 +3,8 @@ import { useAuth } from '../../../context/AuthContext';
 import { 
   Layers, 
   ChevronRight, 
-  Shield, 
-  Terminal, 
-  Database, 
-  Cpu, 
-  Rocket, 
-  MessageSquare, 
-  FileText, 
-  Users,
-  Star
+  Star,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -24,18 +17,19 @@ export const StudentMemberHubPage = () => {
   const [activeDivision, setActiveDivision] = useState(null);
   const [internalBootcamps, setInternalBootcamps] = useState([]);
   const [loadingBootcamps, setLoadingBootcamps] = useState(false);
+  const [enrolledBootcampIds, setEnrolledBootcampIds] = useState(new Set());
   const [enrollingId, setEnrollingId] = useState('');
   const [toast, setToast] = useState(null);
 
   // Filter divisions where the user is actually a member
   // user.memberships looks like [{ division: { name: '...', _id: '...' }, isMember: true }]
-  const myMemberships = user?.memberships?.filter(m => m.isMember) || [];
+  const myMemberships = (user?.memberships || []).filter((membership) => membership.isMember && membership.division);
   
   const divisionThemes = {
-    'Development': { icon: Terminal, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
-    'Cyber Security': { icon: Shield, color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20' },
-    'Data Science': { icon: Database, color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
-    'CP (Competitive Programming)': { icon: Cpu, color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' }
+    'Development': { color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
+    'Cyber Security': { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20' },
+    'Data Science': { color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
+    'CP (Competitive Programming)': { color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' }
   };
 
   const showToast = (type, message) => {
@@ -50,8 +44,14 @@ export const StudentMemberHubPage = () => {
     const loadInternalBootcamps = async () => {
       setLoadingBootcamps(true);
       try {
-        const response = await bootcampService.getInternalBootcamps(divisionId);
+        const [response, enrollmentResponse] = await Promise.all([
+          bootcampService.getInternalBootcamps(divisionId),
+          enrollmentService.getMyEnrollments(),
+        ]);
         setInternalBootcamps(response.data || []);
+        setEnrolledBootcampIds(new Set((enrollmentResponse.data || [])
+          .filter((enrollment) => enrollment.is_active)
+          .map((enrollment) => enrollment.bootcamp?._id || enrollment.bootcamp)));
       } catch (error) {
         setInternalBootcamps([]);
         showToast('error', error?.response?.data?.message || 'Failed to load internal bootcamps.');
@@ -67,6 +67,7 @@ export const StudentMemberHubPage = () => {
     setEnrollingId(bootcampId);
     try {
       await enrollmentService.enrollInternalBootcamp(bootcampId);
+      setEnrolledBootcampIds((current) => new Set([...current, bootcampId]));
       showToast('success', 'Enrolled successfully.');
       navigate(`/enrollments/${bootcampId}`);
     } catch (error) {
@@ -79,7 +80,6 @@ export const StudentMemberHubPage = () => {
   const renderDivisionContent = (membership) => {
     const divisionName = membership.division?.name || membership.division;
     const theme = divisionThemes[divisionName] || divisionThemes['Development'];
-    const Icon = theme.icon;
 
     return (
       <motion.div 
@@ -92,9 +92,6 @@ export const StudentMemberHubPage = () => {
           
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className={`w-20 h-20 rounded-3xl ${theme.bg} flex items-center justify-center`}>
-                <Icon className={`w-10 h-10 ${theme.color}`} />
-              </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${theme.color}`}>Official Member</span>
@@ -131,6 +128,10 @@ export const StudentMemberHubPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {internalBootcamps.map((bootcamp) => (
                 <div key={bootcamp._id} className="rounded-2xl bg-portal-input border border-portal-border p-5">
+                  {(() => {
+                    const isEnrolled = enrolledBootcampIds.has(bootcamp._id);
+                    return (
+                      <>
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-portal-accent mb-2">Internal</p>
@@ -138,56 +139,38 @@ export const StudentMemberHubPage = () => {
                       <p className="text-sm text-portal-text-muted mt-2 line-clamp-3">{bootcamp.description || 'Member-only learning program.'}</p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    disabled={enrollingId === bootcamp._id}
-                    onClick={() => enrollInternal(bootcamp._id)}
-                    className="mt-5 w-full rounded-xl bg-portal-accent px-4 py-3 text-sm font-black text-portal-bg hover:bg-portal-accent-hover disabled:opacity-60"
-                  >
-                    {enrollingId === bootcamp._id ? 'Enrolling...' : 'Enroll Now'}
-                  </button>
+                  {isEnrolled ? (
+                    <div className="mt-5 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+                      <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm font-black text-green-400 flex items-center justify-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> Enrolled
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/enrollments/${bootcamp._id}`)}
+                        className="rounded-xl border border-portal-accent px-4 py-3 text-sm font-black text-portal-accent hover:bg-portal-accent/10"
+                      >
+                        Open
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={enrollingId === bootcamp._id}
+                      onClick={() => enrollInternal(bootcamp._id)}
+                      className="mt-5 w-full rounded-xl bg-portal-accent px-4 py-3 text-sm font-black text-portal-bg hover:bg-portal-accent-hover disabled:opacity-60"
+                    >
+                      {enrollingId === bootcamp._id ? 'Enrolling...' : 'Enroll Now'}
+                    </button>
+                  )}
+                      </>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-portal-card border border-portal-border p-6 rounded-[32px] hover:border-portal-accent/30 transition-all cursor-pointer group">
-            <div className="w-12 h-12 bg-portal-accent/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-portal-accent/20 transition-colors">
-              <MessageSquare className="w-6 h-6 text-portal-accent" />
-            </div>
-            <h3 className="font-bold text-portal-text mb-2">Division Chat</h3>
-            <p className="text-xs text-portal-text-muted">Connect with other permanent members and mentors.</p>
-          </div>
-          
-          <div className="bg-portal-card border border-portal-border p-6 rounded-[32px] hover:border-portal-accent/30 transition-all cursor-pointer group">
-            <div className="w-12 h-12 bg-portal-accent/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-portal-accent/20 transition-colors">
-              <FileText className="w-6 h-6 text-portal-accent" />
-            </div>
-            <h3 className="font-bold text-portal-text mb-2">Internal Resources</h3>
-            <p className="text-xs text-portal-text-muted">Exclusive documentation and division assets.</p>
-          </div>
-
-          <div className="bg-portal-card border border-portal-border p-6 rounded-[32px] hover:border-portal-accent/30 transition-all cursor-pointer group">
-            <div className="w-12 h-12 bg-portal-accent/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-portal-accent/20 transition-colors">
-              <Users className="w-6 h-6 text-portal-accent" />
-            </div>
-            <h3 className="font-bold text-portal-text mb-2">Team Directory</h3>
-            <p className="text-xs text-portal-text-muted">Meet the experts and leaders in your division.</p>
-          </div>
-        </div>
-
-        <div className="bg-portal-card border border-portal-border rounded-[32px] p-8">
-          <h3 className="text-lg font-bold text-portal-text mb-6">Division Announcements</h3>
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-portal-input border border-portal-border/50">
-              <span className="text-[10px] font-bold text-portal-accent uppercase tracking-widest">New</span>
-              <h4 className="font-bold text-sm mt-1">Division Meeting scheduled for next Saturday.</h4>
-              <p className="text-xs text-portal-text-muted mt-1">Agenda: Project planning for the next quarter.</p>
-            </div>
-          </div>
-        </div>
       </motion.div>
     );
   };
@@ -219,7 +202,7 @@ export const StudentMemberHubPage = () => {
                   Member <span className="text-transparent bg-clip-text bg-gradient-to-r from-portal-accent to-blue-400">Hub</span>
                 </h1>
                 <p className="text-portal-text-muted text-lg max-w-2xl leading-relaxed">
-                  Welcome back, {user?.name}. You have earned permanent access to the following divisions. Select one to enter your command center.
+                  Welcome back, {user?.name}. Select your member division to view its internal bootcamps.
                 </p>
               </div>
             </header>
@@ -229,7 +212,6 @@ export const StudentMemberHubPage = () => {
                 myMemberships.map((membership) => {
                   const divName = membership.division?.name || membership.division;
                   const theme = divisionThemes[divName] || divisionThemes['Development'];
-                  const Icon = theme.icon;
 
                   return (
                     <motion.div
@@ -239,16 +221,12 @@ export const StudentMemberHubPage = () => {
                       className="group relative bg-portal-card border border-portal-border rounded-[40px] p-8 shadow-xl transition-all cursor-pointer overflow-hidden"
                     >
                       <div className={`absolute -bottom-10 -right-10 w-32 h-32 ${theme.bg} rounded-full blur-[50px] group-hover:bg-portal-accent/10 transition-all`} />
-                      
-                      <div className={`w-14 h-14 ${theme.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform`}>
-                        <Icon className={`w-7 h-7 ${theme.color}`} />
-                      </div>
 
                       <h3 className="text-2xl font-bold text-portal-text mb-2 group-hover:text-portal-accent transition-colors">
                         {divName}
                       </h3>
                       <p className="text-portal-text-muted text-sm mb-8">
-                        Access your permanent member resources and division tools.
+                        View member-only bootcamps for this division.
                       </p>
 
                       <div className="flex items-center justify-between text-[10px] font-bold text-portal-accent uppercase tracking-widest pt-6 border-t border-portal-border/50">

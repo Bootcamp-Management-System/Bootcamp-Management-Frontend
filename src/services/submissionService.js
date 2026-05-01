@@ -12,6 +12,7 @@ const submissionService = {
     const params = new URLSearchParams();
     if (filters.taskId) params.append('taskId', filters.taskId);
     if (filters.studentId) params.append('studentId', filters.studentId);
+    if (filters.sessionId) params.append('sessionId', filters.sessionId);
     const response = await api.get(`/submissions?${params.toString()}`);
     return response.data;
   },

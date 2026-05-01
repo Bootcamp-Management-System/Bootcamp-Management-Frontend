@@ -9,7 +9,8 @@ import {
   Zap,
   Plus,
   Edit3,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import { bootcampService } from '../../services/bootcampService';
 import { divisionService } from '../../services/divisionService';
@@ -282,27 +283,22 @@ export const AdminRecruitmentPage = () => {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Bootcamp Access</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { value: 'external', title: 'External', body: 'Visible on public/application pages.' },
-                { value: 'internal', title: 'Internal', body: 'Member-only. Hidden from landing and applications.' },
-              ].map((option) => (
-                <label key={option.value} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="bootcampType"
-                    value={option.value}
-                    defaultChecked={(editBootcamp?.bootcampType || 'external') === option.value}
-                    className="peer sr-only"
-                  />
-                  <span className="block h-full rounded-xl border border-portal-border bg-portal-input px-4 py-3 transition-colors peer-checked:border-portal-accent peer-checked:bg-portal-accent/10">
-                    <span className="block text-sm font-black text-portal-text">{option.title}</span>
-                    <span className="mt-1 block text-xs text-portal-text-muted leading-5">{option.body}</span>
-                  </span>
-                </label>
-              ))}
+            <div className="relative">
+              <select
+                name="bootcampType"
+                defaultValue={editBootcamp?.bootcampType || 'external'}
+                className="w-full bg-portal-input border border-portal-border rounded-xl pl-4 pr-12 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none cursor-pointer"
+              >
+                <option value="external">External - visible for applications</option>
+                <option value="internal">Internal - member-only</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                <div className="rounded-lg border border-portal-border bg-portal-bg p-1.5 text-portal-accent">
+                  <ChevronDown className="h-4 w-4" />
+                </div>
+              </div>
             </div>
           </div>
 

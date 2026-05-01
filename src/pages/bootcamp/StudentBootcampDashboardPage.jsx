@@ -1,14 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
-  BookOpen,
   Calendar,
   CheckCircle2,
   ClipboardList,
-  Layers,
   Loader2,
-  Timer,
+  MessageSquare,
 } from 'lucide-react';
 import { bootcampService } from '../../services/bootcampService';
 import attendanceService from '../../services/attendanceService';
@@ -21,7 +19,7 @@ const tabs = [
   { id: 'sessions', label: 'Sessions', icon: Calendar },
   { id: 'tasks', label: 'My Tasks', icon: ClipboardList },
   { id: 'attendance', label: 'Attendance', icon: CheckCircle2 },
-  { id: 'weeks', label: 'By Week', icon: Layers },
+  { id: 'feedback', label: 'Feedback', icon: MessageSquare },
 ];
 
 const fmtDateTime = (value) =>
@@ -34,13 +32,6 @@ const fmtDateTime = (value) =>
         minute: '2-digit',
       })
     : 'Not set';
-
-const getWeekLabel = (dateValue, firstDate) => {
-  if (!dateValue || !firstDate) return 'Week 1';
-  const diff = new Date(dateValue).getTime() - firstDate.getTime();
-  const weekNumber = Math.max(1, Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1);
-  return `Week ${weekNumber}`;
-};
 
 export const StudentBootcampDashboardPage = () => {
   const { bootcampId, sessionId } = useParams();
@@ -94,31 +85,6 @@ export const StudentBootcampDashboardPage = () => {
   useEffect(() => {
     if (sessionId) setActiveTab('sessions');
   }, [sessionId]);
-
-  const weeklyItems = useMemo(() => {
-    const datedItems = [
-      ...sessions.map((session) => ({
-        id: `session-${session._id}`,
-        type: 'Session',
-        title: session.title,
-        date: session.startTime,
-      })),
-      ...tasks.map((task) => ({
-        id: `task-${task._id}`,
-        type: 'Task',
-        title: task.title,
-        date: task.startTime || task.deadline,
-      })),
-    ].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
-
-    const firstDate = datedItems[0]?.date ? new Date(datedItems[0].date) : null;
-    return datedItems.reduce((groups, item) => {
-      const week = getWeekLabel(item.date, firstDate);
-      groups[week] = groups[week] || [];
-      groups[week].push(item);
-      return groups;
-    }, {});
-  }, [sessions, tasks]);
 
   const selectTab = (tabId) => {
     if (sessionId) navigate(`/enrollments/${bootcampId}`);
@@ -239,35 +205,33 @@ export const StudentBootcampDashboardPage = () => {
         </section>
       )}
 
-      {activeTab === 'weeks' && (
+      {activeTab === 'feedback' && (
         <section className="space-y-5">
-          {Object.keys(weeklyItems).length === 0 ? (
+          {sessions.filter((session) => session.status === 'completed').length === 0 ? (
             <div className="bg-portal-card border border-portal-border rounded-2xl p-10 text-center text-sm text-portal-text-muted">
-              Weekly learning items will appear after sessions or tasks are assigned.
+              Feedback opens after a session has ended.
             </div>
           ) : (
-            Object.entries(weeklyItems).map(([week, items]) => (
-              <div key={week} className="bg-portal-card border border-portal-border rounded-2xl p-6">
-                <h2 className="text-xl font-black text-portal-text mb-4">{week}</h2>
-                <div className="space-y-3">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between gap-4 rounded-xl bg-portal-input border border-portal-border p-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 rounded-lg bg-portal-accent/10 text-portal-accent">
-                          {item.type === 'Session' ? <BookOpen className="w-4 h-4" /> : <ClipboardList className="w-4 h-4" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-portal-text truncate">{item.title}</p>
-                          <p className="text-xs text-portal-text-muted">{item.type}</p>
-                        </div>
-                      </div>
-                      <span className="flex items-center gap-2 text-xs text-portal-text-muted shrink-0">
-                        <Timer className="w-4 h-4" />
-                        {fmtDateTime(item.date)}
-                      </span>
-                    </div>
-                  ))}
+            sessions
+              .filter((session) => session.status === 'completed')
+              .map((session) => (
+              <div key={session._id} className="bg-portal-card border border-portal-border rounded-2xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-portal-accent/10 text-portal-accent">
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-portal-text truncate">{session.title}</p>
+                    <p className="text-xs text-portal-text-muted">{fmtDateTime(session.endTime || session.startTime)}</p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/enrollments/${bootcampId}/sessions/${session._id}`)}
+                  className="rounded-xl bg-portal-accent px-4 py-3 text-sm font-black text-portal-bg hover:bg-portal-accent-hover"
+                >
+                  Give Feedback
+                </button>
               </div>
             ))
           )}

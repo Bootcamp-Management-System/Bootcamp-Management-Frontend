@@ -28,8 +28,9 @@ export const StudentEnrollmentsPage = () => {
     fetchEnrollments();
   }, []);
 
-  const pendingEnrollments = enrollments.filter(e => !e.is_active);
-  const activeEnrollments = enrollments.filter(e => e.is_active);
+  const validEnrollments = enrollments.filter(e => e.bootcamp);
+  const pendingEnrollments = validEnrollments.filter(e => !e.is_active);
+  const activeEnrollments = validEnrollments.filter(e => e.is_active);
 
   if (loading) {
     return (

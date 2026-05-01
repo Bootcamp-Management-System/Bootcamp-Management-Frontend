@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { useDivision } from '../../../context/DivisionContext';
 import {
   BookOpen,
   Clock,
@@ -14,10 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Timer,
-  Terminal,
-  Shield,
-  Database,
-  Cpu,
   Loader2,
   AlertCircle,
   Link as LinkIcon,
@@ -60,24 +55,12 @@ const isOverdue = (date) => new Date(date) < new Date();
 
 export const StudentDashboard = () => {
   const { user } = useAuth();
-  const { activeDivision } = useDivision();
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);
   const [mySubmissions, setMySubmissions] = useState({});
   const [loadingTasks, setLoadingTasks] = useState(true);
 
-  const divisionThemes = {
-    'Development': { icon: Terminal, color: 'text-blue-400', label: 'Dev Node' },
-    'Cyber Security': { icon: Shield, color: 'text-red-400', label: 'Sec Ops' },
-    'Data Science': { icon: Database, color: 'text-purple-400', label: 'Data Engine' },
-    'CP (Competitive Programming)': { icon: Cpu, color: 'text-orange-400', label: 'Algorithmic' }
-  };
-
-  const theme = divisionThemes[activeDivision] || divisionThemes['Development'];
-  const ThemeIcon = theme.icon;
-
-  // Unused state variables removed to fix ESLint errors
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   const [showOtpModal, setShowOtpModal] = useState(false);

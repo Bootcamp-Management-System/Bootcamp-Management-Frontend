@@ -28,6 +28,7 @@ import resourceService from '../../services/resourceService';
 import attendanceService from '../../services/attendanceService';
 import taskService from '../../services/taskService';
 import feedbackService from '../../services/feedbackService';
+import submissionService from '../../services/submissionService';
 
 const MotionButton = motion.button;
 
@@ -114,6 +115,8 @@ export const InstructorSessionsPage = () => {
   const [notifying, setNotifying] = useState(false);
   const [notified, setNotified] = useState(false);
   const [taskForm, setTaskForm] = useState(emptyTask);
+  const [submissions, setSubmissions] = useState([]);
+  const [gradingSubmissionId, setGradingSubmissionId] = useState('');
   const [feedbacks, setFeedbacks] = useState([]);
   const [feedbackStats, setFeedbackStats] = useState({ averageRating: 0, totalFeedbacks: 0 });
 
@@ -135,11 +138,12 @@ export const InstructorSessionsPage = () => {
     setLoading(true);
     setError('');
     try {
-      const [sessionResponse, resourceResponse, attendanceResponse, taskResponse, feedbackStatsResponse, feedbackResponse] = await Promise.all([
+      const [sessionResponse, resourceResponse, attendanceResponse, taskResponse, submissionResponse, feedbackStatsResponse, feedbackResponse] = await Promise.all([
         sessionService.getSessionById(sessionId),
         resourceService.getResourcesBySession(sessionId),
         attendanceService.getAttendance(sessionId),
         taskService.getTasks({ session: sessionId }),
+        submissionService.getSubmissions({ sessionId }).catch(() => ({ data: [] })),
         feedbackService.getSessionStats(sessionId).catch(() => ({ averageRating: 0, totalFeedbacks: 0 })),
         feedbackService.getFeedback({ session: sessionId }).catch(() => []),
       ]);
@@ -162,6 +166,7 @@ export const InstructorSessionsPage = () => {
       }, {});
       setAttendanceDraft({ ...existingDraft, ...savedDraft });
       setTasks(taskResponse.data || []);
+      setSubmissions(submissionResponse.data || []);
       setFeedbackStats(feedbackStatsResponse || { averageRating: 0, totalFeedbacks: 0 });
       setFeedbacks((feedbackResponse || []).filter(f => f.session?._id === sessionId || f.session === sessionId));
     } catch (err) {
@@ -334,6 +339,25 @@ export const InstructorSessionsPage = () => {
     setTasks(response.data || []);
   };
 
+  const gradeSubmission = async (submissionId, gradeLetter) => {
+    setGradingSubmissionId(submissionId);
+    try {
+      await submissionService.reviewSubmission(submissionId, {
+        status: 'graded',
+        gradeLetter,
+      });
+      const response = await submissionService.getSubmissions({ sessionId: session._id });
+      setSubmissions(response.data || []);
+      setToast({ type: 'success', message: 'Submission graded successfully.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to grade submission.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } finally {
+      setGradingSubmissionId('');
+    }
+  };
+
   const generateQr = async () => {
     const response = await attendanceService.generateQRCode(session._id);
     setQrToken(response.qrToken || response.token || '');
@@ -478,6 +502,7 @@ export const InstructorSessionsPage = () => {
     { id: 'resources', label: 'Resources', icon: FileUp },
     { id: 'attendance', label: 'Attendance', icon: QrCode },
     { id: 'tasks', label: 'Tasks', icon: ClipboardList },
+    { id: 'submissions', label: 'Task Submissions', icon: FileText },
     { id: 'feedback', label: 'Feedback', icon: CheckCircle2 },
   ];
 
@@ -715,6 +740,81 @@ export const InstructorSessionsPage = () => {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {activeTab === 'submissions' && (
+        <section className="bg-portal-card border border-portal-border rounded-2xl overflow-hidden">
+          <div className="p-5 border-b border-portal-border flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-black text-portal-text">Task Submissions</h2>
+              <p className="text-sm text-portal-text-muted">Review submitted files and links, then assign an A-D grade.</p>
+            </div>
+            <span className="text-xs font-black uppercase tracking-widest text-portal-text-muted">
+              {submissions.length} submission{submissions.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          {submissions.length === 0 ? (
+            <EmptyState text="No task submissions received for this session yet." />
+          ) : (
+            <div className="divide-y divide-portal-border">
+              {submissions.map((submission) => (
+                <div key={submission._id} className="p-5 grid grid-cols-1 xl:grid-cols-[1fr_auto] gap-5">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="font-black text-portal-text">{submission.student?.name || submission.student?.email || 'Student'}</h3>
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-portal-input border border-portal-border text-portal-text-muted">
+                        {submission.task?.title || 'Task'}
+                      </span>
+                      {submission.gradeLetter && (
+                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
+                          Grade {submission.gradeLetter}
+                        </span>
+                      )}
+                    </div>
+                    {submission.student?.email && <p className="text-xs text-portal-text-muted">{submission.student.email}</p>}
+                    {submission.title && <p className="text-sm font-bold text-portal-text mt-3">{submission.title}</p>}
+                    {submission.description && <p className="text-sm text-portal-text-muted mt-1">{submission.description}</p>}
+                    {submission.comment && <p className="text-sm text-portal-text-muted italic mt-2">"{submission.comment}"</p>}
+                    <div className="flex flex-wrap gap-3 mt-3">
+                      {[
+                        ['Google Drive', submission.driveUrl],
+                        ['GitHub', submission.githubUrl],
+                        [submission.fileName || 'File', submission.fileUrl],
+                        ['Project', submission.contentUrl],
+                      ].filter(([, href]) => href).map(([label, href]) => (
+                        <a key={`${submission._id}-${label}`} href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-portal-accent hover:underline">
+                          <ExternalLink className="w-3 h-3" /> {label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap xl:justify-end gap-2">
+                    {['A', 'B', 'C', 'D'].map((letter) => (
+                      <label
+                        key={letter}
+                        className={`w-12 h-10 rounded-xl border flex items-center justify-center text-sm font-black cursor-pointer transition-colors ${
+                          submission.gradeLetter === letter
+                            ? 'bg-portal-accent border-portal-accent text-portal-bg'
+                            : 'border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input'
+                        } ${gradingSubmissionId === submission._id ? 'opacity-60 pointer-events-none' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`grade-${submission._id}`}
+                          value={letter}
+                          checked={submission.gradeLetter === letter}
+                          onChange={() => gradeSubmission(submission._id, letter)}
+                          className="sr-only"
+                        />
+                        {letter}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

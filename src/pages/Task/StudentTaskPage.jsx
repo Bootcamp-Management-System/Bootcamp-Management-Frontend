@@ -24,8 +24,19 @@ const getTaskStatus = (task, mySubmission) => {
   return 'new';
 };
 
+const gradePoints = { A: 4, B: 3, C: 2, D: 1 };
+
+const getAverageLetter = (average) => {
+  if (average >= 3.5) return 'A';
+  if (average >= 2.5) return 'B';
+  if (average >= 1.5) return 'C';
+  return 'D';
+};
+
 // ─── Submit Modal ─────────────────────────────────────────────────────────────
 const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
+  const [title, setTitle] = useState(existingSubmission?.title || '');
+  const [description, setDescription] = useState(existingSubmission?.description || '');
   const [contentUrl, setContentUrl] = useState(existingSubmission?.contentUrl || '');
   const [githubUrl, setGithubUrl] = useState(existingSubmission?.githubUrl || '');
   const [driveUrl, setDriveUrl] = useState(existingSubmission?.driveUrl || '');
@@ -39,12 +50,17 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!title.trim() || !description.trim()) {
+      return setError('Add a submission title and description.');
+    }
     if (!contentUrl.trim() && !githubUrl.trim() && !driveUrl.trim() && !file) {
       return setError('Add a file, GitHub link, Google Drive link, or project link.');
     }
     setLoading(true);
     try {
       const payload = new FormData();
+      payload.append('title', title.trim());
+      payload.append('description', description.trim());
       if (contentUrl.trim()) payload.append('contentUrl', contentUrl.trim());
       if (githubUrl.trim()) payload.append('githubUrl', githubUrl.trim());
       if (driveUrl.trim()) payload.append('driveUrl', driveUrl.trim());
@@ -113,7 +129,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
           <div className={`mx-6 mt-4 p-4 rounded-xl border ${isGraded ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <p className="text-sm font-bold text-portal-text mb-1">
               {isGraded ? 'Graded' : 'Returned for resubmission'}
-              {existingSubmission.grade != null ? ` - Score: ${existingSubmission.grade}/${task.maxScore || 100}` : ''}
+              {existingSubmission.gradeLetter ? ` - Grade: ${existingSubmission.gradeLetter}` : existingSubmission.grade != null ? ` - Score: ${existingSubmission.grade}/${task.maxScore || 100}` : ''}
             </p>
             {existingSubmission.feedback && (
               <p className="text-sm text-portal-text-muted italic">"{existingSubmission.feedback}"</p>
@@ -130,7 +146,34 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
 
           <div>
             <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
-              Project Link
+              Submission Title
+            </label>
+            <input
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="e.g. Portfolio API final submission"
+              className={inputClass}
+              disabled={isGraded}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
+              Description
+            </label>
+            <textarea
+              rows={3}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Describe what you built and how to review it."
+              className={`${inputClass} resize-none`}
+              disabled={isGraded}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">
+              Project or Demo Link
             </label>
             <input
               type="url"
@@ -274,7 +317,7 @@ const TaskNode = ({ task, index, mySubmission, onClick }) => {
             {isDone ? 'Submitted' : isOverdueTask ? 'Overdue' : 'Open'}
           </span>
           {mySubmission?.grade != null && (
-            <span className="text-[10px] font-bold text-portal-accent">Grade: {mySubmission.grade}/100</span>
+            <span className="text-[10px] font-bold text-portal-accent">Grade: {mySubmission.gradeLetter || `${mySubmission.grade}/100`}</span>
           )}
         </div>
 
@@ -356,6 +399,30 @@ export const StudentTaskPage = ({ bootcampId, embedded = false }) => {
     await fetchData();
   };
 
+  const sessionGrades = tasks.reduce((acc, task) => {
+    const submission = mySubmissions[task._id];
+    if (!submission?.gradeLetter) return acc;
+
+    const sessionId = task.session?._id || task.session || 'unassigned';
+    const existing = acc[sessionId] || {
+      id: sessionId,
+      title: task.session?.title || 'Session grade',
+      total: 0,
+      count: 0,
+    };
+
+    existing.total += gradePoints[submission.gradeLetter] || 0;
+    existing.count += 1;
+    acc[sessionId] = existing;
+    return acc;
+  }, {});
+
+  const sessionGradeRows = Object.values(sessionGrades).map((row) => ({
+    ...row,
+    average: row.count ? row.total / row.count : 0,
+    letter: row.count ? getAverageLetter(row.total / row.count) : 'N/A',
+  }));
+
   return (
     <>
       <AnimatePresence>
@@ -398,6 +465,23 @@ export const StudentTaskPage = ({ bootcampId, embedded = false }) => {
             )}
           </div>
         </header>
+
+        {sessionGradeRows.length > 0 && (
+          <section className="mb-10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {sessionGradeRows.map((row) => (
+              <div key={row.id} className="bg-portal-card border border-portal-border rounded-2xl p-5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-portal-text-muted">Session Grade</p>
+                  <h3 className="font-bold text-portal-text mt-1">{row.title}</h3>
+                  <p className="text-xs text-portal-text-muted mt-1">{row.count} graded task{row.count === 1 ? '' : 's'}</p>
+                </div>
+                <div className="w-14 h-14 rounded-2xl bg-portal-accent/10 border border-portal-accent/20 text-portal-accent flex items-center justify-center text-2xl font-black">
+                  {row.letter}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 text-portal-text-muted">

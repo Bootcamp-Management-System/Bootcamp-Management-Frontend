@@ -145,7 +145,7 @@ const SubmissionLink = ({ label, href }) => (
 );
 
 const ReviewModal = ({ submission, onClose, onReview }) => {
-  const [form, setForm] = useState({ status: 'graded', grade: submission.grade || '', feedback: submission.feedback || '' });
+  const [form, setForm] = useState({ status: 'graded', gradeLetter: submission.gradeLetter || 'A', feedback: submission.feedback || '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -191,6 +191,8 @@ const ReviewModal = ({ submission, onClose, onReview }) => {
             {submission.driveUrl && <SubmissionLink label="Google Drive" href={submission.driveUrl} />}
             {submission.fileUrl && <SubmissionLink label={submission.fileName || 'Uploaded file'} href={submission.fileUrl} />}
           </div>
+          {submission.title && <p className="mt-4 font-bold text-sm text-portal-text">{submission.title}</p>}
+          {submission.description && <p className="mt-1 text-sm text-portal-text-muted">{submission.description}</p>}
           {submission.comment && (
             <p className="mt-3 text-sm text-portal-text-muted italic">"{submission.comment}"</p>
           )}
@@ -218,8 +220,30 @@ const ReviewModal = ({ submission, onClose, onReview }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-1.5">Score</label>
-            <input type="number" min="0" max={submission.task?.maxScore || 100} placeholder={`0-${submission.task?.maxScore || 100}`} value={form.grade} onChange={e => setForm(p => ({ ...p, grade: e.target.value }))} className={inputClass} />
+            <label className="block text-xs font-semibold text-portal-text-muted uppercase tracking-wider mb-2">Grade</label>
+            <div className="grid grid-cols-4 gap-2">
+              {['A', 'B', 'C', 'D'].map((letter) => (
+                <label
+                  key={letter}
+                  className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-black cursor-pointer transition-all ${
+                    form.gradeLetter === letter
+                      ? 'bg-portal-accent text-portal-bg border-portal-accent'
+                      : 'border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="gradeLetter"
+                    value={letter}
+                    checked={form.gradeLetter === letter}
+                    onChange={() => setForm(p => ({ ...p, gradeLetter: letter }))}
+                    className="sr-only"
+                    disabled={form.status !== 'graded'}
+                  />
+                  {letter}
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>
@@ -340,17 +364,24 @@ const TaskCard = ({ task, onDelete, onReviewSubmission }) => {
                     {submissions.map((sub) => (
                       <div key={sub._id} className="flex items-center justify-between p-4 bg-portal-input rounded-xl border border-portal-border">
                         <div className="min-w-0">
-                          <p className="font-semibold text-sm text-portal-text truncate">{sub.student?.email || 'Unknown'}</p>
+                          <p className="font-semibold text-sm text-portal-text truncate">{sub.student?.name || sub.student?.email || 'Unknown student'}</p>
+                          {sub.student?.email && <p className="text-xs text-portal-text-muted mt-0.5">{sub.student.email}</p>}
+                          {sub.title && <p className="text-xs font-bold text-portal-text mt-2">{sub.title}</p>}
+                          {sub.description && <p className="text-xs text-portal-text-muted mt-1 line-clamp-2">{sub.description}</p>}
                           <p className="text-xs text-portal-text-muted mt-0.5">Submitted {fmt(sub.createdAt)}</p>
-                          {sub.grade != null && <p className="text-xs text-portal-accent mt-0.5">Grade: {sub.grade}/100</p>}
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            {sub.driveUrl && <a href={sub.driveUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-portal-accent hover:underline">Google Drive</a>}
+                            {sub.githubUrl && <a href={sub.githubUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-portal-accent hover:underline">GitHub</a>}
+                            {sub.fileUrl && <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-portal-accent hover:underline">{sub.fileName || 'File'}</a>}
+                            {sub.contentUrl && <a href={sub.contentUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-portal-accent hover:underline">Project</a>}
+                          </div>
+                          {sub.gradeLetter && <p className="text-xs text-portal-accent mt-2">Grade: {sub.gradeLetter}</p>}
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${statusColor(sub.status)}`}>{sub.status}</span>
-                          {sub.status === 'pending' && (
-                            <button onClick={() => setReviewTarget(sub)} className="bg-portal-accent text-portal-bg px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-portal-accent-hover transition-all shadow-md shadow-portal-accent/20">
-                              Grade
-                            </button>
-                          )}
+                          <button onClick={() => setReviewTarget(sub)} className="bg-portal-accent text-portal-bg px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-portal-accent-hover transition-all shadow-md shadow-portal-accent/20">
+                            Grade
+                          </button>
                         </div>
                       </div>
                     ))}
