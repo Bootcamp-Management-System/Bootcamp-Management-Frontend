@@ -14,6 +14,11 @@ const enrollmentService = {
   getBootcampEnrollments: async (bootcampId) => {
     const response = await api.get(`/enrollments/bootcamp/${bootcampId}`);
     return response.data;
+  },
+
+  enrollInternalBootcamp: async (bootcampId) => {
+    const response = await api.post('/enrollments/internal', { bootcampId });
+    return response.data;
   }
 };
 

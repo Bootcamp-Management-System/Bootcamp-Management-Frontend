@@ -33,6 +33,13 @@ export const bootcampService = {
     return response.data;
   },
 
+  getInternalBootcamps: async (divisionId) => {
+    const response = await api.get('/bootcamps/internal/member', {
+      params: divisionId ? { division: divisionId } : {},
+    });
+    return response.data;
+  },
+
   /**
    * Fetches a single bootcamp by its unique ID
    */

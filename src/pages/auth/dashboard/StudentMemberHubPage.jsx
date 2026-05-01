@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { 
   Layers, 
@@ -14,10 +14,18 @@ import {
   Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { bootcampService } from '../../../services/bootcampService';
+import enrollmentService from '../../../services/enrollmentService';
 
 export const StudentMemberHubPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeDivision, setActiveDivision] = useState(null);
+  const [internalBootcamps, setInternalBootcamps] = useState([]);
+  const [loadingBootcamps, setLoadingBootcamps] = useState(false);
+  const [enrollingId, setEnrollingId] = useState('');
+  const [toast, setToast] = useState(null);
 
   // Filter divisions where the user is actually a member
   // user.memberships looks like [{ division: { name: '...', _id: '...' }, isMember: true }]
@@ -30,7 +38,46 @@ export const StudentMemberHubPage = () => {
     'CP (Competitive Programming)': { icon: Cpu, color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' }
   };
 
-  const renderDivisionContent = (divisionName) => {
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.setTimeout(() => setToast(null), 3000);
+  };
+
+  useEffect(() => {
+    const divisionId = activeDivision?.division?._id || activeDivision?.division;
+    if (!divisionId) return;
+
+    const loadInternalBootcamps = async () => {
+      setLoadingBootcamps(true);
+      try {
+        const response = await bootcampService.getInternalBootcamps(divisionId);
+        setInternalBootcamps(response.data || []);
+      } catch (error) {
+        setInternalBootcamps([]);
+        showToast('error', error?.response?.data?.message || 'Failed to load internal bootcamps.');
+      } finally {
+        setLoadingBootcamps(false);
+      }
+    };
+
+    loadInternalBootcamps();
+  }, [activeDivision]);
+
+  const enrollInternal = async (bootcampId) => {
+    setEnrollingId(bootcampId);
+    try {
+      await enrollmentService.enrollInternalBootcamp(bootcampId);
+      showToast('success', 'Enrolled successfully.');
+      navigate(`/enrollments/${bootcampId}`);
+    } catch (error) {
+      showToast('error', error?.response?.data?.error || 'Enrollment failed.');
+    } finally {
+      setEnrollingId('');
+    }
+  };
+
+  const renderDivisionContent = (membership) => {
+    const divisionName = membership.division?.name || membership.division;
     const theme = divisionThemes[divisionName] || divisionThemes['Development'];
     const Icon = theme.icon;
 
@@ -64,6 +111,45 @@ export const StudentMemberHubPage = () => {
               Back to Hub
             </button>
           </div>
+        </div>
+
+        <div className="bg-portal-card border border-portal-border rounded-[32px] p-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-portal-text">Internal Bootcamps</h3>
+              <p className="text-sm text-portal-text-muted mt-1">Member-only programs for your division. Enroll directly without an application.</p>
+            </div>
+          </div>
+
+          {loadingBootcamps ? (
+            <p className="text-sm text-portal-text-muted">Loading internal bootcamps...</p>
+          ) : internalBootcamps.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-portal-border p-8 text-center text-sm text-portal-text-muted">
+              No internal bootcamps are available for this division yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {internalBootcamps.map((bootcamp) => (
+                <div key={bootcamp._id} className="rounded-2xl bg-portal-input border border-portal-border p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-portal-accent mb-2">Internal</p>
+                      <h4 className="font-black text-portal-text">{bootcamp.name}</h4>
+                      <p className="text-sm text-portal-text-muted mt-2 line-clamp-3">{bootcamp.description || 'Member-only learning program.'}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={enrollingId === bootcamp._id}
+                    onClick={() => enrollInternal(bootcamp._id)}
+                    className="mt-5 w-full rounded-xl bg-portal-accent px-4 py-3 text-sm font-black text-portal-bg hover:bg-portal-accent-hover disabled:opacity-60"
+                  >
+                    {enrollingId === bootcamp._id ? 'Enrolling...' : 'Enroll Now'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -108,6 +194,11 @@ export const StudentMemberHubPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
+      {toast && (
+        <div className={`fixed top-6 right-6 z-[200] rounded-xl border px-5 py-3 text-sm font-bold shadow-xl ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+          {toast.message}
+        </div>
+      )}
       <AnimatePresence mode="wait">
         {!activeDivision ? (
           <motion.div 
@@ -144,7 +235,7 @@ export const StudentMemberHubPage = () => {
                     <motion.div
                       key={divName}
                       whileHover={{ y: -10 }}
-                      onClick={() => setActiveDivision(divName)}
+                      onClick={() => setActiveDivision(membership)}
                       className="group relative bg-portal-card border border-portal-border rounded-[40px] p-8 shadow-xl transition-all cursor-pointer overflow-hidden"
                     >
                       <div className={`absolute -bottom-10 -right-10 w-32 h-32 ${theme.bg} rounded-full blur-[50px] group-hover:bg-portal-accent/10 transition-all`} />

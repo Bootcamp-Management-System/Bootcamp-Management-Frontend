@@ -6,7 +6,6 @@ import {
   Search,
   Filter,
   Layers,
-  ClipboardCheck,
   Zap,
   Plus,
   Edit3,
@@ -19,7 +18,6 @@ import { useLocation } from 'react-router-dom';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { TemplateBuilder } from '../../components/admin/TemplateBuilder';
 import { PipelineManager } from '../../components/admin/PipelineManager';
-import sessionService from '../../services/sessionService';
 
 export const AdminRecruitmentPage = () => {
   const location = useLocation();
@@ -40,23 +38,7 @@ export const AdminRecruitmentPage = () => {
   useEffect(() => {
     fetchBootcamps();
     fetchDivisions();
-    fetchInstructors();
   }, [admin]);
-
-  const fetchInstructors = async () => {
-    const divId = admin?.division?._id || admin?.division || admin?.divisionId;
-    if (divId) {
-      try {
-        const res = await sessionService.getAvailableInstructors(divId);
-        setDivisions(prev => prev); // trigger? No.
-        setAvailableInstructors(res.data || []);
-      } catch (err) {
-        console.error("Failed to fetch instructors", err);
-      }
-    }
-  };
-
-  const [availableInstructors, setAvailableInstructors] = useState([]);
 
   const fetchDivisions = async () => {
     try {
@@ -101,6 +83,7 @@ export const AdminRecruitmentPage = () => {
     const payload = {
       name: formData.get('name'),
       description: formData.get('description'),
+      bootcampType: formData.get('bootcampType') || 'external',
       division: divisionId,
     };
     
@@ -110,34 +93,12 @@ export const AdminRecruitmentPage = () => {
     if (endDate) payload.endDate = endDate;
 
     try {
-      let createdBootcampId = editBootcamp?._id;
       if (editBootcamp) {
         await bootcampService.updateBootcamp(editBootcamp._id, payload);
         setEditBootcamp(null);
         setIsEditModalOpen(false);
       } else {
-        const res = await bootcampService.createBootcamp(payload);
-        createdBootcampId = res.data?._id;
-        
-        // Handle Session Creation if fields are provided
-        const sessionTitle = formData.get('sessionTitle');
-        if (sessionTitle && createdBootcampId) {
-          const sessionStartTime = formData.get('sessionStartTime');
-          const sessionEndTime = formData.get('sessionEndTime');
-          
-          if (sessionStartTime && sessionEndTime) {
-            await sessionService.createSession({
-              title: sessionTitle,
-              bootcamp: createdBootcampId,
-              division: divisionId,
-              instructor: formData.get('sessionInstructor') || undefined,
-              location: formData.get('sessionLocation') || 'TBD',
-              startTime: new Date(sessionStartTime).toISOString(),
-              endTime: new Date(sessionEndTime).toISOString(),
-            });
-          }
-        }
-        
+        await bootcampService.createBootcamp(payload);
         setIsCreateModalOpen(false);
       }
       fetchBootcamps();
@@ -321,6 +282,30 @@ export const AdminRecruitmentPage = () => {
             />
           </div>
 
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Bootcamp Access</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { value: 'external', title: 'External', body: 'Visible on public/application pages.' },
+                { value: 'internal', title: 'Internal', body: 'Member-only. Hidden from landing and applications.' },
+              ].map((option) => (
+                <label key={option.value} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="bootcampType"
+                    value={option.value}
+                    defaultChecked={(editBootcamp?.bootcampType || 'external') === option.value}
+                    className="peer sr-only"
+                  />
+                  <span className="block h-full rounded-xl border border-portal-border bg-portal-input px-4 py-3 transition-colors peer-checked:border-portal-accent peer-checked:bg-portal-accent/10">
+                    <span className="block text-sm font-black text-portal-text">{option.title}</span>
+                    <span className="mt-1 block text-xs text-portal-text-muted leading-5">{option.body}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Description</label>
             <textarea 
@@ -369,63 +354,6 @@ export const AdminRecruitmentPage = () => {
               />
             </div>
           </div>
-
-          {!editBootcamp && (
-            <div className="pt-4 border-t border-portal-border space-y-4">
-              <h4 className="text-sm font-bold text-portal-accent uppercase tracking-widest">Initial Session (Optional)</h4>
-              
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Session Title</label>
-                <input 
-                  name="sessionTitle" 
-                  placeholder="e.g. Kickoff Meeting"
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Instructor</label>
-                  <select 
-                    name="sessionInstructor"
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none text-sm"
-                  >
-                    <option value="">Select Instructor</option>
-                    {availableInstructors.map(inst => (
-                      <option key={inst._id} value={inst._id}>{inst.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Location</label>
-                  <input 
-                    name="sessionLocation"
-                    placeholder="e.g. Room 101"
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">Start Time</label>
-                  <input 
-                    name="sessionStartTime" 
-                    type="datetime-local"
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest pl-1">End Time</label>
-                  <input 
-                    name="sessionEndTime" 
-                    type="datetime-local"
-                    className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="flex justify-end pt-4 gap-4">
             <button 
