@@ -40,6 +40,8 @@ import submissionService from '../../../services/submissionService';
 import enrollmentService from '../../../services/enrollmentService';
 import { bootcampService } from '../../../services/bootcampService';
 import { recruitmentService } from '../../../services/recruitmentService';
+import attendanceService from '../../../services/attendanceService';
+import AttendanceHeatmap from '../../../components/Profile/AttendanceHeatmap';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 const fmtDeadline = (date) => {
@@ -75,26 +77,23 @@ export const StudentDashboard = () => {
   const theme = divisionThemes[activeDivision] || divisionThemes['Development'];
   const ThemeIcon = theme.icon;
 
-  const [application, setApplication] = useState(null);
-  const [loadingApp, setLoadingApp] = useState(true);
-
+  // Unused state variables removed to fix ESLint errors
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [selectedEnrollment] = useState(null);
   const [otp, setOtp] = useState('');
   const [activating, setActivating] = useState(false);
 
-  const [availableBootcamps, setAvailableBootcamps] = useState([]);
-  const [loadingBootcamps, setLoadingBootcamps] = useState(true);
   const [applications, setApplications] = useState([]);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
 
   const fetchEnrollments = useCallback(async () => {
     try {
       setLoadingEnrollments(true);
       const data = await enrollmentService.getMyEnrollments();
       setEnrollments(data.data || []);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch enrollments');
     } finally {
       setLoadingEnrollments(false);
@@ -103,26 +102,32 @@ export const StudentDashboard = () => {
 
   const fetchBootcamps = useCallback(async () => {
     try {
-      setLoadingBootcamps(true);
-      const [bootcampsData, appsData] = await Promise.all([
+      const [, appsData] = await Promise.all([
         bootcampService.getPublicBootcamps(),
         recruitmentService.getMyApplications()
       ]);
-      setAvailableBootcamps(bootcampsData.data || []);
       setApplications(appsData.data || []);
-      setApplication(appsData.data && appsData.data.length > 0 ? appsData.data[0] : null);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch bootcamps');
     } finally {
-      setLoadingBootcamps(false);
-      setLoadingApp(false);
+      // Done fetching
+    }
+  }, []);
+
+  const fetchAttendance = useCallback(async () => {
+    try {
+      const data = await attendanceService.getAttendance();
+      setAttendanceHistory(data.data || []);
+    } catch {
+      console.error('Failed to fetch attendance');
     }
   }, []);
 
   useEffect(() => {
     fetchBootcamps();
     fetchEnrollments();
-  }, [fetchBootcamps, fetchEnrollments]);
+    fetchAttendance();
+  }, [fetchBootcamps, fetchEnrollments, fetchAttendance]);
 
   // ── Fetch tasks + submissions ───────────────────────────────────────────────
   const fetchTaskData = useCallback(async () => {
@@ -260,7 +265,8 @@ export const StudentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Metric Overview - Bento Style */}
-        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="lg:col-span-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-portal-card border border-portal-border p-8 rounded-3xl shadow-xl hover:border-portal-accent/30 transition-all group relative overflow-hidden h-full">
             <div className="p-3 rounded-2xl bg-portal-accent/10 text-portal-accent w-fit mb-6">
               <Activity className="w-6 h-6" />
@@ -285,6 +291,10 @@ export const StudentDashboard = () => {
             <p className="text-sm text-portal-text-muted font-bold">
               Tasks requiring immediate attention
             </p>
+          </div>
+
+          <div className="md:col-span-2">
+             <AttendanceHeatmap data={attendanceHistory} />
           </div>
 
           {/* Upcoming Tasks Compact List */}
@@ -322,6 +332,7 @@ export const StudentDashboard = () => {
             </div>
           </div>
         </div>
+        </div>
 
         {/* Right Sidebar - Stats & Enrollments */}
         <div className="lg:col-span-4 space-y-8">
@@ -355,7 +366,7 @@ export const StudentDashboard = () => {
               </div>
             </div>
             <div className="mt-6 space-y-3">
-              {taskStats.map((stat, i) => (
+              {taskStats.map((stat) => (
                 <div key={stat.name} className="flex items-center justify-between text-xs font-bold">
                   <div className="flex items-center gap-2 text-portal-text-muted uppercase tracking-widest">
                     <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stat.color }} />
@@ -414,7 +425,7 @@ export const StudentDashboard = () => {
                 setActivating(true);
                 await enrollmentService.activateEnrollment(otp);
                 window.location.reload();
-              } catch (error) {
+              } catch {
                 alert('Invalid activation code.');
               } finally {
                 setActivating(false);

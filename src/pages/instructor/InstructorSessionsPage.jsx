@@ -56,6 +56,20 @@ const emptyTask = {
 
 const ATTENDANCE_STATUSES = ['Present', 'Absent', 'Late', 'Excused'];
 
+const ATTENDANCE_STATUS_STYLES = {
+  Present: 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30',
+  Absent: 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/30',
+  Late: 'bg-amber-500 text-slate-900 border-amber-500 shadow-lg shadow-amber-500/30',
+  Excused: 'bg-sky-500 text-white border-sky-500 shadow-lg shadow-sky-500/30',
+};
+
+const ATTENDANCE_STATUS_OUTLINE_STYLES = {
+  Present: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white',
+  Absent: 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500 hover:text-white',
+  Late: 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500 hover:text-slate-900',
+  Excused: 'bg-sky-500/10 text-sky-500 border-sky-500/20 hover:bg-sky-500 hover:text-white',
+};
+
 const isAttendanceLocked = (session) => {
   if (!session?.endTime) return false;
   return Date.now() - new Date(session.endTime).getTime() > 24 * 60 * 60 * 1000;
@@ -659,11 +673,19 @@ export const InstructorSessionsPage = () => {
                     <p className="font-bold text-portal-text">{student.name || student.email || 'Student'}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {ATTENDANCE_STATUSES.map((status) => (
-                      <button key={status} type="button" disabled={isAttendanceLocked(session)} onClick={() => setDraftAttendance(student._id, status)} className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-colors disabled:opacity-50 ${currentStatus === status ? 'bg-portal-accent text-portal-bg border-portal-accent' : 'border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-input'}`}>
-                        {status}
-                      </button>
-                    ))}
+                    {ATTENDANCE_STATUSES.map((status) => {
+                      const isActive = currentStatus === status;
+                      return (
+                        <button
+                          key={status}
+                          type="button"
+                          disabled={isAttendanceLocked(session)}
+                          onClick={() => setDraftAttendance(student._id, status)}
+                          className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-colors disabled:opacity-50 ${isActive ? ATTENDANCE_STATUS_STYLES[status] : ATTENDANCE_STATUS_OUTLINE_STYLES[status]}`}>
+                          {status}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );

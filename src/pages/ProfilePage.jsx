@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { DivisionSelector } from '../components/Profile/DivisionContext';
 import { useDivision } from '../context/DivisionContext';
+import attendanceService from '../services/attendanceService';
+import AttendanceHeatmap from '../components/Profile/AttendanceHeatmap';
 
 const divisionContent = {
   'Development': {
@@ -82,6 +84,8 @@ export const ProfilePage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [notification, setNotification] = useState(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
+  const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
 
   const tabs = [
     { id: 'profile', label: 'Profile Information', icon: User },
@@ -158,6 +162,22 @@ export const ProfilePage = () => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
+
+  React.useEffect(() => {
+    const fetchAttendance = async () => {
+      setIsLoadingAttendance(true);
+      try {
+        const data = await attendanceService.getAttendance();
+        setAttendanceHistory(data.data || []);
+      } catch (err) {
+        console.error('Failed to fetch attendance history');
+      } finally {
+        setIsLoadingAttendance(false);
+      }
+    };
+
+    fetchAttendance();
+  }, []);
 
   if (!user) return null;
 
@@ -241,19 +261,25 @@ export const ProfilePage = () => {
                     <div className="bg-portal-input/50 p-4 rounded-xl border border-portal-border">
                       <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest mb-1 flex items-center gap-1">
                         <Activity className="w-3 h-3 text-portal-accent" />
-                        Attendance
+                        Overall Attendance
                       </p>
                       <div className="text-xl font-bold text-portal-text">{user.attendance}</div>
                     </div>
                     <div className="bg-portal-input/50 p-4 rounded-xl border border-portal-border">
                       <p className="text-[10px] text-portal-text-muted uppercase font-bold tracking-widest mb-1 flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-green-400" />
-                        Status
+                        System Status
                       </p>
                       <div className="text-sm font-bold text-green-400">{user.status}</div>
                     </div>
                   </div>
+
+                  {/* Attendance Heatmap Section */}
+                  <div className="mb-8">
+                    <AttendanceHeatmap data={attendanceHistory} />
+                  </div>
                 </div>
+
 
                 {/* Verified Identity */}
                 <div>

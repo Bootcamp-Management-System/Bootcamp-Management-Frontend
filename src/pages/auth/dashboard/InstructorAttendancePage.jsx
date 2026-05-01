@@ -104,6 +104,7 @@ export const InstructorAttendancePage = () => {
     present: Object.values(attendanceRecords).filter(s => s === 'Present').length,
     absent: Object.values(attendanceRecords).filter(s => s === 'Absent').length,
     late: Object.values(attendanceRecords).filter(s => s === 'Late').length,
+    excused: Object.values(attendanceRecords).filter(s => s === 'Excused').length,
   };
 
   if (!selectedSession) {
@@ -175,10 +176,11 @@ export const InstructorAttendancePage = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="bg-portal-card border border-portal-border rounded-xl px-4 py-2 flex items-center gap-4 text-sm font-bold">
-            <div className="text-green-400">{stats.present} Present</div>
-            <div className="text-red-400">{stats.absent} Absent</div>
-            <div className="text-yellow-400">{stats.late} Late</div>
+          <div className="bg-portal-card border border-portal-border rounded-xl px-4 py-2 flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
+            <div className="text-green-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400" /> {stats.present} Present</div>
+            <div className="text-yellow-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400" /> {stats.late} Late</div>
+            <div className="text-red-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-400" /> {stats.absent} Absent</div>
+            <div className="text-blue-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-400" /> {stats.excused} Excused</div>
           </div>
           <button 
             onClick={() => handleSelectSession(selectedSession)}
@@ -239,38 +241,50 @@ export const InstructorAttendancePage = () => {
                         <button
                           disabled={marking}
                           onClick={() => markAttendance(s._id, 'Present')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${
                             status === 'Present' 
-                              ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' 
-                              : 'bg-portal-bg text-portal-text-muted hover:text-green-400 border border-portal-border'
+                              ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' 
+                              : 'bg-green-500/5 text-green-500/60 hover:bg-green-500 hover:text-white border border-green-500/20'
                           }`}
                         >
-                          <CheckCircle className="w-3.5 h-3.5" />
+                          <CheckCircle className="w-3 h-3" />
                           Present
                         </button>
                         <button
                           disabled={marking}
                           onClick={() => markAttendance(s._id, 'Late')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${
                             status === 'Late' 
-                              ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20' 
-                              : 'bg-portal-bg text-portal-text-muted hover:text-yellow-400 border border-portal-border'
+                              ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/30' 
+                              : 'bg-yellow-500/5 text-yellow-500/60 hover:bg-yellow-500 hover:text-white border border-yellow-500/20'
                           }`}
                         >
-                          <AlertCircle className="w-3.5 h-3.5" />
+                          <AlertCircle className="w-3 h-3" />
                           Late
                         </button>
                         <button
                           disabled={marking}
                           onClick={() => markAttendance(s._id, 'Absent')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${
                             status === 'Absent' 
-                              ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' 
-                              : 'bg-portal-bg text-portal-text-muted hover:text-red-400 border border-portal-border'
+                              ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
+                              : 'bg-red-500/5 text-red-500/60 hover:bg-red-500 hover:text-white border border-red-500/20'
                           }`}
                         >
-                          <XCircle className="w-3.5 h-3.5" />
+                          <XCircle className="w-3 h-3" />
                           Absent
+                        </button>
+                        <button
+                          disabled={marking}
+                          onClick={() => markAttendance(s._id, 'Excused')}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                            status === 'Excused' 
+                              ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' 
+                              : 'bg-blue-500/5 text-blue-500/60 hover:bg-blue-500 hover:text-white border border-blue-500/20'
+                          }`}
+                        >
+                          <Clock className="w-3 h-3" />
+                          Excused
                         </button>
                       </div>
                     </td>
