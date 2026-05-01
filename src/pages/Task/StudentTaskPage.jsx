@@ -92,10 +92,10 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="bg-portal-card border border-portal-border rounded-2xl shadow-2xl w-full max-w-lg"
+        className="bg-portal-card border border-portal-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-portal-border">
+        <div className="flex items-center justify-between p-6 border-b border-portal-border shrink-0">
           <div>
             <h2 className="text-xl font-bold text-portal-text">{task.title}</h2>
             <div className="flex items-center gap-3 mt-1">
@@ -115,7 +115,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
         </div>
 
         {/* Task Description */}
-        <div className="px-6 py-4 border-b border-portal-border">
+        <div className="px-6 py-4 border-b border-portal-border shrink-0">
           <p className="text-sm text-portal-text-muted leading-relaxed">{task.description}</p>
           {task.projectLink && (
             <a href={task.projectLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-portal-accent hover:underline mt-3">
@@ -125,7 +125,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
         </div>
 
         {/* Review feedback if graded */}
-        {existingSubmission?.status !== 'pending' && (
+        {existingSubmission && existingSubmission.status !== 'pending' && (
           <div className={`mx-6 mt-4 p-4 rounded-xl border ${isGraded ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <p className="text-sm font-bold text-portal-text mb-1">
               {isGraded ? 'Graded' : 'Returned for resubmission'}
@@ -137,7 +137,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
           {error && (
             <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0" /> {error}
@@ -244,7 +244,7 @@ const SubmitModal = ({ task, existingSubmission, onClose, onSubmit }) => {
             />
           </div>
 
-          <div className="flex gap-3 pt-1">
+          <div className="sticky bottom-0 -mx-6 -mb-6 mt-2 flex gap-3 border-t border-portal-border bg-portal-card p-6">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-3 rounded-xl border border-portal-border text-portal-text-muted hover:text-portal-text hover:bg-portal-border transition-colors text-sm font-semibold">
               Close
             </button>
