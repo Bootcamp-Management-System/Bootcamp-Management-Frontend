@@ -16,6 +16,23 @@ import {
 } from 'lucide-react';
 import { recruitmentService } from '../../services/recruitmentService';
 
+const Toast = ({ toast, onClose }) => {
+  if (!toast) return null;
+
+  return (
+    <div className={`fixed top-6 right-6 z-[200] max-w-sm rounded-xl border px-5 py-3 text-sm font-bold shadow-xl ${
+      toast.type === 'success'
+        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+        : 'bg-red-500/10 border-red-500/30 text-red-400'
+    }`}>
+      <div className="flex items-start gap-3">
+        <span>{toast.message}</span>
+        <button type="button" onClick={onClose} className="text-current opacity-60 hover:opacity-100">x</button>
+      </div>
+    </div>
+  );
+};
+
 const FIELD_TYPES = [
   { value: 'text', label: 'Short Text', icon: Type },
   { value: 'textarea', label: 'Long Text', icon: AlignLeft },
@@ -34,6 +51,12 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     fetchTemplate();
@@ -100,10 +123,10 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
     try {
       setSaving(true);
       await recruitmentService.saveTemplate({ ...template, bootcamp: bootcampId });
-      alert('Template saved successfully!');
+      showToast('success', 'Draft saved successfully.');
       if (onSave) onSave();
     } catch (error) {
-      alert('Error saving template: ' + (error.response?.data?.error || error.message));
+      showToast('error', error.response?.data?.error || error.message || 'Failed to save template.');
     } finally {
       setSaving(false);
     }
@@ -115,14 +138,14 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
       if (template.isPublished) {
         await recruitmentService.unpublishTemplate(bootcampId);
         setTemplate(prev => ({ ...prev, isPublished: false }));
-        alert('Template unpublished successfully!');
+        showToast('success', 'Template unpublished.');
       } else {
         await recruitmentService.publishTemplate(bootcampId);
         setTemplate(prev => ({ ...prev, isPublished: true }));
-        alert('Template published successfully!');
+        showToast('success', 'Template published for students.');
       }
     } catch (error) {
-      alert('Error changing publish state: ' + (error.response?.data?.error || error.message));
+      showToast('error', error.response?.data?.error || error.message || 'Failed to update publish state.');
     } finally {
       setSaving(false);
     }
@@ -132,6 +155,7 @@ export const TemplateBuilder = ({ bootcampId, onSave }) => {
 
   return (
     <div className="bg-portal-card border border-portal-border rounded-3xl overflow-hidden shadow-2xl">
+      <Toast toast={toast} onClose={() => setToast(null)} />
       {/* Header */}
       <div className="p-6 border-b border-portal-border flex items-center justify-between bg-white/5">
         <div>

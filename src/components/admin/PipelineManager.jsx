@@ -13,12 +13,43 @@ import {
 } from 'lucide-react';
 import { recruitmentService } from '../../services/recruitmentService';
 
+const Toast = ({ toast, onClose }) => {
+  if (!toast) return null;
+
+  return (
+    <div className={`fixed top-6 right-6 z-[200] max-w-sm rounded-xl border px-5 py-3 text-sm font-bold shadow-xl ${
+      toast.type === 'success'
+        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+        : 'bg-red-500/10 border-red-500/30 text-red-400'
+    }`}>
+      <div className="flex items-start gap-3">
+        <span>{toast.message}</span>
+        <button type="button" onClick={onClose} className="text-current opacity-60 hover:opacity-100">x</button>
+      </div>
+    </div>
+  );
+};
+
+const DECISION_LABELS = {
+  PASS: 'Candidate moved to technical stage.',
+  ACCEPT: 'Candidate accepted. Enrollment activation email will be sent.',
+  REJECT: 'Application rejected.',
+  WAIT: 'Candidate moved to waitlist.',
+  MEMBER: 'Candidate promoted to official member.',
+};
+
 export const PipelineManager = ({ bootcampId }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeStage, setActiveStage] = useState('PENDING'); // PENDING, SCREENED_ROUND_1, TASK_EVALUATION, ACCEPTED, REJECTED
   const [selectedApp, setSelectedApp] = useState(null);
   const [processingId, setProcessingId] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.setTimeout(() => setToast(null), 3500);
+  };
 
   useEffect(() => {
     fetchApplications();
@@ -37,13 +68,16 @@ export const PipelineManager = ({ bootcampId }) => {
   };
 
   const handleDecision = async (id, decision) => {
+    if (processingId) return;
+
     try {
       setProcessingId(id);
       await recruitmentService.makeDecision(id, decision);
-      fetchApplications(); // Refresh list
+      await fetchApplications();
       setSelectedApp(null);
+      showToast('success', DECISION_LABELS[decision] || 'Action completed.');
     } catch (error) {
-      alert('Action failed: ' + (error.response?.data?.error || error.message));
+      showToast('error', error.response?.data?.error || error.message || 'Action failed.');
     } finally {
       setProcessingId(null);
     }
@@ -71,6 +105,7 @@ export const PipelineManager = ({ bootcampId }) => {
 
   return (
     <div className="space-y-6">
+      <Toast toast={toast} onClose={() => setToast(null)} />
       <div className="bg-portal-card border border-portal-border rounded-3xl p-2 flex items-center justify-between shadow-xl overflow-hidden">
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar p-1">
           {stages.map(stage => (
@@ -202,7 +237,7 @@ export const PipelineManager = ({ bootcampId }) => {
                     <>
                       <button 
                         onClick={() => handleDecision(selectedApp._id, 'PASS')}
-                        disabled={processingId === selectedApp._id}
+                        disabled={Boolean(processingId)}
                         className="flex-1 min-w-[200px] py-4 bg-portal-accent text-portal-bg rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-portal-accent/20"
                       >
                         {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChevronRight className="w-5 h-5" />}
@@ -210,7 +245,7 @@ export const PipelineManager = ({ bootcampId }) => {
                       </button>
                       <button 
                         onClick={() => handleDecision(selectedApp._id, 'ACCEPT')}
-                        disabled={processingId === selectedApp._id}
+                        disabled={Boolean(processingId)}
                         className="flex-1 min-w-[200px] py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
                       >
                         {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
@@ -234,7 +269,7 @@ export const PipelineManager = ({ bootcampId }) => {
                     <>
                       <button 
                         onClick={() => handleDecision(selectedApp._id, 'ACCEPT')}
-                        disabled={processingId === selectedApp._id}
+                        disabled={Boolean(processingId)}
                         className="flex-1 min-w-[200px] py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
                       >
                         {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
@@ -242,7 +277,7 @@ export const PipelineManager = ({ bootcampId }) => {
                       </button>
                       <button 
                         onClick={() => handleDecision(selectedApp._id, 'WAIT')}
-                        disabled={processingId === selectedApp._id}
+                        disabled={Boolean(processingId)}
                         className="flex-1 min-w-[200px] py-4 bg-orange-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
                       >
                         {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Clock className="w-5 h-5" />}
@@ -255,7 +290,7 @@ export const PipelineManager = ({ bootcampId }) => {
                   {activeStage === 'WAITLISTED' && (
                     <button 
                       onClick={() => handleDecision(selectedApp._id, 'ACCEPT')}
-                      disabled={processingId === selectedApp._id}
+                      disabled={Boolean(processingId)}
                       className="flex-1 min-w-[200px] py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
                     >
                       {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
@@ -267,7 +302,7 @@ export const PipelineManager = ({ bootcampId }) => {
                   {activeStage === 'ACCEPTED' && (
                     <button 
                       onClick={() => handleDecision(selectedApp._id, 'MEMBER')}
-                      disabled={processingId === selectedApp._id}
+                      disabled={Boolean(processingId)}
                       className="flex-1 min-w-[200px] py-4 bg-teal-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-teal-500/20"
                     >
                       {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Star className="w-5 h-5" />}
@@ -279,7 +314,7 @@ export const PipelineManager = ({ bootcampId }) => {
                   {['PENDING', 'TASK_EVALUATION', 'WAITLISTED', 'SCREENED_ROUND_1'].includes(activeStage) && (
                     <button 
                       onClick={() => handleDecision(selectedApp._id, 'REJECT')}
-                      disabled={processingId === selectedApp._id}
+                      disabled={Boolean(processingId)}
                       className="flex-1 min-w-[200px] py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-bold hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                     >
                       {processingId === selectedApp._id ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5" />}
