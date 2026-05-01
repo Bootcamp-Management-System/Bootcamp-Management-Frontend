@@ -153,8 +153,10 @@ const normalizeRole = (role) => {
 const publicUser = (user) => {
   if (!user) return null;
   const role = normalizeRole(user.role);
+  const id = user.id || user._id;
   return {
-    id: user.id,
+    id,
+    _id: id,
     email: user.email,
     role,
     division: user.division,
@@ -164,6 +166,9 @@ const publicUser = (user) => {
     name: user.name,
     campusId: user.campusId || user.idNo,
     divisions: user.divisions,
+    memberships: user.memberships || [],
+    is_Member: Boolean(user.is_Member),
+    firstLogin: user.firstLogin,
   };
 };
 
@@ -208,6 +213,17 @@ export const authService = {
         password,
       });
 
+      if (response?.data?.message && !response?.data?.token && !response?.data?.user) {
+        return {
+          user: { email },
+          token: null,
+          requiresOtp: true,
+          requiresPasswordChange: false,
+          requiresApproval: false,
+          message: response.data.message,
+        };
+      }
+
       const normalized = normalizeAuthResponse(response);
 
       if (!normalized.user && !normalized.token && response?.data?.message) {
@@ -226,6 +242,36 @@ export const authService = {
     }
   },
 
+  async getCurrentUser() {
+    try {
+      const response = await api.get('/users/me', {
+        skipAuthRedirect: true,
+      });
+      const payload = response?.data?.data || response?.data?.user || response?.data;
+      return ensureDivisions(publicUser(payload));
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Session validation failed.';
+      return fail(message, error?.response?.status || 401);
+    }
+  },
+
+  async verifyOtpBackend({ email, otp, newPassword }) {
+    await ensureValidEmail(email);
+
+    if (!String(otp || '').trim()) {
+      return fail('OTP is required.', 422);
+    }
+
+    const payload = { email, otp };
+    if (newPassword) {
+      payload.newPassword = newPassword;
+    }
+
+    const response = await api.post('/auth/verify-otp', payload);
+
+    return normalizeAuthResponse(response);
+  },
+
   async googleLogin() {
     const users = getUsers();
     const user = users.find((item) => item.email === 'member@bms.com') || users[0];
@@ -239,86 +285,41 @@ export const authService = {
   },
 
   async signup(payload) {
-    await ensureValidEmail(payload.email);
-    await ensureStrongPassword(payload.password);
-
-    const users = getUsers();
-    const normalizedEmail = normalizeEmail(payload.email);
-
-    if (users.some((u) => u.email.toLowerCase() === normalizedEmail)) {
-      return fail('An account with this email already exists.', 409);
+    try {
+      const response = await api.post('/auth/signup', payload);
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Signup failed.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    if (users.some((u) => u.campusId.toLowerCase() === payload.campusId.toLowerCase())) {
-      return fail('This campus ID is already registered.', 409);
-    }
-
-    const newUser = {
-      id: String(Date.now()),
-      campusId: payload.campusId,
-      name: normalizedEmail.split('@')[0],
-      email: normalizedEmail,
-      role: 'member',
-      division: payload.division,
-      password: payload.password,
-      motivation: payload.motivation,
-      dedication: payload.dedication,
-      whyDivision: payload.whyDivision,
-      isVerified: false,
-      approvalStatus: 'pending',
-      requiresPasswordChange: false,
-    };
-
-    const updatedUsers = [...users, newUser];
-    saveUsers(updatedUsers);
-    upsertOtpSession({ email: normalizedEmail, purpose: 'register' });
-
-    const response = await makeResponse({
-      message: 'Account created. Verify OTP to continue.',
-      user: publicUser(newUser),
-    }, 201);
-
-    return response.data;
   },
 
   async forgotPassword({ email }) {
     await ensureValidEmail(email);
 
-    const users = getUsers();
     const normalizedEmail = normalizeEmail(email);
-    const user = users.find((item) => item.email.toLowerCase() === normalizedEmail);
 
-    if (!user) {
-      return fail('Account not found for this email.', 404);
+    try {
+      const response = await api.post('/auth/forgot-password', { email: normalizedEmail });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to send password reset code.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    upsertOtpSession({ email: normalizedEmail, purpose: 'forgot-password' });
-
-    const response = await makeResponse({
-      message: 'Reset code sent successfully.',
-      email: normalizedEmail,
-    });
-
-    return response.data;
   },
 
-  async resendOtp({ email, purpose }) {
+  async resendOtp({ email }) {
     await ensureValidEmail(email);
 
-    if (!purpose) {
-      return fail('OTP purpose is required.', 400);
-    }
-
     const normalizedEmail = normalizeEmail(email);
-    upsertOtpSession({ email: normalizedEmail, purpose });
 
-    const response = await makeResponse({
-      message: 'OTP resent successfully.',
-      email: normalizedEmail,
-      purpose,
-    });
-
-    return response.data;
+    try {
+      const response = await api.post('/auth/resend-otp', { email: normalizedEmail });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to resend OTP.';
+      return fail(message, error?.response?.status || 400);
+    }
   },
 
   async verifyOtp({ email, otp, purpose }) {
@@ -425,66 +426,49 @@ export const authService = {
     return response.data;
   },
 
-  async changePassword({ email, password }) {
-    await ensureValidEmail(email);
-    await ensureStrongPassword(password);
-
-    const users = getUsers();
-    const normalizedEmail = normalizeEmail(email);
-    const userIndex = users.findIndex((item) => item.email.toLowerCase() === normalizedEmail);
-
-    if (userIndex === -1) {
-      return fail('Account not found for password update.', 404);
+  async changePassword({ oldPassword, newPassword }) {
+    try {
+      const response = await api.post('/auth/change-password', {
+        oldPassword,
+        newPassword
+      });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to update password.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    const updatedUser = {
-      ...users[userIndex],
-      password,
-      requiresPasswordChange: false,
-    };
-
-    users[userIndex] = updatedUser;
-    saveUsers(users);
-
-    const response = await makeResponse({
-      message: 'Password updated successfully.',
-      user: publicUser(updatedUser),
-      token: tokenFor(),
-    });
-
-    return response.data;
   },
 
-  async resetPassword({ email, password }) {
+  async resetPassword({ email, otp, newPassword }) {
     await ensureValidEmail(email);
-    await ensureStrongPassword(password);
+    await ensureStrongPassword(newPassword);
 
     const normalizedEmail = normalizeEmail(email);
-    const session = getOtpSession({ email: normalizedEmail, purpose: 'forgot-password' });
 
-    if (!session || !session.isVerified) {
-      return fail('Reset session is invalid. Verify OTP again.', 410);
+    if (!String(otp || '').trim()) {
+      return fail('OTP is required.', 422);
     }
 
-    const users = getUsers();
-    const userIndex = users.findIndex((item) => item.email.toLowerCase() === normalizedEmail);
-
-    if (userIndex === -1) {
-      return fail('Account not found for this email.', 404);
+    try {
+      const response = await api.post('/auth/reset-password', {
+        email: normalizedEmail,
+        otp,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to reset password.';
+      return fail(message, error?.response?.status || 400);
     }
-
-    users[userIndex] = {
-      ...users[userIndex],
-      password,
-      requiresPasswordChange: false,
-    };
-    saveUsers(users);
-    clearOtpSession({ email: normalizedEmail, purpose: 'forgot-password' });
-
-    const response = await makeResponse({
-      message: 'Password reset successful. You can login now.',
-      user: publicUser(users[userIndex]),
-    });
-    return response.data;
+  },
+  
+  async completeOnboarding(onboardingData) {
+    try {
+      const response = await api.post('/users/onboarding', onboardingData);
+      return response.data;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Onboarding failed.';
+      return fail(message, error?.response?.status || 400);
+    }
   },
 };

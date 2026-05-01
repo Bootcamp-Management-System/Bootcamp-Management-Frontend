@@ -15,7 +15,7 @@ export const ForgotPasswordPage = () => {
     try {
       await forgotPassword(email);
       setIsSubmitted(true);
-      setTimeout(() => navigate('/otp'), 2000);
+      setTimeout(() => navigate('/otp', { state: { email, purpose: 'forgot-password' } }), 2000);
     } catch (err) {
       alert('Error sending reset link');
     }
@@ -30,7 +30,7 @@ export const ForgotPasswordPage = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md w-full bg-portal-card border border-portal-border rounded-[32px] p-10 shadow-2xl relative z-10"
       >
-        <Link to="/login" className="inline-flex items-center gap-2 text-xs font-bold text-portal-text-muted hover:text-white uppercase tracking-widest mb-8 transition-colors">
+        <Link to="/login" className="inline-flex items-center gap-2 text-xs font-bold text-portal-text-muted hover:text-portal-text uppercase tracking-widest mb-8 transition-colors">
           <ArrowLeft className="w-3 h-3" />
           Back to Login
         </Link>
@@ -39,14 +39,14 @@ export const ForgotPasswordPage = () => {
           <div className="w-16 h-16 bg-portal-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Mail className="w-8 h-8 text-portal-accent" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Forgot Password?</h1>
+          <h1 className="text-2xl font-bold text-portal-text">Forgot Password?</h1>
           <p className="text-portal-text-muted mt-2">Enter your email and we'll send you a code to reset your password.</p>
         </div>
 
         {!isSubmitted ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white ml-2">Email Address</label>
+              <label className="block text-sm font-medium text-portal-text ml-2">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
                 <input 
@@ -55,14 +55,14 @@ export const ForgotPasswordPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@astu.edu.et"
-                  className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                  className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-portal-text text-sm focus:outline-none focus:border-portal-accent transition-all"
                 />
               </div>
             </div>
 
             <button 
               type="submit"
-              className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
+              className="w-full bg-portal-accent text-portal-bg py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center justify-center gap-2"
             >
               Send Reset Code
               <Send className="w-4 h-4" />
@@ -70,10 +70,10 @@ export const ForgotPasswordPage = () => {
           </form>
         ) : (
           <div className="text-center py-8">
-            <div className="w-12 h-12 bg-portal-accent text-white rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <div className="w-12 h-12 bg-portal-accent text-portal-bg rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
               <Send className="w-6 h-6" />
             </div>
-            <p className="font-bold text-white">Check your inbox!</p>
+            <p className="font-bold text-portal-text">Check your inbox!</p>
             <p className="text-sm text-portal-text-muted mt-2">We've sent a reset code to your email.</p>
           </div>
         )}

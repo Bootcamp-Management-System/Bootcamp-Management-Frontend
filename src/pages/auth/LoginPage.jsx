@@ -1,156 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { motion } from "framer-motion";
-import { IdCard, Lock, LogIn } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Eye, EyeOff, IdCard, Lock, ShieldCheck } from 'lucide-react';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import csecLogo from '../../assets/csec logo.jpg';
+
+const MotionDiv = motion.div;
+const MotionP = motion.p;
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromPath = location.state?.from?.pathname;
+
+  const getHomePath = (role) => (
+    role === 'super_admin' ? '/super-admin/dashboard' : role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard'
+  );
+
+  const dashboardPath = isAuthenticated && user ? getHomePath(user.role) : '/';
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const role = user.role;
-      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      const target = fromPath && fromPath !== '/login' ? fromPath : getHomePath(user.role);
+      navigate(target, { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, fromPath]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
       const result = await login(identifier, password);
+      if (result.requiresOtp) {
+        navigate('/otp', { state: { email: result.user?.email || identifier } });
+        return;
+      }
       if (result.requiresApproval) {
         navigate('/waiting-approval', { state: { email: result.user.email } });
         return;
       }
-
       if (result.requiresPasswordChange) {
         navigate('/force-change-password', { state: { email: result.user.email, purpose: 'force-change-password' } });
         return;
       }
-
-      const role = result.user.role;
-      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/dashboard');
+      const target = fromPath && fromPath !== '/login' ? fromPath : getHomePath(result.user.role);
+      navigate(target, { replace: true });
     } catch (err) {
-      setError('Invalid email, ID, or password');
+      setError(err?.message || 'Invalid email, ID, or password');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-portal-bg relative overflow-hidden p-6">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-portal-accent/5 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-portal-bg relative overflow-hidden p-6 font-sans transition-colors duration-500">
+      <Link
+        to={dashboardPath}
+        className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-portal-border/70 bg-portal-card/80 px-4 py-2 text-sm font-medium text-portal-text shadow-sm transition-colors hover:border-portal-accent/50 hover:bg-portal-card hover:text-white sm:left-8 sm:top-8"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {t('nav.back', 'Back')}
+      </Link>
 
-      <motion.div 
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-portal-accent/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />
+
+      {/* Header Logo Section */}
+      <MotionDiv 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-12 text-center relative z-10"
+        className="mb-8 text-center relative z-10 flex flex-col items-center"
       >
-        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">CSEC ASTU Portal</h1>
-      </motion.div>
+        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 border border-portal-border shadow-lg shadow-portal-accent/10 overflow-hidden ring-1 ring-white/20">
+          <img src={csecLogo} alt="Logo" className="w-full h-full object-cover" />
+        </div>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">CSEC ASTU <span className="text-portal-accent">Portal</span></h1>
+        <p className="text-portal-text-muted text-sm mt-2 font-medium">{t('auth.login_title')}</p>
+      </MotionDiv>
 
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+      {/* Main Login Card */}
+      <MotionDiv 
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="max-w-md w-full bg-portal-card border border-portal-border rounded-[32px] p-10 shadow-2xl relative z-10"
+        transition={{ duration: 0.4 }}
+        className="max-w-md w-full bg-portal-card border border-portal-border rounded-[40px] p-8 md:p-10 shadow-2xl relative z-10"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white ml-2">Email or ID Number</label>
-            <div className="relative">
-              <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
+            <label className="block text-[10px] font-black text-portal-accent uppercase tracking-[0.2em] ml-1">{t('auth.email_id')}</label>
+            <div className="relative group">
+              <IdCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
                 type="text" 
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="student@astu.edu.et or UGR/12345/15"
-                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                placeholder={t('auth.email_id')}
+                className="w-full bg-portal-bg border border-portal-border rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent/50 transition-all placeholder:text-portal-text-muted/50"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white ml-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
+            <label className="block text-[10px] font-black text-portal-accent uppercase tracking-[0.2em] ml-1">{t('auth.password')}</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-portal-text-muted group-focus-within:text-portal-accent transition-colors" />
               <input 
-                type="password" 
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-portal-input border border-portal-border rounded-xl py-4 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-portal-accent transition-all"
+                className="w-full bg-portal-bg border border-portal-border rounded-2xl py-4 pl-12 pr-12 text-white text-sm focus:outline-none focus:border-portal-accent/50 transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-portal-text-muted transition-colors hover:text-portal-accent"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
-          {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+          <AnimatePresence>
+            {error && (
+              <MotionP 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="text-red-400 text-xs font-medium text-center bg-red-400/10 py-2 rounded-lg border border-red-400/20"
+              >
+                {error}
+              </MotionP>
+            )}
+          </AnimatePresence>
 
           <button 
             type="submit"
-            className="w-full bg-portal-accent text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-[0.98] mt-2"
+            className="group w-full bg-portal-accent text-portal-bg py-4 rounded-2xl font-black text-sm shadow-xl shadow-portal-accent/10 hover:scale-[1.02] transition-all active:scale-[0.98] uppercase tracking-widest"
           >
-            Access Portal
+            {t('nav.login')}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <Link to="/forgot-password" size="sm" className="text-sm font-medium text-portal-text-muted hover:text-white transition-colors">
-            Forgot password?
+            {t('auth.forgot_password')}
           </Link>
         </div>
 
-        {/* Quick Access for Demo */}
-        <div className="mt-10 pt-8 border-t border-portal-border/50">
-          <p className="text-[10px] font-bold text-portal-text-muted uppercase tracking-[0.2em] mb-2 text-center">Demo Access</p>
-          <p className="text-[11px] text-portal-text-muted text-center">Password: DemoPass123</p>
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'Admin', email: 'admin.demo@astu.edu.et', campusId: 'UGR/90001/26' },
-                { id: 'Instructor', email: 'instructor.demo@astu.edu.et', campusId: 'UGR/90002/26' },
-                { id: 'Student', email: 'member.demo@astu.edu.et', campusId: 'UGR/90003/26' }
-              ].map(role => (
-                <button 
-                  key={role.id}
-                  onClick={() => { setIdentifier(role.email); setPassword('DemoPass123'); }}
-                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
-                >
-                  {role.id} Email
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'Admin', campusId: 'UGR/90001/26' },
-                { id: 'Instructor', campusId: 'UGR/90002/26' },
-                { id: 'Student', campusId: 'UGR/90003/26' }
-              ].map(role => (
-                <button 
-                  key={role.id}
-                  onClick={() => { setIdentifier(role.campusId); setPassword('DemoPass123'); }}
-                  className="py-2.5 px-1 bg-portal-input border border-portal-border rounded-xl text-[10px] font-bold text-portal-text-muted hover:text-white hover:border-portal-accent transition-all"
-                >
-                  {role.id} ID
-                </button>
-              ))}
-            </div>
-          </div>
+
+        <div className="mt-8 pt-8 border-t border-portal-border text-center">
+          <p className="text-sm text-portal-text-muted font-medium">
+            {t('auth.new_applicant')} {' '}
+            <Link to="/signup" className="text-portal-accent font-black hover:underline underline-offset-4 decoration-2">
+              {t('auth.create_account')}
+            </Link>
+          </p>
         </div>
+      </MotionDiv>
 
-      </motion.div>
-
-      {/* Sun/Light Toggle Icon at bottom like in image */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sun">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>
-        </svg>
+      {/* Theme Switcher at bottom right */}
+      <div className="absolute bottom-8 right-8">
+        <ThemeSwitcher />
       </div>
     </div>
   );

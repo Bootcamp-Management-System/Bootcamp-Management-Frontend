@@ -2,86 +2,113 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Users, 
-  ClipboardList, 
-  Settings, 
-  LogOut,
-  ChevronRight,
-  ChevronLeft,
+import { useTranslation } from 'react-i18next';
+import csecLogo from '../assets/csec-logo.jpg';
+import {
+  LayoutDashboard,
+  Users,
   GraduationCap,
   BookOpen,
   Shield,
-  User,
   PanelLeftClose,
   PanelLeftOpen,
   UserCheck,
-  FileBarChart,
   TrendingUp,
-  Layers as LayersIcon
+  Layers as LayersIcon,
+  Calendar,
+  ShieldCheck,
+  Zap,
+  Timer,
+  Globe
 } from 'lucide-react';
 
+const MotionAside = motion.aside;
+const MotionDiv = motion.div;
+
 export const Sidebar = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getNavItems = () => {
     const dashboardPath = user?.role === 'admin' || user?.role === 'super_admin' ? '/admin' : user?.role === 'instructor' ? '/instructor' : '/dashboard';
-    const base = [
-      { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: dashboardPath },
-    ];
-
+    
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       const adminItems = [
-        { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? 'Global Dashboard' : 'Dashboard', path: '/admin/dashboard' },
-        { id: 'admin-members', icon: Users, label: 'Members', path: '/admin/members' },
-        { id: 'admin-instructors', icon: UserCheck, label: 'Instructors', path: '/admin/instructors' },
+        { id: 'admin-dashboard', icon: LayoutDashboard, label: user.role === 'super_admin' ? t('sidebar.workspace', 'Dashboard') : t('sidebar.dashboard', 'Dashboard'), path: user.role === 'super_admin' ? '/super-admin/dashboard' : '/admin/dashboard' },
+        { id: 'admin-recruitment', icon: TrendingUp, label: t('sidebar.recruitment', 'Recruitment Hub'), path: '/admin/recruitment' },
       ];
 
-      if (user.role === 'super_admin') {
-        adminItems.push({ id: 'admin-admins', icon: Shield, label: 'Admins', path: '/admin/admins' });
+      if (user.role === 'admin') {
+        adminItems.push({ id: 'admin-members', icon: Users, label: t('sidebar.students', 'Students'), path: '/admin/members' });
+        adminItems.push({ id: 'admin-bootcamps', icon: GraduationCap, label: t('sidebar.bootcamps', 'Bootcamps'), path: '/admin/bootcamps' });
+        adminItems.push({ id: 'admin-instructors', icon: GraduationCap, label: t('sidebar.instructors', 'Instructors'), path: '/admin/instructors' });
+        adminItems.push({ id: 'admin-sessions', icon: Calendar, label: t('sidebar.sessions', 'Sessions'), path: '/admin/sessions' });
       }
 
-      return [
-        ...adminItems,
-        { id: 'admin-sessions', icon: BookOpen, label: 'Sessions', path: '/admin/sessions' },
-        { id: 'admin-groups', icon: LayersIcon, label: 'Groups', path: '/admin/groups' },
-        { id: 'admin-reports', icon: FileBarChart, label: 'Reports', path: '/admin/reports' },
-        { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
-      ];
+      if (user.role === 'super_admin') {
+        adminItems.push({ id: 'admin-bootcamps', icon: GraduationCap, label: t('sidebar.bootcamps', 'Bootcamps'), path: '/super-admin/bootcamps' });
+        adminItems.push({ id: 'admin-divisions', icon: LayersIcon, label: t('sidebar.divisions', 'Divisions'), path: '/super-admin/divisions' });
+        adminItems.push({ id: 'admin-users', icon: Users, label: t('sidebar.users', 'Users'), path: '/super-admin/users' });
+        adminItems.push({ id: 'admin-announcements', icon: BookOpen, label: t('sidebar.announcements', 'Announcements'), path: '/super-admin/announcements' });
+        adminItems.push({ id: 'admin-admins', icon: Shield, label: t('sidebar.admins', 'Admins'), path: '/admin/admins' });
+      }
+
+      return [{ title: t('sidebar.admin_sec', 'Admin'), items: adminItems }];
     }
 
     if (user?.role === 'instructor') {
-      return [
-        ...base,
-        { id: 'sessions', icon: BookOpen, label: 'Sessions', path: '/sessions' },
-        { id: 'tasks', icon: ClipboardList, label: 'Task Management', path: '/tasks' },
-        { id: 'students', icon: Users, label: 'Students', path: '/students' },
-        { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
-      ];
+      return [{
+        title: t('sidebar.instructor_sec', 'Instructor'),
+        items: [
+          { id: 'dashboard', icon: LayoutDashboard, label: t('sidebar.panel', 'Panel'), path: '/instructor' },
+          { id: 'sessions', icon: Calendar, label: t('sidebar.sessions', 'Sessions'), path: '/instructor/sessions' },
+        ]
+      }];
     }
 
-    return [
-      ...base,
-      { id: 'sessions', icon: BookOpen, label: 'My Sessions', path: '/sessions' },
-      { id: 'my-tasks', icon: ClipboardList, label: 'My Tasks', path: '/my-tasks' },
-      { id: 'progress', icon: TrendingUp, label: 'Weekly Progress', path: '/progress' },
-      { id: 'profile', icon: User, label: 'My Profile', path: '/profile' },
+    const studentSections = [
+      {
+        title: t('sidebar.main_sec', 'Main'),
+        items: [
+          { id: 'dashboard', icon: LayoutDashboard, label: t('sidebar.dashboard', 'Dashboard'), path: dashboardPath },
+        ]
+      },
+      {
+        title: t('sidebar.academy_sec', 'Academy'),
+        items: [
+          { id: 'explore-bootcamps', icon: Globe, label: t('sidebar.explore', 'Explore'), path: '/bootcamps' },
+          { id: 'enrollments', icon: ShieldCheck, label: t('sidebar.enrollments', 'Enrollments'), path: '/enrollments' },
+        ]
+      },
+      {
+        title: t('sidebar.tracking_sec', 'Tracking'),
+        items: [
+          { id: 'applications', icon: BookOpen, label: t('sidebar.applications', 'Applications'), path: '/applications' },
+          { id: 'progress', icon: TrendingUp, label: t('sidebar.progress', 'Progress'), path: '/progress' },
+        ]
+      }
     ];
+
+    const isMember = user?.is_Member || (user?.memberships && user.memberships.some(m => m.isMember));
+    if (isMember) {
+      studentSections[1].items.unshift({ id: 'member-hub', icon: LayersIcon, label: t('sidebar.member_hub', 'Member Hub'), path: '/member-hub' });
+    }
+
+    return studentSections;
   };
 
-  const navItems = getNavItems();
+  const navSections = getNavItems();
 
   return (
-    <motion.aside 
+    <MotionAside
       initial={false}
       animate={{ width: isCollapsed ? '80px' : '280px' }}
-      className="bg-portal-card border-r border-portal-border flex flex-col shrink-0 relative transition-colors duration-300"
+      className="bg-portal-card border-r border-portal-border flex flex-col shrink-0 relative transition-colors duration-300 z-[100]"
     >
       {/* Toggle Button */}
-      <button 
+      <button
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute -right-3 top-20 w-6 h-6 bg-portal-accent rounded-full flex items-center justify-center text-white shadow-lg shadow-portal-accent/20 z-50 hover:scale-110 transition-transform"
       >
@@ -89,80 +116,53 @@ export const Sidebar = () => {
       </button>
 
       <div className={`p-6 flex-1 flex flex-col ${isCollapsed ? 'items-center' : ''}`}>
+        {/* Logo Section */}
         <div className="flex items-center gap-3 mb-10 overflow-hidden whitespace-nowrap">
-          <div className="w-10 h-10 bg-portal-accent rounded-xl flex items-center justify-center shadow-lg shadow-portal-accent/20 shrink-0">
-            <GraduationCap className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-white/95 shadow-lg shadow-portal-accent/15 shrink-0 overflow-hidden ring-1 ring-white/10">
+            <img src={csecLogo} alt="CSEC logo" className="h-full w-full object-cover" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-              >
-                <h1 className="font-extrabold text-lg leading-none text-white tracking-tight">CSEC ASTU</h1>
+              <MotionDiv initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+                <h1 className="font-extrabold text-lg leading-none text-portal-text tracking-tight">CSEC ASTU</h1>
                 <p className="text-[10px] text-portal-accent mt-1 uppercase tracking-widest font-bold">
-                  Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role}
+                  Portal {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'member' ? 'Student' : user?.role}
                 </p>
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </div>
 
-        <nav className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.id}
-                to={item.path || '#'}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group relative
-                  ${isActive 
-                    ? 'bg-portal-accent/10 text-portal-accent' 
-                    : 'text-portal-text-muted hover:bg-white/5 hover:text-white'
-                  }
-                  ${isCollapsed ? 'justify-center px-0' : ''}
-                `}
-              >
-                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-portal-accent' : ''}`} />
-                <AnimatePresence>
-                  {!isCollapsed && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: 'auto' }}
-                      exit={{ opacity: 0, width: 0 }}
-                      className="whitespace-nowrap overflow-hidden"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                {!isCollapsed && isActive && (
-                  <motion.div 
-                    layoutId="active-pill"
-                    className="absolute left-0 w-1 h-6 bg-portal-accent rounded-r-full" 
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
 
-        <div className={`mt-6 pt-6 border-t border-portal-border space-y-2 ${isCollapsed ? 'items-center' : ''}`}>
-          <button className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-portal-text-muted hover:text-white transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
-            <Settings className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span>Settings</span>}
-          </button>
-          <button 
-            onClick={logout}
-            className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}
-          >
-            <LogOut className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span>Logout</span>}
-          </button>
-        </div>
+        <nav className="space-y-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+          {navSections.map((section) => (
+            <div key={section.title} className="space-y-3">
+              {!isCollapsed && (
+                <h3 className="px-4 text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em]">
+                  {section.title}
+                </h3>
+              )}
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                  return (
+                    <Link
+                      key={item.id}
+                      to={item.path || '#'}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group relative ${
+                        isActive ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text-muted hover:bg-portal-text/5 hover:text-portal-text'
+                      } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    >
+                      <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-portal-accent' : ''}`} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
       </div>
-    </motion.aside>
+    </MotionAside>
   );
 };

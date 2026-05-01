@@ -103,7 +103,7 @@ export const WaitingApprovalPage = () => {
         type="button"
         onClick={handleCheckStatus}
         disabled={isChecking || !targetEmail}
-        className="mb-3 flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-white transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#37b6c9] px-4 py-3.5 text-base font-bold text-portal-text transition hover:bg-[#2ca8bb] disabled:cursor-not-allowed disabled:opacity-60"
       >
         <RefreshCcw className="h-5 w-5" />
         {isChecking ? 'Checking...' : 'Check Approval Status'}
