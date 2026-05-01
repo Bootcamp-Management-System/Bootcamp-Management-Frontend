@@ -33,6 +33,7 @@ import { AdminSessionsPage } from "./pages/admin/AdminSessionsPage";
 import { AdminGroupsPage } from "./pages/admin/AdminGroupsPage";
 import { AdminReportsPage } from "./pages/admin/AdminReportsPage";
 import { AdminAdminsPage } from "./pages/admin/AdminAdminsPage";
+import { AdminBootcampsPage } from "./pages/admin/AdminBootcampsPage";
 import { AdminRecruitmentPage } from "./pages/admin/AdminRecruitmentPage";
 import { InstructorAttendancePage } from "./pages/auth/dashboard/InstructorAttendancePage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -329,6 +330,19 @@ export default function App() {
                   >
                     <Layout>
                       <AdminMembersPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/bootcamps"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "super_admin", "super-admin"]}
+                  >
+                    <Layout>
+                      <AdminBootcampsPage />
                     </Layout>
                   </ProtectedRoute>
                 }

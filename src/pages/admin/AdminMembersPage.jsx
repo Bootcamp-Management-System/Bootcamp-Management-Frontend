@@ -7,7 +7,8 @@ import {
   Trash2, 
   Mail, 
   Layers,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -34,6 +35,7 @@ export const AdminMembersPage = () => {
     'All';
   const currentDivision = adminDivisionName;
   
+  const [activeTab, setActiveTab] = useState('students'); // 'students' or 'members'
   const [members, setMembers] = React.useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -71,7 +73,8 @@ export const AdminMembersPage = () => {
       id: user?._id || user?.id || email,
       name: prettyName,
       email,
-      role: user?.role === 'student' ? 'member' : user?.role,
+      role: user?.role,
+      isMember: !!user?.is_Member,
       division: divisionName,
       divisionId,
       divisions: divisionName ? [divisionName] : [],
@@ -122,7 +125,7 @@ export const AdminMembersPage = () => {
 
   React.useEffect(() => {
     const filtered = users
-      .filter((u) => u.is_Member === true)
+      .filter((u) => activeTab === 'members' ? u.is_Member === true : true)
       .map(buildDisplayUser)
       .filter((user) => 
         currentDivision === 'All' || 
@@ -130,7 +133,7 @@ export const AdminMembersPage = () => {
         (user.assignedDivisions && user.assignedDivisions.includes(currentDivision))
       );
     setMembers(filtered);
-  }, [buildDisplayUser, currentDivision, users]);
+  }, [buildDisplayUser, currentDivision, users, activeTab]);
 
   const resolveDivisionId = (divisionValue) => {
     if (!divisionValue) return null;
@@ -176,6 +179,15 @@ export const AdminMembersPage = () => {
     }
   };
 
+  const handleToggleMembership = async (member) => {
+    try {
+      await userService.updateUser(member.id, { is_Member: !member.isMember });
+      await loadUsers();
+    } catch (error) {
+      setLoadError(error?.response?.data?.message || error?.message || 'Membership update failed.');
+    }
+  };
+
   const handleDivisionChange = async (member, divisionValue) => {
     const divisionId = resolveDivisionId(divisionValue);
     if (!divisionId) return;
@@ -190,7 +202,7 @@ export const AdminMembersPage = () => {
 
   const columns = [
     { 
-      header: 'Member', 
+      header: 'Candidate Node', 
       render: (row) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-portal-accent/10 flex items-center justify-center font-bold text-portal-accent border border-portal-accent/20">
@@ -240,6 +252,12 @@ export const AdminMembersPage = () => {
 
   const actions = [
     { 
+      label: 'Toggle Membership', 
+      icon: ShieldCheck, 
+      className: 'text-portal-accent hover:bg-portal-accent/10',
+      onClick: (member) => handleToggleMembership(member)
+    },
+    { 
       label: 'Edit', 
       icon: Edit2, 
       onClick: (member) => {
@@ -264,21 +282,44 @@ export const AdminMembersPage = () => {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-4 mb-2">
-            <h2 className="text-4xl font-black text-portal-text tracking-tight uppercase">Member Directory</h2>
-            <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md">Live Data</span>
+            <h2 className="text-4xl font-black text-portal-text tracking-tight uppercase">Student Protocol</h2>
+            <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md">Admin Node</span>
           </div>
-          <p className="text-sm font-black text-portal-text-muted uppercase tracking-[0.2em]">Manage user roles, division assignments, and access control.</p>
+          <p className="text-sm font-black text-portal-text-muted uppercase tracking-[0.2em]">Oversee division trainees and validate permanent membership status.</p>
         </div>
-        <button 
-          onClick={() => {
-            setSelectedMember(null);
-            setIsModalOpen(true);
-          }}
-          className="bg-white text-black px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95 transition-all"
-        >
-          <UserPlus className="w-5 h-5" />
-          Add New Member
-        </button>
+        
+        <div className="flex items-center gap-4">
+          {/* Classification Tabs */}
+          <div className="bg-portal-card border border-portal-border p-1 rounded-2xl flex items-center gap-1 shadow-lg">
+            <button
+              onClick={() => setActiveTab('students')}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                activeTab === 'students' ? 'bg-white text-black' : 'text-portal-text-muted hover:text-portal-text'
+              }`}
+            >
+              Operational Candidates
+            </button>
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                activeTab === 'members' ? 'bg-white text-black' : 'text-portal-text-muted hover:text-portal-text'
+              }`}
+            >
+              Validated Members
+            </button>
+          </div>
+
+          <button 
+            onClick={() => {
+              setSelectedMember(null);
+              setIsModalOpen(true);
+            }}
+            className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-portal-accent/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add Student
+          </button>
+        </div>
       </header>
 
       {isLoadingUsers ? (

@@ -84,7 +84,10 @@ const AnimatedBackground = () => (
       className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-portal-accent/30 to-transparent z-10"
     />
 
-    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay" />
+    <div 
+      className="absolute inset-0 opacity-[0.05] mix-blend-overlay" 
+      style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+    />
     <div className="absolute inset-0 bg-radial-gradient from-transparent to-portal-bg/90" style={{ background: 'radial-gradient(circle at center, transparent 0%, var(--portal-bg) 100%)' }} />
   </div>
 );
