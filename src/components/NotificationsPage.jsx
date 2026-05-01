@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, Calendar, Check, CheckCheck, FileCheck, Info, Megaphone, UserPlus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { notificationService } from '../services/notificationService';
+import { useAuth } from '../context/AuthContext';
 
 const notificationTypes = ['all', 'ANNOUNCEMENT', 'SESSION', 'ASSIGNMENT', 'TASK', 'MEMBERSHIP'];
 const notifyCountChanged = () => window.dispatchEvent(new Event('notifications:changed'));
@@ -37,6 +38,7 @@ export const NotificationsPage = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -58,13 +60,23 @@ export const NotificationsPage = ({
     fetchNotifications();
   }, []);
 
+  const activeNotifications = useMemo(() => {
+    return notifications.filter((notification) => {
+      // Hide SESSION notifications from instructors unless they are in student mode
+      if (user?.role === 'instructor' && notification.type === 'SESSION') {
+        return false;
+      }
+      return true;
+    });
+  }, [notifications, user?.role]);
+
   const unreadCount = useMemo(
-    () => notifications.filter((notification) => !notification.isRead).length,
-    [notifications],
+    () => activeNotifications.filter((notification) => !notification.isRead).length,
+    [activeNotifications],
   );
 
   const filteredNotifications = useMemo(() => {
-    return notifications.filter((notification) => {
+    return activeNotifications.filter((notification) => {
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'unread' && !notification.isRead) ||
@@ -72,7 +84,7 @@ export const NotificationsPage = ({
       const matchesType = typeFilter === 'all' || notification.type === typeFilter;
       return matchesStatus && matchesType;
     });
-  }, [notifications, statusFilter, typeFilter]);
+  }, [activeNotifications, statusFilter, typeFilter]);
 
   const markAsRead = async (id) => {
     await notificationService.markAsRead(id);
@@ -168,9 +180,9 @@ export const NotificationsPage = ({
 
       <div className="flex flex-wrap gap-3">
         {[
-          { value: 'all', label: `All (${notifications.length})` },
+          { value: 'all', label: `All (${activeNotifications.length})` },
           { value: 'unread', label: `Unread (${unreadCount})` },
-          { value: 'read', label: `Read (${notifications.length - unreadCount})` },
+          { value: 'read', label: `Read (${activeNotifications.length - unreadCount})` },
         ].map((tab) => (
           <button
             key={tab.value}

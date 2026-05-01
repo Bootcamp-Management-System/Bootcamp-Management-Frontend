@@ -23,6 +23,7 @@ import sessionService from '../../services/sessionService';
 import resourceService from '../../services/resourceService';
 import attendanceService from '../../services/attendanceService';
 import taskService from '../../services/taskService';
+import feedbackService from '../../services/feedbackService';
 
 const MotionButton = motion.button;
 
@@ -77,7 +78,13 @@ export const InstructorSessionsPage = () => {
   const [toast, setToast] = useState(null);
   const [details, setDetails] = useState({ description: '', location: 'Lab 1', meetingLink: '' });
   const [resourceForm, setResourceForm] = useState({ title: '', description: '', type: 'file', url: '', file: null });
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
+  const [savedDetails, setSavedDetails] = useState(false);
+  const [notifying, setNotifying] = useState(false);
   const [taskForm, setTaskForm] = useState(emptyTask);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackStats, setFeedbackStats] = useState({ averageRating: 0, totalFeedbacks: 0 });
 
   const loadSessions = useCallback(async () => {
     setLoading(true);
@@ -97,11 +104,13 @@ export const InstructorSessionsPage = () => {
     setLoading(true);
     setError('');
     try {
-      const [sessionResponse, resourceResponse, attendanceResponse, taskResponse] = await Promise.all([
+      const [sessionResponse, resourceResponse, attendanceResponse, taskResponse, feedbackStatsResponse, feedbackResponse] = await Promise.all([
         sessionService.getSessionById(sessionId),
         resourceService.getResourcesBySession(sessionId),
         attendanceService.getAttendance(sessionId),
         taskService.getTasks({ session: sessionId }),
+        feedbackService.getSessionStats(sessionId).catch(() => ({ data: { averageRating: 0, totalFeedbacks: 0 } })),
+        feedbackService.getFeedback({ session: sessionId }).catch(() => ({ data: [] })),
       ]);
 
       const currentSession = sessionResponse.data;
@@ -122,6 +131,8 @@ export const InstructorSessionsPage = () => {
       }, {});
       setAttendanceDraft({ ...existingDraft, ...savedDraft });
       setTasks(taskResponse.data || []);
+      setFeedbackStats(feedbackStatsResponse.data || { averageRating: 0, totalFeedbacks: 0 });
+      setFeedbacks((feedbackResponse.data || []).filter(f => f.session?._id === sessionId || f.session === sessionId));
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load session workspace.');
     } finally {
@@ -180,6 +191,7 @@ export const InstructorSessionsPage = () => {
 
   const saveDetails = async () => {
     setSaving(true);
+    setSavedDetails(false);
     try {
       const payload = {
         ...details,
@@ -192,8 +204,24 @@ export const InstructorSessionsPage = () => {
         location: response.data.location || 'Lab 1',
         meetingLink: response.data.meetingLink || '',
       });
+      setSavedDetails(true);
+      window.setTimeout(() => setSavedDetails(false), 3000);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const notifyStudents = async () => {
+    setNotifying(true);
+    try {
+      await sessionService.updateSession(session._id, { notifyStudents: true });
+      setToast({ type: 'success', message: 'Students notified successfully.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to notify students.' });
+      window.setTimeout(() => setToast(null), 3000);
+    } finally {
+      setNotifying(false);
     }
   };
 
@@ -210,12 +238,25 @@ export const InstructorSessionsPage = () => {
 
   const uploadResource = async (event) => {
     event.preventDefault();
-    if (!resourceForm.title) return;
-    if (resourceForm.type === 'file' && !resourceForm.file) return;
-    if (resourceForm.type === 'link' && !resourceForm.url) return;
+    
+    let finalTitle = resourceForm.title;
+    if (!finalTitle) {
+      finalTitle = resourceForm.type === 'link' ? 'Resource Link' : (resourceForm.file?.name || 'Resource File');
+    }
+
+    if (resourceForm.type === 'file' && !resourceForm.file) {
+      setToast({ type: 'error', message: 'Please select a file to upload.' });
+      window.setTimeout(() => setToast(null), 3000);
+      return;
+    }
+    if (resourceForm.type === 'link' && !resourceForm.url) {
+      setToast({ type: 'error', message: 'Please provide a valid link.' });
+      window.setTimeout(() => setToast(null), 3000);
+      return;
+    }
 
     const data = new FormData();
-    data.append('title', resourceForm.title);
+    data.append('title', finalTitle);
     data.append('description', resourceForm.description);
     if (resourceForm.type === 'file') data.append('file', resourceForm.file);
     if (resourceForm.type === 'link') data.append('external_url', resourceForm.url);
@@ -223,16 +264,21 @@ export const InstructorSessionsPage = () => {
     data.append('bootcamp_id', session.bootcamp?._id || session.bootcamp);
     data.append('visibility', 'bootcamp');
 
+    setUploading(true);
+    setUploaded(false);
     try {
       await resourceService.uploadResource(data);
       setResourceForm({ title: '', description: '', type: 'file', url: '', file: null });
       const response = await resourceService.getResourcesBySession(session._id);
       setResources(response.data || []);
+      setUploaded(true);
       setToast({ type: 'success', message: 'Resource uploaded successfully.' });
-      window.setTimeout(() => setToast(null), 3000);
+      window.setTimeout(() => { setToast(null); setUploaded(false); }, 3000);
     } catch (err) {
       setToast({ type: 'error', message: err?.response?.data?.message || 'Failed to upload resource.' });
       window.setTimeout(() => setToast(null), 3000);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -392,6 +438,7 @@ export const InstructorSessionsPage = () => {
     { id: 'resources', label: 'Resources', icon: FileUp },
     { id: 'attendance', label: 'Attendance', icon: QrCode },
     { id: 'tasks', label: 'Tasks', icon: ClipboardList },
+    { id: 'feedback', label: 'Feedback', icon: CheckCircle2 },
   ];
 
   return (
@@ -452,8 +499,13 @@ export const InstructorSessionsPage = () => {
                 <input value={details.meetingLink} onChange={(event) => setDetails((current) => ({ ...current, meetingLink: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none focus:border-portal-accent" placeholder="https://meet.google.com/..." />
               </div>
             )}
-            <button disabled={saving} onClick={saveDetails} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Details
+            <button disabled={saving} onClick={saveDetails} className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60 transition-colors">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : savedDetails ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+              {saving ? 'Saving...' : savedDetails ? 'Saved!' : 'Save Details'}
+            </button>
+            <button disabled={notifying} onClick={notifyStudents} className="w-full flex items-center justify-center gap-2 border border-portal-accent text-portal-accent px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent/10 disabled:opacity-60 transition-colors">
+              {notifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+              {notifying ? 'Notifying...' : 'Notify Students of Updates'}
             </button>
           </div>
         </div>
@@ -488,7 +540,10 @@ export const InstructorSessionsPage = () => {
             ) : (
               <input type="url" value={resourceForm.url} onChange={(event) => setResourceForm((current) => ({ ...current, url: event.target.value }))} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-sm text-portal-text outline-none" placeholder="https://notion.so/... or https://docs.google.com/..." />
             )}
-            <button className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm"><FileUp className="w-4 h-4" /> Upload</button>
+            <button disabled={uploading} type="submit" className="w-full flex items-center justify-center gap-2 bg-portal-accent text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-portal-accent-hover disabled:opacity-60 transition-colors">
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : uploaded ? <CheckCircle2 className="w-4 h-4" /> : <FileUp className="w-4 h-4" />}
+              {uploading ? 'Uploading...' : uploaded ? 'Uploaded!' : 'Upload Resource'}
+            </button>
           </form>
           <div className="space-y-3">
             {resources.length === 0 ? <EmptyState text="No resources uploaded for this session yet." /> : resources.map((resource) => (
@@ -594,6 +649,38 @@ export const InstructorSessionsPage = () => {
                 <h3 className="font-bold text-portal-text">{task.title}</h3>
                 <p className="text-sm text-portal-text-muted mt-1">{task.description}</p>
                 <p className="text-xs text-portal-text-muted mt-3">Deadline: {fmtDateTime(task.deadline || toDateTimeLocal(task.deadline))}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'feedback' && (
+        <section className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+          <div className="bg-portal-card border border-portal-border rounded-2xl p-6 h-fit">
+            <h2 className="text-lg font-black text-portal-text mb-4">Feedback Overview</h2>
+            <div className="space-y-6">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-portal-text-muted mb-1">Average Rating</p>
+                <div className="flex items-center gap-2 text-3xl font-extrabold text-portal-text">
+                  {(feedbackStats.averageRating || 0).toFixed(1)} <span className="text-portal-accent text-xl">★</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-portal-text-muted mb-1">Total Submissions</p>
+                <p className="text-2xl font-bold text-portal-text">{feedbackStats.totalFeedbacks || 0}</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {feedbacks.length === 0 ? <EmptyState text="No student feedback received yet." /> : feedbacks.map((f, i) => (
+              <div key={f._id || i} className="bg-portal-card border border-portal-border rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-portal-accent text-lg">{'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}</span>
+                  <span className="text-xs font-bold text-portal-text-muted px-2 py-0.5 rounded-full bg-portal-input border border-portal-border">Anonymous Student</span>
+                </div>
+                {f.comment && <p className="text-sm text-portal-text-muted mt-2">{f.comment}</p>}
+                <p className="text-[10px] font-black uppercase tracking-widest text-portal-text-muted mt-4">{fmtDateTime(f.createdAt)}</p>
               </div>
             ))}
           </div>

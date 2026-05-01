@@ -57,7 +57,11 @@ export const Navbar = () => {
       try {
         const response = await notificationService.getNotifications({ status: 'unread', limit: 100 });
         if (isMounted) {
-          setUnreadCount(response.data?.count || response.data?.data?.length || 0);
+          let notifs = response.data?.data || [];
+          if (user?.role === 'instructor') {
+            notifs = notifs.filter(n => n.type !== 'SESSION');
+          }
+          setUnreadCount(notifs.length);
         }
       } catch {
         if (isMounted) setUnreadCount(0);
