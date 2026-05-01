@@ -42,6 +42,8 @@ export const Sidebar = () => {
 
       if (user.role === 'admin') {
         adminItems.push({ id: 'admin-members', icon: Users, label: t('sidebar.members', 'Members'), path: '/admin/members' });
+        adminItems.push({ id: 'admin-instructors', icon: GraduationCap, label: t('sidebar.instructors', 'Instructors'), path: '/admin/instructors' });
+        adminItems.push({ id: 'admin-sessions', icon: Calendar, label: t('sidebar.sessions', 'Sessions'), path: '/admin/sessions' });
       }
 
       if (user.role === 'super_admin') {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { cn } from '../super-admin/lib/utils';
 import {
   Users,
   BookOpen,
@@ -69,36 +70,37 @@ export const AdminDashboard = () => {
 
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-10">
+    <div className="max-w-7xl mx-auto space-y-10 pb-10">
       <header>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="px-3 py-1 bg-portal-accent/10 border border-portal-accent/20 rounded-full text-[10px] font-bold text-portal-accent uppercase tracking-widest">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="px-4 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-[0.3em] backdrop-blur-md">
             Division Protocol
           </div>
         </div>
-        <h2 className="text-3xl font-bold mb-2 text-portal-text">
+        <h2 className="text-5xl font-black mb-2 text-portal-text tracking-tighter uppercase">
           {currentDivisionName} Command
         </h2>
-        <p className="text-portal-text-muted italic">Real-time status report for the {currentDivisionName} division.</p>
+        <p className="text-sm font-black text-portal-text-muted uppercase tracking-[0.2em]">Real-time status report for the {currentDivisionName} division.</p>
       </header>
 
       {/* Hero Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-portal-card border border-portal-border p-6 rounded-3xl shadow-xl group hover:border-portal-accent/30 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-3 rounded-2xl bg-white/5 ${stat.color}`}>
-                <stat.icon className="w-6 h-6" />
+          <div key={i} className="bg-portal-card border border-portal-border p-8 rounded-[2.5rem] shadow-2xl group hover:border-portal-accent/30 transition-all relative overflow-hidden">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className={cn("p-4 rounded-2xl bg-white/5", stat.color)}>
+                <stat.icon className="w-8 h-8" />
               </div>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-green-400 bg-green-400/10 px-2 py-1 rounded-lg">
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-green-400 bg-green-400/10 px-3 py-1.5 rounded-xl border border-green-400/20">
                 <ArrowUpRight className="w-3 h-3" />
                 {stat.change}
               </div>
             </div>
-            <h3 className="text-portal-text-muted text-[10px] font-bold uppercase tracking-widest mb-1">{stat.label}</h3>
-            <div className="text-3xl font-bold text-portal-text tracking-tight">
+            <h3 className="text-portal-text-muted text-[10px] font-black uppercase tracking-[0.2em] mb-2 relative z-10">{stat.label}</h3>
+            <div className="text-5xl font-black text-portal-text tracking-tighter relative z-10 group-hover:scale-110 transition-transform origin-left">
               {loading ? '...' : stat.value}
             </div>
+            <stat.icon className="absolute -right-6 -bottom-6 w-32 h-32 text-portal-text/[0.02] -rotate-12 group-hover:scale-110 transition-transform" />
           </div>
         ))}
       </div>

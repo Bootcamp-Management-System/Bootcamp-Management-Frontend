@@ -7,6 +7,7 @@ import {
   Trash2, 
   Mail, 
   Layers,
+  ArrowRight
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -259,21 +260,21 @@ export const AdminMembersPage = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-10">
+    <div className="max-w-7xl mx-auto space-y-10 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-portal-text flex items-center gap-3">
-            Member Directory
-            <span className="text-[10px] bg-portal-accent/10 text-portal-accent px-2 py-0.5 rounded-full uppercase tracking-tighter border border-portal-accent/20">Live Data</span>
-          </h2>
-          <p className="text-portal-text-muted">Manage user roles, division assignments, and access control.</p>
+          <div className="flex items-center gap-4 mb-2">
+            <h2 className="text-4xl font-black text-portal-text tracking-tight uppercase">Member Directory</h2>
+            <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md">Live Data</span>
+          </div>
+          <p className="text-sm font-black text-portal-text-muted uppercase tracking-[0.2em]">Manage user roles, division assignments, and access control.</p>
         </div>
         <button 
           onClick={() => {
             setSelectedMember(null);
             setIsModalOpen(true);
           }}
-          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all active:scale-95"
+          className="bg-white text-black px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95 transition-all"
         >
           <UserPlus className="w-5 h-5" />
           Add New Member
@@ -281,88 +282,111 @@ export const AdminMembersPage = () => {
       </header>
 
       {isLoadingUsers ? (
-        <div className="text-xs text-portal-text-muted">Loading students...</div>
-      ) : null}
-      {loadError ? (
-        <div className="text-xs text-red-400">{loadError}</div>
+        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-portal-text-muted">
+          <div className="w-4 h-4 border-2 border-portal-accent border-t-transparent rounded-full animate-spin" />
+          Synchronizing records...
+        </div>
       ) : null}
 
-      <DataTable 
-        columns={columns} 
-        data={members} 
-        actions={actions}
-        searchPlaceholder="Search members by name, email or ID..."
-        defaultQuery={initialSearch}
-      />
+      {loadError ? (
+        <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-[10px] font-black uppercase tracking-widest text-red-500">
+          Load Protocol Failed: {loadError}
+        </div>
+      ) : null}
+
+      <div className="bg-portal-card border border-portal-border rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+        <DataTable 
+          columns={columns} 
+          data={members} 
+          actions={actions}
+          searchPlaceholder="Search members by name, email or ID.."
+          defaultQuery={initialSearch}
+        />
+        <Layers className="absolute -right-10 -bottom-10 w-64 h-64 text-portal-accent/[0.03] -rotate-12 pointer-events-none" />
+      </div>
 
       <AdminModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         title={selectedMember ? 'Edit Member Assignment' : 'Add New Student'}
       >
-        <form className="space-y-6" onSubmit={handleCreateUser}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Full Name</label>
-              <input type="text" defaultValue={selectedMember?.name} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" />
+        <form className="space-y-10 py-4" onSubmit={handleCreateUser}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Full Name</label>
+              <input type="text" defaultValue={selectedMember?.name} className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all" />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Email Address</label>
-              <input name="email" type="email" defaultValue={selectedMember?.email} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" />
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Email Address</label>
+              <input name="email" type="email" defaultValue={selectedMember?.email} className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all" />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Student ID No</label>
-              <input type="text" defaultValue={selectedMember?.idNo} className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors" />
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Student ID No</label>
+              <input type="text" defaultValue={selectedMember?.idNo} className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all" />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1">Current Status</label>
-              <select className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none">
-                <option>Active</option>
-                <option>Pending</option>
-                <option>Suspended</option>
-              </select>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Current Status</label>
+              <div className="relative group">
+                <select className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all appearance-none cursor-pointer">
+                  <option>Active</option>
+                  <option>Pending</option>
+                  <option>Suspended</option>
+                </select>
+                <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted rotate-90" />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <label className="text-sm font-bold text-portal-text-muted uppercase tracking-widest pl-1 flex items-center gap-2">
+          <div className="space-y-6">
+            <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1 flex items-center gap-3">
               <Layers className="w-4 h-4 text-portal-accent" />
-              Role & Division
+              Orchestration Details
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted">User Role</label>
-                <select name="role" className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none" defaultValue={selectedMember?.role === 'instructor' ? 'instructor' : 'student'}>
-                  <option value="student">Student</option>
-                  <option value="instructor">Instructor</option>
-                </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="space-y-3">
+                <label className="text-[9px] font-black text-portal-text-muted uppercase tracking-widest">System Role</label>
+                <div className="relative group">
+                  <select name="role" className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all appearance-none cursor-pointer" defaultValue={selectedMember?.role === 'instructor' ? 'instructor' : 'student'}>
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                  </select>
+                  <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted rotate-90" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-portal-text-muted">Target Division</label>
-                  <div className="bg-portal-input/30 border border-portal-border rounded-xl px-4 py-3 text-portal-text-muted cursor-not-allowed uppercase text-[10px] font-bold tracking-widest">
+              <div className="space-y-3">
+                  <label className="text-[9px] font-black text-portal-text-muted uppercase tracking-widest">Division Access</label>
+                  <div className="bg-portal-bg/50 border border-portal-border rounded-2xl px-6 py-4 text-xs font-black text-portal-accent uppercase tracking-widest shadow-inner">
                     {adminDivisionName}
                   </div>
-                </div></div>
+              </div>
             </div>
           </div>
 
           {createdCredentials?.tempPassword ? (
-            <div className="bg-portal-accent/10 border border-portal-accent/30 rounded-xl px-4 py-3 text-xs text-portal-text-muted">
-              Temporary password for <span className="font-bold text-portal-text">{createdCredentials.email}</span>: <span className="font-mono text-portal-accent">{createdCredentials.tempPassword}</span>
+            <div className="bg-portal-accent/5 border border-portal-accent/20 rounded-2xl px-6 py-5">
+              <p className="text-[9px] font-black text-portal-text-muted uppercase tracking-[0.2em] mb-2">Access Credentials</p>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-xs font-bold text-portal-text">{createdCredentials.email}</span>
+                <span className="text-xs font-mono bg-portal-accent text-portal-bg px-4 py-1.5 rounded-lg font-black">{createdCredentials.tempPassword}</span>
+              </div>
             </div>
           ) : null}
 
           {formError ? (
-            <div className="text-xs font-bold text-red-400">
-              {formError}
+            <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-[10px] font-black uppercase tracking-widest text-red-500">
+              Protocol Error: {formError}
             </div>
           ) : null}
 
-          <div className="flex justify-end pt-6 gap-4">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 rounded-xl font-bold text-portal-text-muted hover:text-portal-text transition-colors">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="bg-portal-accent text-portal-bg px-10 py-3 rounded-xl font-bold shadow-lg shadow-portal-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60">
-              {selectedMember ? 'Update Student' : 'Create Student'}
+          <div className="flex items-center justify-between pt-10 border-t border-portal-border">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 text-[10px] font-black uppercase tracking-[0.3em] text-portal-text-muted hover:text-portal-text transition-colors">Abort</button>
+            <button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-white/10 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-3"
+            >
+              {selectedMember ? 'Update Node' : 'Create Access Node'}
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </form>

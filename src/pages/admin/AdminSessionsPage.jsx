@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
+import { cn } from '../super-admin/lib/utils';
 import {
   Plus,
   Edit2,
@@ -413,12 +414,12 @@ export const AdminSessionsPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 text-portal-text">Sessions</h2>
-          <p className="text-portal-text-muted">Manage and schedule {currentDivisionName} bootcamp sessions.</p>
+          <h2 className="text-4xl font-black mb-2 text-portal-text tracking-tight uppercase">Sessions</h2>
+          <p className="text-sm font-black text-portal-text-muted uppercase tracking-[0.2em]">Manage and schedule {currentDivisionName} bootcamp sessions.</p>
         </div>
         <button
           onClick={() => { setSelectedSession(null); setIsModalOpen(true); }}
-          className="bg-portal-accent text-portal-bg px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg hover:shadow-portal-accent/30 transition-all hover:scale-105 active:scale-95"
+          className="bg-white text-black px-10 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95 transition-all"
         >
           <Plus className="w-5 h-5" />
           Schedule Session
@@ -426,19 +427,20 @@ export const AdminSessionsPage = () => {
       </header>
 
       {conflictWarnings.length > 0 && (
-        <section className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-5 text-amber-200">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 mt-0.5 text-amber-300 shrink-0" />
+        <section className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
+          <div className="flex items-start gap-4">
+            <AlertTriangle className="w-5 h-5 mt-0.5 text-red-500 shrink-0" />
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-black text-portal-text">Schedule Conflict Detected</h3>
-                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                  Auto Check
-                </span>
+              <div className="flex items-center gap-3">
+                <h3 className="font-black text-xs uppercase tracking-widest text-portal-text">Conflict Warnings Detected</h3>
+                <span className="px-2 py-0.5 rounded-md bg-red-500/10 border border-red-500/20 text-[9px] font-black uppercase text-red-500">System Alert</span>
               </div>
-              <div className="mt-2 space-y-1 text-sm text-portal-text-muted">
+              <div className="mt-3 space-y-1 text-xs font-bold text-portal-text-muted">
                 {conflictWarnings.slice(0, 3).map((warning) => (
-                  <p key={warning.id}>{warning.message}</p>
+                  <p key={warning.id} className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-red-500/50" />
+                    {warning.message}
+                  </p>
                 ))}
               </div>
             </div>
@@ -446,54 +448,58 @@ export const AdminSessionsPage = () => {
         </section>
       )}
 
-      <div className="inline-flex rounded-2xl bg-portal-input border border-portal-border p-1">
-        <button
-          type="button"
-          onClick={() => setViewMode('list')}
-          className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-            viewMode === 'list' ? 'bg-portal-card text-portal-text shadow-lg' : 'text-portal-text-muted hover:text-portal-text'
-          }`}
-        >
-          <List className="w-4 h-4" />
-          List View
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode('weekly')}
-          className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-            viewMode === 'weekly' ? 'bg-portal-card text-portal-text shadow-lg' : 'text-portal-text-muted hover:text-portal-text'
-          }`}
-        >
-          <CalendarDays className="w-4 h-4" />
-          Weekly Calendar
-        </button>
+      <div className="flex items-center gap-4">
+        <div className="inline-flex rounded-2xl bg-portal-card border border-portal-border p-1.5">
+          <button
+            type="button"
+            onClick={() => setViewMode('list')}
+            className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              viewMode === 'list' ? 'bg-portal-accent/10 text-portal-accent shadow-sm' : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/5'
+            }`}
+          >
+            <List className="w-4 h-4" />
+            List View
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('weekly')}
+            className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              viewMode === 'weekly' ? 'bg-portal-accent/10 text-portal-accent shadow-sm' : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/5'
+            }`}
+          >
+            <CalendarDays className="w-4 h-4" />
+            Weekly Calendar
+          </button>
+        </div>
       </div>
 
       {viewMode === 'list' ? (
-        <DataTable
-          columns={columns}
-          data={sessions}
-          actions={actions}
-          searchPlaceholder="Filter sessions by name or instructor..."
-        />
+        <div className="bg-portal-card border border-portal-border rounded-3xl overflow-hidden shadow-xl">
+          <DataTable
+            columns={columns}
+            data={sessions}
+            actions={actions}
+            searchPlaceholder="Filter sessions by name or instructor..."
+          />
+        </div>
       ) : (
-        <section className="bg-portal-card border border-portal-border rounded-3xl p-6 shadow-xl">
-          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
+        <section className="bg-portal-card border border-portal-border rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8 mb-10 relative z-10">
             <div>
-              <h3 className="text-lg font-black text-portal-text">
+              <h3 className="text-xl font-black text-portal-text uppercase tracking-tight">
                 {calendarRange === 'monthly' ? 'Monthly Schedule' : 'Weekly Schedule'}
               </h3>
-              <p className="text-sm text-portal-text-muted">
+              <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.2em] mt-1">
                 {calendarRange === 'monthly' ? 'Stored sessions grouped by month' : 'Monday - Friday session calendar'}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="inline-flex rounded-xl bg-portal-input border border-portal-border p-1">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="inline-flex rounded-xl bg-portal-bg border border-portal-border p-1">
                 <button
                   type="button"
                   onClick={() => setCalendarRange('weekly')}
-                  className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
-                    calendarRange === 'weekly' ? 'bg-portal-card text-portal-accent' : 'text-portal-text-muted hover:text-portal-text'
+                  className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                    calendarRange === 'weekly' ? 'bg-portal-card text-portal-accent shadow-sm' : 'text-portal-text-muted hover:text-portal-text'
                   }`}
                 >
                   Weekly
@@ -501,8 +507,8 @@ export const AdminSessionsPage = () => {
                 <button
                   type="button"
                   onClick={() => setCalendarRange('monthly')}
-                  className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
-                    calendarRange === 'monthly' ? 'bg-portal-card text-portal-accent' : 'text-portal-text-muted hover:text-portal-text'
+                  className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                    calendarRange === 'monthly' ? 'bg-portal-card text-portal-accent shadow-sm' : 'text-portal-text-muted hover:text-portal-text'
                   }`}
                 >
                   Monthly
@@ -515,103 +521,120 @@ export const AdminSessionsPage = () => {
                   setSelectedMonth(event.target.value);
                   setSelectedWeek('all');
                 }}
-                className="bg-portal-input border border-portal-border rounded-xl px-4 py-2 text-sm text-portal-text outline-none focus:border-portal-accent"
+                className="bg-portal-bg border border-portal-border rounded-xl px-4 py-2.5 text-xs font-bold text-portal-text outline-none focus:border-portal-accent transition-colors"
               />
-              <select
-                value={selectedWeek}
-                onChange={(event) => setSelectedWeek(event.target.value)}
-                className="bg-portal-input border border-portal-border rounded-xl px-4 py-2 text-sm text-portal-text outline-none focus:border-portal-accent"
-              >
-                <option value="all">All weeks</option>
-                {weekOptions.map((week) => (
-                  <option key={week.value} value={week.value}>{week.label}</option>
-                ))}
-              </select>
+              <div className="relative group">
+                <select
+                  value={selectedWeek}
+                  onChange={(event) => setSelectedWeek(event.target.value)}
+                  className="bg-portal-bg border border-portal-border rounded-xl pl-4 pr-10 py-2.5 text-[10px] font-black uppercase tracking-widest text-portal-text outline-none focus:border-portal-accent transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="all">All weeks</option>
+                  {weekOptions.map((week) => (
+                    <option key={week.value} value={week.value}>{week.label}</option>
+                  ))}
+                </select>
+                <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-portal-text-muted rotate-90 group-hover:text-portal-accent transition-colors" />
+              </div>
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="rounded-2xl bg-portal-input/50 border border-portal-border p-4">
-              <p className="text-2xl font-black text-portal-text">{calendarSessions.length}</p>
-              <p className="text-xs text-portal-text-muted font-bold">Stored sessions in view</p>
-            </div>
-            <div className="rounded-2xl bg-portal-input/50 border border-portal-border p-4">
-              <p className="text-2xl font-black text-portal-text">{sessionsInSelectedMonth.length}</p>
-              <p className="text-xs text-portal-text-muted font-bold">Sessions this month</p>
-            </div>
-            <div className="rounded-2xl bg-portal-input/50 border border-portal-border p-4">
-              <p className="text-2xl font-black text-portal-text">{conflictWarnings.length}</p>
-              <p className="text-xs text-portal-text-muted font-bold">Conflict warnings</p>
-            </div>
-          </div>
-
-          {calendarRange === 'weekly' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            {weekDays.map((day) => (
-              <div key={day.sublabel} className="min-h-[280px] rounded-2xl border border-portal-border bg-portal-input/30 p-4">
-                <div className="text-center border-b border-portal-border pb-3 mb-4">
-                  <h4 className="text-sm font-black text-portal-text">{day.label}</h4>
-                  <p className="text-xs text-portal-text-muted mt-1">{day.sublabel}</p>
-                </div>
-
-                {day.sessions.length === 0 ? (
-                  <div className="h-36 flex items-center justify-center rounded-xl border border-dashed border-portal-border text-xs text-portal-text-muted">
-                    No sessions
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {day.sessions.map((session) => (
-                      <button
-                        key={session._id}
-                        type="button"
-                        onClick={() => { setSelectedSession(session); setIsModalOpen(true); }}
-                        className={`w-full text-left rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:border-portal-accent ${getSessionTone(session)}`}
-                      >
-                        <p className="text-[11px] font-black text-portal-text-muted">
-                          {formatTime(session.startTime)} - {formatTime(session.endTime)}
-                        </p>
-                        <h4 className="mt-2 text-sm font-black text-portal-text line-clamp-2">{session.title}</h4>
-                        <p className="mt-1 text-xs text-portal-text-muted line-clamp-1">{session.instructor?.name || 'Unassigned'}</p>
-                        <p className="mt-3 flex items-center gap-1 text-[11px] text-portal-text-muted">
-                          <MapPin className="w-3 h-3" />
-                          {session.location || 'Location not set'}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                )}
+          <div className="mb-10 grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
+            {[
+              { label: 'Stored sessions in view', value: calendarSessions.length },
+              { label: 'Sessions this month', value: sessionsInSelectedMonth.length },
+              { label: 'Conflict warnings', value: conflictWarnings.length, color: conflictWarnings.length > 0 ? 'text-red-500' : 'text-portal-text' }
+            ].map((stat, i) => (
+              <div key={i} className="rounded-3xl bg-portal-bg/50 border border-portal-border p-8 hover:border-portal-accent/30 transition-all group">
+                <p className={cn("text-4xl font-black mb-2 group-hover:scale-110 transition-transform origin-left", stat.color || 'text-portal-text')}>{stat.value}</p>
+                <p className="text-[10px] text-portal-text-muted font-black uppercase tracking-[0.2em]">{stat.label}</p>
               </div>
             ))}
           </div>
+
+          {calendarRange === 'weekly' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 relative z-10">
+              {weekDays.map((day) => (
+                <div key={day.sublabel} className="flex flex-col gap-4">
+                  <div className="text-center bg-portal-bg border border-portal-border rounded-2xl p-4 shadow-sm">
+                    <h4 className="text-xs font-black text-portal-text uppercase tracking-widest">{day.label}</h4>
+                    <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-tighter mt-1">{day.sublabel}</p>
+                  </div>
+
+                  <div className="flex-1 min-h-[400px] rounded-[2rem] border border-portal-border bg-portal-bg/20 p-4 space-y-4">
+                    {day.sessions.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-portal-border/50 text-[10px] font-black uppercase tracking-widest text-portal-text-muted group">
+                        <Calendar className="w-8 h-8 mb-4 opacity-5 group-hover:opacity-10 transition-opacity" />
+                        No sessions
+                      </div>
+                    ) : (
+                      day.sessions.map((session) => (
+                        <button
+                          key={session._id}
+                          type="button"
+                          onClick={() => { setSelectedSession(session); setIsModalOpen(true); }}
+                          className={cn(
+                            "w-full text-left rounded-[1.5rem] border p-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-portal-accent group",
+                            getSessionTone(session)
+                          )}
+                        >
+                          <div className="flex items-center gap-2 mb-4">
+                            <Clock className="w-3 h-3 opacity-50" />
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                              {formatTime(session.startTime)} - {formatTime(session.endTime)}
+                            </p>
+                          </div>
+                          <h4 className="text-sm font-black text-portal-text line-clamp-2 leading-snug group-hover:text-portal-accent transition-colors">
+                            {session.title}
+                          </h4>
+                          <div className="mt-4 pt-4 border-t border-current/10 space-y-2">
+                            <div className="flex items-center gap-2 text-[10px] font-bold opacity-70">
+                              <User className="w-3 h-3" />
+                              {session.instructor?.name || 'Unassigned'}
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] font-bold opacity-70">
+                              <MapPin className="w-3 h-3" />
+                              {session.location || 'Location not set'}
+                            </div>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-4 relative z-10">
               {monthDays.map((day) => (
-                <div key={day.dayNumber} className="min-h-[170px] rounded-2xl border border-portal-border bg-portal-input/30 p-3">
-                  <div className="flex items-center justify-between border-b border-portal-border pb-2 mb-3">
+                <div key={day.dayNumber} className="min-h-[220px] rounded-3xl border border-portal-border bg-portal-bg/30 p-5 hover:border-portal-accent/30 transition-all">
+                  <div className="flex items-center justify-between border-b border-portal-border pb-4 mb-4">
                     <div>
-                      <p className="text-xs font-bold text-portal-text-muted">{day.label}</p>
-                      <h4 className="text-lg font-black text-portal-text">{day.dayNumber}</h4>
+                      <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest">{day.label}</p>
+                      <h4 className="text-2xl font-black text-portal-text">{day.dayNumber}</h4>
                     </div>
-                    <span className="rounded-full bg-portal-card border border-portal-border px-2 py-1 text-[10px] font-bold text-portal-text-muted">
+                    <span className="rounded-xl bg-portal-card border border-portal-border px-3 py-1 text-[9px] font-black text-portal-text-muted uppercase tracking-tighter">
                       W{getWeekOfMonth(day.date)}
                     </span>
                   </div>
                   {day.sessions.length === 0 ? (
-                    <p className="text-xs text-portal-text-muted">No sessions</p>
+                    <p className="text-[10px] font-black text-portal-text-muted uppercase tracking-widest mt-4">No sessions</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {day.sessions.map((session) => (
                         <button
                           key={session._id}
                           type="button"
                           onClick={() => { setSelectedSession(session); setIsModalOpen(true); }}
-                          className={`w-full text-left rounded-xl border p-3 transition-all hover:border-portal-accent ${getSessionTone(session)}`}
+                          className={cn(
+                            "w-full text-left rounded-xl border p-3 transition-all hover:border-portal-accent",
+                            getSessionTone(session)
+                          )}
                         >
-                          <p className="text-[10px] font-black text-portal-text-muted">
-                            {formatTime(session.startTime)} - {formatTime(session.endTime)}
+                          <p className="text-[9px] font-black opacity-80 uppercase">
+                            {formatTime(session.startTime)}
                           </p>
-                          <h4 className="mt-1 text-xs font-black text-portal-text line-clamp-2">{session.title}</h4>
-                          <p className="mt-1 text-[10px] text-portal-text-muted line-clamp-1">{session.instructor?.name || 'Unassigned'}</p>
+                          <h4 className="mt-1 text-[11px] font-black text-portal-text line-clamp-1">{session.title}</h4>
                         </button>
                       ))}
                     </div>
@@ -620,6 +643,8 @@ export const AdminSessionsPage = () => {
               ))}
             </div>
           )}
+          
+          <Layers className="absolute -right-20 -bottom-20 w-[40rem] h-[40rem] text-portal-accent/[0.02] -rotate-12 pointer-events-none" />
         </section>
       )}
 
@@ -628,30 +653,31 @@ export const AdminSessionsPage = () => {
         onClose={() => setIsModalOpen(false)}
         title={selectedSession ? 'Edit Resource Node' : 'Broadcast New Session'}
       >
-        <form className="space-y-8" onSubmit={handleSubmit}>
+        <form className="space-y-10 py-4" onSubmit={handleSubmit}>
           {formError && (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm font-semibold text-red-400">
-              {formError}
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-6 py-4 text-xs font-black uppercase tracking-widest text-red-500">
+              Error Protocol: {formError}
             </div>
           )}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Session Title</label>
+          
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Session Title</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g. Masterclass: Node Systems"
-                className="w-full bg-portal-input border border-portal-border rounded-2xl px-5 py-4 text-portal-text outline-none focus:border-portal-accent transition-all"
+                className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Target Bootcamp</label>
-              <div className="relative">
-                <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent z-10" />
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Target Bootcamp</label>
+              <div className="relative group">
+                <Layers className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent z-10 transition-transform group-focus-within:scale-110" />
                 <select
-                  className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text outline-none focus:border-portal-accent appearance-none"
+                  className="w-full bg-portal-bg border border-portal-border rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card appearance-none cursor-pointer"
                   value={formData.bootcamp}
                   onChange={(e) => setFormData({ ...formData, bootcamp: e.target.value })}
                   required
@@ -661,80 +687,95 @@ export const AdminSessionsPage = () => {
                     <option key={bc._id} value={bc._id}>{bc.name}</option>
                   ))}
                 </select>
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-portal-text-muted group-focus-within:text-portal-accent">
+                  <ArrowRight className="w-4 h-4 rotate-90" />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Instructor Node</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent z-10" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Instructor Node</label>
+                <div className="relative group">
+                  <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent z-10" />
                   <select
-                    className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text outline-none focus:border-portal-accent appearance-none"
+                    className="w-full bg-portal-bg border border-portal-border rounded-2xl pl-14 pr-10 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card appearance-none cursor-pointer"
                     value={formData.instructor}
                     onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
                   >
                     <option value="" disabled>Select Instructor</option>
                     {availableInstructors.map(instructor => (
                       <option key={instructor._id} value={instructor._id}>
-                        {instructor.name} ({instructor.email}) - {instructor.campusId || 'No ID'}
+                        {instructor.name}
                       </option>
                     ))}
                   </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-portal-text-muted">
+                    <ArrowRight className="w-4 h-4 rotate-90" />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Location</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Location</label>
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent" />
+                  <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-accent" />
                   <input
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="e.g. Room 101, Online"
-                    className="w-full bg-portal-input border border-portal-border rounded-xl pl-12 pr-4 py-3 text-portal-text outline-none focus:border-portal-accent"
+                    className="w-full bg-portal-bg border border-portal-border rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all"
                   />
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Execution Date</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Execution Date</label>
                 <input
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent text-sm"
+                  className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all"
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">Start Time</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">Start Time</label>
                 <input
                   type="time"
                   value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent text-sm"
+                  className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all"
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-portal-text-muted uppercase tracking-widest">End Time</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-portal-text-muted uppercase tracking-[0.3em] pl-1">End Time</label>
                 <input
                   type="time"
                   value={formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  className="w-full bg-portal-input border border-portal-border rounded-xl px-4 py-3 text-portal-text outline-none focus:border-portal-accent text-sm"
+                  className="w-full bg-portal-bg border border-portal-border rounded-2xl px-6 py-4 text-sm font-bold text-portal-text outline-none focus:border-portal-accent focus:bg-portal-card transition-all"
                   required
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 gap-4">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 font-bold text-portal-text-muted hover:text-portal-text transition-colors">Abort</button>
-            <button type="submit" className="bg-portal-accent text-portal-bg px-12 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-portal-accent/20 hover:bg-portal-accent-hover transition-all flex items-center gap-3 group">
+          <div className="flex items-center justify-between pt-10 border-t border-portal-border">
+            <button 
+              type="button" 
+              onClick={() => setIsModalOpen(false)} 
+              className="px-8 py-3 text-[10px] font-black uppercase tracking-[0.3em] text-portal-text-muted hover:text-red-500 transition-colors"
+            >
+              Abort
+            </button>
+            <button 
+              type="submit" 
+              className="bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-white/10 hover:scale-105 active:scale-95 transition-all flex items-center gap-4 group"
+            >
               {selectedSession ? 'Commit Changes' : 'Broadcast Node'}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
