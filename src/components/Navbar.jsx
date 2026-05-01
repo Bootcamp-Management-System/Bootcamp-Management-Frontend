@@ -79,47 +79,34 @@ const LanguageSwitcher = () => {
 };
 
 export const Navbar = () => {
-  const { user, selectedDivision, setGlobalDivision, logout, switchRole } = useAuth();
+  const { user, logout, switchRole } = useAuth();
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [, setDivisionOptions] = React.useState(['All']);
-  const divisionLabelMap = {
-    Development: 'Development',
-    Cyber: 'Cyber Security',
-    DataScience: 'Data Science',
-    CPD: 'CP (Competitive Programming)',
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchScope, setSearchScope] = useState('STUDENTS'); // Default scope
+  
+  const searchScopes = [
+    { id: 'BOOTCAMPS', label: t('nav.search_bootcamps', 'Bootcamps'), path: '/admin/recruitment' },
+    { id: 'DIVISIONS', label: t('nav.search_divisions', 'Divisions'), path: '/super-admin/divisions' },
+    { id: 'MEMBERS', label: t('nav.search_members', 'Members'), path: '/admin/members' },
+    { id: 'STUDENTS', label: t('nav.search_students', 'Students'), path: '/super-admin/users' },
+  ];
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      const scope = searchScopes.find(s => s.id === searchScope);
+      if (scope) {
+        navigate(`${scope.path}?search=${encodeURIComponent(searchQuery.trim())}`);
+      }
+    }
   };
-  const divisionButtons = ['All', 'Development', 'Cyber', 'DataScience', 'CPD'];
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'default' : 'light');
   };
-
-  React.useEffect(() => {
-    const loadDivisions = async () => {
-      try {
-        const response = await divisionService.getDivisions();
-        const divisionData = response?.data || response?.data?.data || [];
-        const names = Array.isArray(divisionData)
-          ? divisionData.map((division) => division.name).filter(Boolean)
-          : [];
-        setDivisionOptions(['All', ...names]);
-
-        if (selectedDivision && !names.includes(selectedDivision) && selectedDivision !== 'All') {
-          setGlobalDivision('All');
-        }
-      } catch {
-        setDivisionOptions(['All']);
-      }
-    };
-
-    if (user?.role === 'super_admin') {
-      loadDivisions();
-    }
-  }, [user?.role, selectedDivision, setGlobalDivision]);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -162,31 +149,34 @@ export const Navbar = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-portal-text-muted" />
           <input 
             type="text" 
-            placeholder={t('nav.search', 'Search...')}
+            placeholder={t('nav.search_placeholder', `Search ${searchScope.toLowerCase()}...`)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
             className="w-full bg-portal-input border border-portal-border rounded-xl py-2 pl-11 pr-4 text-xs text-portal-text focus:outline-none focus:border-portal-accent transition-colors"
           />
         </div>
 
         {user?.role === 'super_admin' && (
           <div className="flex items-center gap-2 bg-portal-card border border-portal-border p-1 rounded-xl">
-            {divisionButtons.map((div) => {
-              const value = div === 'All' ? 'All' : (divisionLabelMap[div] || div);
-              const isActive = selectedDivision === value || (div === 'All' && selectedDivision === 'All');
+            {searchScopes.map((scope) => {
+              const isActive = searchScope === scope.id;
               return (
-              <button
-                key={div}
-                onClick={() => setGlobalDivision(value)}
-                className={`
-                  px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all
-                  ${isActive 
-                    ? 'bg-portal-accent text-portal-bg shadow-lg shadow-portal-accent/20' 
-                    : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-text/5'
-                  }
-                `}
-              >
-                {div === 'All' ? 'Global' : div}
-              </button>
-            );})}
+                <button
+                  key={scope.id}
+                  onClick={() => setSearchScope(scope.id)}
+                  className={`
+                    px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all
+                    ${isActive 
+                      ? 'bg-portal-accent text-white shadow-lg shadow-portal-accent/20' 
+                      : 'text-portal-text-muted hover:text-portal-text hover:bg-portal-text/5'
+                    }
+                  `}
+                >
+                  {scope.label}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -196,7 +186,7 @@ export const Navbar = () => {
         <button
           onClick={toggleTheme}
           className="p-2 text-portal-text-muted hover:text-portal-text hover:bg-portal-accent/10 rounded-lg transition-all focus:outline-none"
-          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          title={theme === 'light' ? t('nav.switch_dark', 'Switch to dark mode') : t('nav.switch_light', 'Switch to light mode')}
         >
           {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
         </button>
@@ -226,7 +216,7 @@ export const Navbar = () => {
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold leading-none text-portal-text group-hover:text-portal-accent transition-colors">{user?.name || 'User'}</p>
               <p className="text-[10px] text-portal-accent mt-1 uppercase font-black tracking-wider leading-none">
-                {user?.is_Member ? 'Member' : user?.role === 'member' ? 'Student' : user?.role}
+                {user?.is_Member ? t('roles.member', 'Member') : user?.role === 'member' ? t('roles.student', 'Student') : user?.role}
               </p>
             </div>
             <div className="w-10 h-10 rounded-full bg-portal-accent flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-portal-accent/20 border border-white/10 uppercase ring-2 ring-transparent group-hover:ring-portal-accent/30 transition-all">
@@ -266,26 +256,31 @@ export const Navbar = () => {
                     {/* Role Switcher */}
                     {['super_admin', 'admin', 'instructor'].includes(user?.originalRole || user?.role) && (
                       <div className="pt-2 mt-2 border-t border-portal-border/50">
-                        <p className="px-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-1">View Portal As</p>
+                        <p className="px-4 text-[10px] font-black text-portal-text-muted uppercase tracking-widest mb-1">{t('nav.view_as', 'View Portal As')}</p>
                         {['super_admin', 'admin'].includes(user?.originalRole || user?.role) && (
                           <button 
-                            onClick={() => { switchRole('admin'); navigate('/admin/dashboard'); setShowProfileDropdown(false); }}
+                            onClick={() => { 
+                              const targetRole = (user?.originalRole || user?.role) === 'super_admin' ? 'super_admin' : 'admin';
+                              switchRole(targetRole); 
+                              navigate(targetRole === 'super_admin' ? '/super-admin/dashboard' : '/admin/dashboard'); 
+                              setShowProfileDropdown(false); 
+                            }}
                             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left ${user?.role === 'admin' || user?.role === 'super_admin' ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text hover:bg-portal-text/5'}`}
                           >
-                            <RefreshCw className="w-4 h-4" /> Admin
+                            <RefreshCw className="w-4 h-4" /> {(user?.originalRole || user?.role) === 'super_admin' ? 'Super_Admin' : 'Admin'}
                           </button>
                         )}
                         <button 
                           onClick={() => { switchRole('instructor'); navigate('/instructor'); setShowProfileDropdown(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left ${user?.role === 'instructor' ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text hover:bg-portal-text/5'}`}
                         >
-                          <RefreshCw className="w-4 h-4" /> Instructor
+                          <RefreshCw className="w-4 h-4" /> {t('roles.instructor', 'Instructor')}
                         </button>
                         <button 
                           onClick={() => { switchRole('student'); navigate('/dashboard'); setShowProfileDropdown(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-left ${user?.role === 'student' || user?.role === 'member' ? 'bg-portal-accent/10 text-portal-accent' : 'text-portal-text hover:bg-portal-text/5'}`}
                         >
-                          <RefreshCw className="w-4 h-4" /> Student
+                          <RefreshCw className="w-4 h-4" /> {t('roles.student', 'Student')}
                         </button>
                       </div>
                     )}

@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  Outlet,
 } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -417,7 +418,9 @@ export default function App() {
                 path="/super-admin"
                 element={
                   <ProtectedRoute allowedRoles={["super_admin", "super-admin"]}>
-                    <SuperAdminRoot />
+                    <Layout>
+                      <Outlet />
+                    </Layout>
                   </ProtectedRoute>
                 }
               >

@@ -19,7 +19,9 @@ import {
   Briefcase,
   Eye,
   EyeOff,
-  ArrowLeft
+  ArrowLeft,
+  Code,
+  X
 } from 'lucide-react';
 import { DivisionSelector } from '../components/Profile/DivisionContext';
 import { useDivision } from '../context/DivisionContext';
@@ -67,7 +69,9 @@ export const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     bio: user?.bio || '',
+    skills: user?.skills || [],
   });
+  const [skillInput, setSkillInput] = useState('');
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -94,6 +98,22 @@ export const ProfilePage = () => {
     } catch (err) {
       showNotification('Failed to update profile.', 'error');
     }
+  };
+
+  const handleAddSkill = (e) => {
+    if (e.key === 'Enter' || e.type === 'click') {
+      e.preventDefault();
+      const val = skillInput.trim();
+      if (val && !formData.skills.includes(val)) {
+        setFormData({ ...formData, skills: [...formData.skills, val] });
+        setSkillInput('');
+      }
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    if (!isEditing) return;
+    setFormData({ ...formData, skills: formData.skills.filter(s => s !== skillToRemove) });
   };
 
   const handleChangePassword = async (e) => {
@@ -300,6 +320,48 @@ export const ProfilePage = () => {
                         }`}
                         placeholder="Tell us about yourself..."
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-portal-text-muted flex items-center gap-2">
+                        <Code className="w-4 h-4" /> Technical Skills
+                      </label>
+                      <div className={`p-4 rounded-2xl border transition-all ${isEditing ? 'border-portal-accent ring-2 ring-portal-accent/20 bg-portal-input' : 'border-portal-border bg-portal-input opacity-70'}`}>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {formData.skills.map(skill => (
+                            <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-portal-accent/10 text-portal-accent border border-portal-accent/20">
+                              {skill}
+                              {isEditing && (
+                                <button type="button" onClick={() => handleRemoveSkill(skill)} className="hover:text-red-400 transition-colors">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </span>
+                          ))}
+                          {formData.skills.length === 0 && !isEditing && (
+                            <span className="text-xs text-portal-text-muted italic">No skills added yet.</span>
+                          )}
+                        </div>
+                        {isEditing && (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={skillInput}
+                              onChange={(e) => setSkillInput(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleAddSkill(e)}
+                              placeholder="Add a skill (e.g. React, Python) and press Enter"
+                              className="flex-1 bg-portal-bg border border-portal-border rounded-xl px-4 py-2 text-sm text-portal-text outline-none focus:border-portal-accent transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddSkill}
+                              className="px-4 py-2 bg-portal-border text-portal-text hover:bg-portal-accent hover:text-white rounded-xl text-sm font-bold transition-all"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {isEditing && (

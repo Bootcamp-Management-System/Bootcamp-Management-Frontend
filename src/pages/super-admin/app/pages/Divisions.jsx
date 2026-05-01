@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Filter, Search, Plus, Building2, Users } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { divisionService } from '../../../../services/divisionService';
@@ -8,10 +8,13 @@ import { userService } from '../../../../services/userService';
 
 export function Divisions() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialSearch = queryParams.get('search') || '';
   const [divisions, setDivisions] = useState([]);
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [isLoading, setIsLoading] = useState(true);
 
   const uniqueCategories = useMemo(() => {

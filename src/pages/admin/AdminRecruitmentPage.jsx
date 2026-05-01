@@ -15,13 +15,18 @@ import {
 import { bootcampService } from '../../services/bootcampService';
 import { divisionService } from '../../services/divisionService';
 import { useAuth } from '../../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { TemplateBuilder } from '../../components/admin/TemplateBuilder';
 import { PipelineManager } from '../../components/admin/PipelineManager';
 import sessionService from '../../services/sessionService';
 
 export const AdminRecruitmentPage = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialSearch = queryParams.get('search') || '';
   const [bootcamps, setBootcamps] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedBootcamp, setSelectedBootcamp] = useState(null);
   const [view, setView] = useState('template'); // 'template' or 'applications'
   const [loading, setLoading] = useState(true);
@@ -202,7 +207,9 @@ export const AdminRecruitmentPage = () => {
           <div className="bg-portal-card border border-portal-border rounded-3xl p-6 shadow-xl">
             <h3 className="text-xs font-bold text-portal-text-muted uppercase tracking-widest mb-6">Select Bootcamp</h3>
             <div className="space-y-2">
-              {bootcamps.map(bootcamp => {
+              {bootcamps
+                .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(bootcamp => {
                 const isActive = selectedBootcamp?._id === bootcamp._id;
                 return (
                   <div

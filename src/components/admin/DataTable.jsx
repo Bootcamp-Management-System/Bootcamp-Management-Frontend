@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 
-export const DataTable = ({ columns, data, actions = [], searchPlaceholder = 'Search...' }) => {
-  const [query, setQuery] = useState('');
+export const DataTable = ({ columns, data, actions = [], searchPlaceholder = 'Search...', defaultQuery = '' }) => {
+  const [query, setQuery] = useState(defaultQuery);
 
   const filteredData = useMemo(() => {
     const normalized = query.trim().toLowerCase();

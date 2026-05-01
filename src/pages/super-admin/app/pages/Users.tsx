@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Filter, Mail, ShieldAlert, GraduationCap, ArrowUpCircle, ArrowDownCircle, UserPlus, BookOpen, BarChart3, MoreVertical, Users as MembersIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { cn } from '../../lib/utils';
@@ -14,11 +14,14 @@ import { divisionService } from '../../../../services/divisionService';
 
 export function Users() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialSearch = queryParams.get('search') || '';
   const [users, setUsers] = useState<any[]>([]);
   const [divisions, setDivisions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Member');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedDivision, setSelectedDivision] = useState('All Divisions');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');

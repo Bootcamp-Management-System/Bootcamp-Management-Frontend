@@ -11,11 +11,34 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  verified: boolean;
+  createdAt: string;
+  skills?: string[];
+  memberships?: Array<{
+    division: {
+      name: string;
+      _id: string;
+    };
+    isInstructor: boolean;
+    isMember: boolean;
+  }>;
+}
+
+interface Division {
+  _id: string;
+  name: string;
+}
+
 export function UserDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [divisions, setDivisions] = useState([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [divisions, setDivisions] = useState<Division[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Edit State
@@ -53,6 +76,7 @@ export function UserDetails() {
   };
 
   const handleDeleteUser = async () => {
+    if (!user) return;
     if (!window.confirm(`Are you sure you want to delete ${user.name}? This action cannot be undone.`)) {
       return;
     }
@@ -61,7 +85,7 @@ export function UserDetails() {
       await userService.deleteUser(user._id);
       toast.success(`${user.name} has been deleted successfully.`);
       navigate('/super-admin/users');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting user:', error);
       toast.error(error.response?.data?.message || 'Failed to delete user');
     }
@@ -73,12 +97,13 @@ export function UserDetails() {
       return;
     }
     
+    if (!user) return;
     try {
       await userService.updateUser(user._id, editForm);
       toast.success('User updated successfully');
       setIsEditOpen(false);
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user:', error);
       toast.error(error.response?.data?.message || 'Failed to update user');
     }
@@ -94,6 +119,7 @@ export function UserDetails() {
       return;
     }
 
+    if (!user) return;
     try {
       const response = await userService.promoteUser(user._id, {
         newRole: promoteForm.role,
@@ -110,7 +136,7 @@ export function UserDetails() {
       setIsPromoteOpen(false);
       setPromoteForm({ ...promoteForm, reason: '' });
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error promoting user:', error);
       toast.error(error.response?.data?.message || 'Failed to promote user');
     }
@@ -122,8 +148,8 @@ export function UserDetails() {
   const userRole = user.role?.toLowerCase() || 'student';
   const displayRole = user.role === 'super-admin' ? 'Super Admin' : user.role;
 
-  // Mock skills since they aren't directly in the schema yet, but are useful for UI showcase
-  const mockSkills = ['JavaScript', 'React', 'Node.js', 'Python', 'Problem Solving'];
+  // User skills mapping
+  const userSkills = user.skills && user.skills.length > 0 ? user.skills : [];
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -227,12 +253,16 @@ export function UserDetails() {
           <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-[#24292f] dark:text-[#c9d1d9] mb-4 uppercase tracking-wider">Technical Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {mockSkills.map((skill, idx) => (
-                <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#ddf4ff] text-[#0969da] dark:bg-[#042f3a] dark:text-[#58a6ff] border border-[#0969da]/20">
-                  <Code className="w-3 h-3" />
-                  {skill}
-                </span>
-              ))}
+              {userSkills.length > 0 ? (
+                userSkills.map((skill: string, idx: number) => (
+                  <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#ddf4ff] text-[#0969da] dark:bg-[#042f3a] dark:text-[#58a6ff] border border-[#0969da]/20">
+                    <Code className="w-3 h-3" />
+                    {skill}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-[#57606a] dark:text-[#8b949e] italic">No skills listed</span>
+              )}
             </div>
           </div>
 
@@ -260,7 +290,7 @@ export function UserDetails() {
             </div>
             
             <div className="grid gap-4 sm:grid-cols-2">
-              {(user.memberships || []).map((membership, i) => (
+              {(user.memberships || []).map((membership: any, i: number) => (
                 <div key={i} className="p-4 rounded-xl border border-[#d0d7de] dark:border-[#30363d] bg-[#f6f8fa] dark:bg-[#0d1117] flex flex-col h-full relative overflow-hidden group hover:border-[#0969da] dark:hover:border-[#58a6ff] transition-colors">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[#0969da] dark:bg-[#58a6ff]"></div>
                   <div className="flex justify-between items-start mb-3">

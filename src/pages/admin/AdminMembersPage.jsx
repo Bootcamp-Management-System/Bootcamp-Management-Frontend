@@ -12,9 +12,13 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { divisionService } from '../../services/divisionService';
 import { userService } from '../../services/userService';
+import { useLocation } from 'react-router-dom';
 
 export const AdminMembersPage = () => {
   const { user: admin, selectedDivision } = useAuth();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialSearch = queryParams.get('search') || '';
   const [divisions, setDivisions] = React.useState([]);
   const [users, setUsers] = React.useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -117,6 +121,7 @@ export const AdminMembersPage = () => {
 
   React.useEffect(() => {
     const filtered = users
+      .filter((u) => u.is_Member === true)
       .map(buildDisplayUser)
       .filter((user) => 
         currentDivision === 'All' || 
@@ -287,6 +292,7 @@ export const AdminMembersPage = () => {
         data={members} 
         actions={actions}
         searchPlaceholder="Search members by name, email or ID..."
+        defaultQuery={initialSearch}
       />
 
       <AdminModal 
